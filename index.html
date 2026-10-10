@@ -742,7 +742,10 @@
 
         fetch(WEB_APP_URL + "?action=getHistory")
         .then(res => res.json())
-        .then(data => { serverHistory = data; })
+        .then(data => { 
+            serverHistory = data; 
+            checkStaffProgress(); // Otomatis hitung ulang skor dari riwayat server saat data dimuat
+        })
         .catch(err => console.log("Gagal memuat riwayat:", err));
 
         initDashboard();
@@ -840,6 +843,9 @@
 
         Object.keys(phasesData).forEach(p => completedPhases[p] = false);
 
+        // Reset skor lokal saat ganti staff/toko
+        for (let k in scores) delete scores[k];
+
         if (!staffVal || !storeInputVal) {
             statusBox.style.display = 'none';
             initDashboard();
@@ -854,6 +860,13 @@
         staffRecords.forEach(rec => {
             if (phasesData[rec.phaseName]) {
                 completedPhases[rec.phaseName] = true;
+                // Ambil kembali skor yang tersimpan di server agar terhitung di total skor
+                if (rec.scores) {
+                    let parsedScores = typeof rec.scores === 'string' ? JSON.parse(rec.scores) : rec.scores;
+                    for (let id in parsedScores) {
+                        scores[id] = Number(parsedScores[id]);
+                    }
+                }
             }
         });
 
