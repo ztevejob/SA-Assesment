@@ -189,7 +189,7 @@
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw3ND9xZjARxGIgLJSczpyW1w4J2gsTgJ3oeSJV7XYOx6K0J6JPKnSFr0f5stjS_kEe/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwj6kSVjpGhnlZNRZziVzV0MepW649J03rliO6XjZjxCBGk-3i5zh3fb991Bbif529w/exec";
 
     let masterEmployees = [];
     let serverHistory = [];
@@ -411,7 +411,8 @@
             coachingDate: coachingDate,
             phaseName: activePhaseKey,
             totalScore: total > 100 ? 100 : total,
-            scores: scores
+            scores: scores,
+            notes: notes
         };
 
         alert('Mengirim data fase ke Google Sheets...');
