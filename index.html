@@ -148,7 +148,7 @@
 <div class="container">
     <header>
         <h1>Digimap & Digiplus Assessment Dashboard</h1>
-        <div class="subtitle">Sistem Penilaian Bertahap dengan Data Master Karyawan & Deteksi Sisa Asesmen</div>
+        <div class="subtitle">Sistem Penilaian Bertahap dengan Autofill Toko & Staff Otomatis</div>
     </header>
     
     <div class="meta-box">
@@ -159,7 +159,7 @@
         </div>
         <div class="form-group">
             <label>Nama Staff / Sales Assistant</label>
-            <input type="text" id="staffInput" list="staffListOptions" placeholder="Ketik atau pilih nama staff..." oninput="checkStaffProgress()">
+            <input type="text" id="staffInput" list="staffListOptions" placeholder="Pilih toko terlebih dahulu..." oninput="checkStaffProgress()">
             <datalist id="staffListOptions"></datalist>
         </div>
         <div class="form-group">
@@ -231,9 +231,8 @@
     const completedPhases = {};
     let activePhaseKey = "";
 
-    // Load data Master Karyawan dan Riwayat saat halaman dibuka
     window.onload = function() {
-        // Tarik Master Karyawan
+        // Tarik Master Karyawan dari Google Sheets
         fetch(WEB_APP_URL)
         .then(res => res.json())
         .then(data => {
@@ -263,10 +262,18 @@
         document.getElementById('staffInput').value = '';
         document.getElementById('statusInfoBox').style.display = 'none';
 
+        // Filter staff berdasarkan toko yang dipilih secara otomatis
         let filteredStaff = masterEmployees.filter(item => item.store.toLowerCase() === store.toLowerCase());
-        filteredStaff.forEach(staff => {
-            staffDatalist.innerHTML += `<option value="${staff.name}">`;
-        });
+        
+        if (filteredStaff.length > 0) {
+            filteredStaff.forEach(staff => {
+                staffDatalist.innerHTML += `<option value="${staff.name}">`;
+            });
+            document.getElementById('staffInput').placeholder = "Ketik atau pilih nama staff...";
+        } else {
+            document.getElementById('staffInput').placeholder = "-- Toko tidak ditemukan / Pilih toko dulu --";
+        }
+        
         initDashboard();
     }
 
