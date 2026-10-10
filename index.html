@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digimap & Digiplus Assessment - Staged Dashboard</title>
+    <title>Digimap Assessment Dashboard</title>
     <style>
         :root {
             --primary: #0071e3;
@@ -25,7 +25,7 @@
             line-height: 1.5;
         }
         .container {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
             background: var(--card);
             padding: 30px;
@@ -60,6 +60,49 @@
             font-size: 13px;
             background: #fff;
             box-sizing: border-box;
+        }
+
+        /* Tabel Summary Store */
+        .store-summary-container {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: none;
+        }
+        .store-summary-container h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: var(--primary);
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .summary-table th, .summary-table td {
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            text-align: left;
+        }
+        .summary-table th {
+            background: var(--gray-bg);
+            font-weight: 600;
+        }
+        .badge-done {
+            background: #dcfce7;
+            color: #16a34a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .badge-pending {
+            background: #fef3c7;
+            color: #d97706;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
         }
 
         .phase-grid {
@@ -168,6 +211,26 @@
         </div>
     </div>
 
+    <!-- Tabel Ringkasan Staff Toko -->
+    <div id="storeSummaryBox" class="store-summary-container">
+        <h4 id="summaryStoreTitle">📊 Ringkasan Asesmen Staff Toko</h4>
+        <div style="overflow-x: auto;">
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Staff</th>
+                        <th>Fase Selesai</th>
+                        <th>Status / Belum Selesai</th>
+                    </tr>
+                </thead>
+                <tbody id="storeSummaryTableBody">
+                    <!-- Data dimasukkan secara dinamis via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div id="statusInfoBox" class="status-info" style="display: none;">
         🔍 <b>Status Asesmen Staff:</b> <span id="progressStatusText">Memeriksa data...</span>
     </div>
@@ -189,7 +252,7 @@
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz81R3CFyzJRUK1sa42ACgV1mkeIVQVC81-9BhTDzeb2aJY46Qw11MIAeAngFTPFHjB/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyovBFAXFtxLLl07MMFKTEJGc9F54wovW1TgPMS3paEdBeHdYaOYuQK7VEOSMfkQZDP/exec";
 
     let masterEmployees = [];
     let serverHistory = [];
@@ -242,7 +305,6 @@
             stores.forEach(store => {
                 storeDatalist.innerHTML += `<option value="${store}">`;
             });
-            console.log("Master Karyawan dimuat:", data.length, "data");
         })
         .catch(err => console.log("Gagal memuat master karyawan:", err));
 
@@ -261,7 +323,10 @@
         document.getElementById('staffInput').value = '';
         document.getElementById('statusInfoBox').style.display = 'none';
 
-        if (!storeInputVal) return;
+        if (!storeInputVal) {
+            document.getElementById('storeSummaryBox').style.display = 'none';
+            return;
+        }
 
         let filteredStaff = masterEmployees.filter(item => 
             item.store && item.store.trim().toLowerCase().includes(storeInputVal)
@@ -272,11 +337,69 @@
                 staffDatalist.innerHTML += `<option value="${staff.name.trim()}">`;
             });
             document.getElementById('staffInput').placeholder = "Ketik atau pilih nama staff...";
+            
+            // Tampilkan tabel summary staff toko
+            renderStoreSummary(storeInputVal, filteredStaff);
         } else {
             document.getElementById('staffInput').placeholder = "-- Toko tidak ditemukan dalam Master --";
+            document.getElementById('storeSummaryBox').style.display = 'none';
         }
         
         initDashboard();
+    }
+
+    function renderStoreSummary(storeQuery, staffList) {
+        const summaryBox = document.getElementById('storeSummaryBox');
+        const tableBody = document.getElementById('storeSummaryTableBody');
+        const titleEl = document.getElementById('summaryStoreTitle');
+        
+        titleEl.innerText = `📊 Ringkasan Asesmen Staff Toko (${document.getElementById('storeInput').value.trim()})`;
+        tableBody.innerHTML = '';
+        summaryBox.style.display = 'block';
+
+        const totalAllPhases = Object.keys(phasesData).length;
+
+        staffList.forEach((staff, index) => {
+            let staffNameLower = staff.name.trim().toLowerCase();
+            // Cari riwayat submit untuk staff ini di toko terkait
+            let staffRecords = serverHistory.filter(r => 
+                r.store && r.store.trim().toLowerCase().includes(storeQuery) && 
+                r.staffName && r.staffName.trim().toLowerCase() === staffNameLower
+            );
+
+            let completedPhasesList = [];
+            staffRecords.forEach(rec => {
+                if (phasesData[rec.phaseName] && !completedPhasesList.includes(rec.phaseName)) {
+                    completedPhasesList.push(rec.phaseName);
+                }
+            });
+
+            let doneCount = completedPhasesList.length;
+            let statusBadge = "";
+            let detailsText = "";
+
+            if (doneCount === totalAllPhases) {
+                statusBadge = `<span class="badge-done">Selesai Semua (6/6)</span>`;
+                detailsText = "Semua fase telah diselesaikan.";
+            } else if (doneCount > 0) {
+                let allPhaseKeys = Object.keys(phasesData);
+                let missing = allPhaseKeys.filter(p => !completedPhasesList.includes(p));
+                statusBadge = `<span class="badge-pending">Belum Lengkap (${doneCount}/${totalAllPhases})</span>`;
+                detailsText = `Kurang: ${missing.map(m => m.split(':')[0]).join(', ')}`;
+            } else {
+                statusBadge = `<span class="badge-pending">Belum Dinilai (0/${totalAllPhases})</span>`;
+                detailsText = "Belum ada fase yang dinilai.";
+            }
+
+            tableBody.innerHTML += `
+                <tr>
+                    <td style="text-align: center;">${index + 1}</td>
+                    <td style="font-weight: 600;">${staff.name.trim()}</td>
+                    <td>${statusBadge}</td>
+                    <td style="font-size: 11px; color: var(--text-secondary);">${detailsText}</td>
+                </tr>
+            `;
+        });
     }
 
     function checkStaffProgress() {
