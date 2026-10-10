@@ -8,6 +8,7 @@
         :root {
             --primary: #0071e3;
             --success: #34c759;
+            --whatsapp: #25d366;
             --warning: #ff9500;
             --danger: #ff3b30;
             --bg: #f5f5f7;
@@ -64,6 +65,7 @@
             box-sizing: border-box;
         }
 
+        /* Dashboard Kartu Fase */
         .phase-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -77,10 +79,12 @@
             padding: 18px;
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
         }
         .phase-card:hover {
             border-color: var(--primary);
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         .phase-card.completed {
             border-color: var(--success);
@@ -108,21 +112,37 @@
             color: #16a34a;
         }
 
+        /* Tampilan Form Per Fase */
         .assessment-view { display: none; }
         .assessment-view.active { display: block; }
         
         .back-btn {
-            background: #e5e5ea; border: none; padding: 8px 14px;
-            font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 20px;
+            background: #e5e5ea;
+            border: none;
+            padding: 8px 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-bottom: 20px;
         }
         .item-card {
-            background: var(--gray-bg); border: 1px solid #e5e5ea;
-            border-radius: 8px; padding: 15px; margin-bottom: 15px;
+            background: var(--gray-bg);
+            border: 1px solid #e5e5ea;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
         }
         .item-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
         .criteria-text {
-            font-size: 11px; background: #fff; padding: 10px; border-radius: 6px;
-            border-left: 3px solid var(--primary); margin-bottom: 10px; white-space: pre-line;
+            font-size: 11px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary);
+            margin-bottom: 10px;
+            white-space: pre-line;
+            font-family: inherit;
         }
         .score-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
         .pill-btn {
@@ -137,24 +157,27 @@
             background: var(--success); color: white; border: none; padding: 12px 20px;
             font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; font-size: 15px; margin-top: 20px;
         }
+
         .floating-summary {
             background: #e8f2fd; border: 1px solid #b3d7ff; padding: 20px; border-radius: 12px; margin-top: 25px;
             display: flex; justify-content: space-between; align-items: center; font-weight: 700;
         }
+        .btn-action { background: var(--primary); color: #fff; border: none; padding: 10px 18px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 13px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>Digimap & Digiplus Assessment</h1>
-        <div class="subtitle">Sinkronisasi Otomatis dengan Tab "Master Karyawan" & Tab "Submit"</div>
+        <h1>Digimap & Digiplus Assessment Dashboard</h1>
+        <div class="subtitle">Sistem Penilaian Bertahap (Cicil Per Fase) Terhubung ke Google Sheets</div>
     </header>
     
+    <!-- Bagian Identitas & Validasi Toko / Staff -->
     <div class="meta-box">
         <div class="form-group">
             <label>Pilih Toko / Store</label>
-            <select id="storeSelect" onchange="filterStaffByStore()">
+            <select id="storeSelect" onchange="updateStaffList()">
                 <option value="">-- Memuat Data Toko... --</option>
             </select>
         </div>
@@ -170,31 +193,33 @@
         </div>
     </div>
 
-    <!-- DASHBOARD 6 FASE -->
+    <!-- TAMPILAN UTAMA: DASHBOARD 6 FASE -->
     <div id="dashboardView">
-        <h3 style="margin-bottom: 15px; font-size: 16px;">Pilih Fase Asesmen:</h3>
-        <div class="phase-grid" id="phaseGridContainer"></div>
+        <h3 style="margin-bottom: 15px; font-size: 16px;">Pilih Fase Asesmen yang Ingin Dinilai:</h3>
+        <div class="phase-grid" id="phaseGridContainer">
+            <!-- Dibuat otomatis oleh JavaScript -->
+        </div>
+
         <div class="floating-summary">
-            <div>Total Skor Sementara: <span id="totalScoreVal" style="color: var(--primary); font-size: 20px;">0 / 100</span></div>
+            <div>Total Skor Keseluruhan Sementara: <span id="totalScoreVal" style="color: var(--primary); font-size: 20px;">0 / 100</span></div>
+            <button type="button" class="btn-action" onclick="exportFinalReport()">📥 Rekap / Ekspor Laporan</button>
         </div>
     </div>
 
-    <!-- FORM DETAIL PER FASE -->
+    <!-- TAMPILAN DETAIL FORM PER FASE -->
     <div id="phaseFormView" class="assessment-view">
         <button type="button" class="back-btn" onclick="backToDashboard()">← Kembali ke Menu Fase</button>
         <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0;"></h2>
         <div id="phaseQuestionsContainer"></div>
-        <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Selesaikan Fase Ini ke Google Sheets</button>
+        <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Kirim ke Google Sheets</button>
     </div>
 </div>
 
 <script>
     let employeeDatabase = [];
-
-    // URL Web App Google Apps Script Anda yang sudah terhubung
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGIZtO-V5OHoc5j-I6EWA0-lhFhHb0TenYq72SjuA0ULMUjS70N8VtS-lCNon1ZEdI/exec";
 
-    // Tarik data master karyawan dari Google Sheet saat halaman dimuat
+    // Tarik data Master Karyawan dari Google Sheet saat halaman dimuat
     function loadMasterData() {
         fetch(WEB_APP_URL)
         .then(response => response.json())
@@ -208,12 +233,50 @@
             });
         })
         .catch(error => {
-            console.error("Gagal memuat master karyawan:", error);
+            console.error("Gagal memuat master:", error);
             document.getElementById('storeSelect').innerHTML = '<option value="">Gagal memuat data toko</option>';
         });
     }
 
-    function filterStaffByStore() {
+    // 6 Fase Kategori Asesmen Lengkap
+    const phasesData = {
+        "Fase 1: Foundation (Professional & Retail)": [
+            { id: 1, sub: "Professional Image", detail: "Make up / Penampilan Wajah", criteria: "Penampilan wajah baik dan rapi (Wanita: Tata rias | Laki-laki: Rambut wajah bersih)", max: 1 },
+            { id: 2, sub: "Professional Image", detail: "Smell / Aroma", criteria: "Parfum ringan & segar, tidak berbau menyengat/rokok/bawang", max: 1 },
+            { id: 3, sub: "Professional Image", detail: "Hair / Rambut", criteria: "0: Tidak terawat | 1: Bersih & disisir | 2: Ditata baik & rapih", max: 2 },
+            { id: 4, sub: "Professional Image", detail: "Uniform / Seragam", criteria: "Seragam rapih, celana hitam/navy menutupi mata kaki, sneakers bersih", max: 2 },
+            { id: 5, sub: "Professional Image", detail: "Nails & Accessories", criteria: "Kuku bersih tanpa cat kuku/extension & aksesori sesuai batas wajar", max: 2 },
+            { id: 6, sub: "Connect", detail: "Perkenalan Diri & Sambutan", criteria: "Menyebutkan nama ('Nama saya Dewi') & sambutan standar Digimap/Digiplus", max: 2 },
+            { id: 7, sub: "Retail Excellence", detail: "Teroganisir & Observasi Store", criteria: "Pengaturan demo produk sesuai planogram, kebersihan toko & area aman", max: 4 }
+        ],
+        "Fase 2: Engage (Percaya Diri & Bertanya)": [
+            { id: 8, sub: "Percaya Diri", detail: "Bahasa Tubuh & Postur Badan", criteria: "Sikap sales assistant, postur berdiri, kontak mata, dan ekspresi nyaman", max: 4 },
+            { id: 9, sub: "EQ & Suara", detail: "Fleksibilitas & Vokal", criteria: "Adaptif dengan tipe customer berbeda, volume nyaman, serta ekspresi vokal sopan", max: 4 },
+            { id: 10, sub: "Keterampilan Bertanya", detail: "Open-ended, Deep Dive & Klarifikasi", criteria: "Mengajukan minimal 4 pertanyaan terbuka, menggali masalah, & konfirmasi klarifikasi", max: 8 }
+        ],
+        "Fase 3: Recommend (Demo & Storytelling)": [
+            { id: 11, sub: "Mencerminkan Keterampilan", detail: "Merangkum, Inisiasi Demo & Tip", criteria: "Merangkum kekhawatiran customer, inisiasi demo alami, & berbagi tip pengguna", max: 10 },
+            { id: 12, sub: "Keterampilan Demonstrasi", detail: "Product Demo & Creative Demo", criteria: "Demo utama produk Apple (iPhone/iPad/Mac) + Teknologi + Bonus kreatif", max: 17 },
+            { id: 13, sub: "Storytelling Skills", detail: "Narrative, Relatability & Rediscovery", criteria: "Cerita akurat, hook, pengalaman pribadi, kosakata teknologi yang mudah dipahami", max: 13 }
+        ],
+        "Fase 4: Asking & Analyze (Active Listening)": [
+            { id: 14, sub: "Active Listening", detail: "Rapport Building & Attentiveness", criteria: "Mendengarkan tanpa menyela, perhatian penuh, & respons non-verbal (mengangguk/senyum)", max: 7 }
+        ],
+        "Fase 5: Easy Deal (Negotiation & Upselling)": [
+            { id: 15, sub: "Negotiation Skills", detail: "Counter Objection, Positivity & Convincing", criteria: "Solusi alternatif keberatan, sikap positif, empati, & pencocokan teknologi", max: 11 },
+            { id: 16, sub: "Sales Initiation", detail: "Closing, Upselling & Apple Care", criteria: "Closing kreatif, upselling, tips perawatan, garansi, serta Apple Care", max: 11 }
+        ],
+        "Fase 6: Settle & Support (Purchase / Non-purchase)": [
+            { id: 17, sub: "Garansi & Prospek", detail: "Registrasi Garansi atau Pengumpulan Data", criteria: "Memulai registrasi garansi atau pengumpulan data MAP Club serta mengundang kembali", max: 5 }
+        ]
+    };
+
+    const scores = {};
+    const notes = {};
+    const completedPhases = {};
+    let activePhaseKey = "";
+
+    function updateStaffList() {
         const store = document.getElementById('storeSelect').value;
         const staffSelect = document.getElementById('staffSelect');
         staffSelect.innerHTML = '<option value="">-- Pilih Staff --</option>';
@@ -224,48 +287,20 @@
         });
     }
 
-    const phasesData = {
-        "Fase 1: Foundation (Professional & Retail)": [
-            { id: 1, sub: "Professional Image", detail: "Make up / Penampilan Wajah", criteria: "Penampilan wajah baik dan rapi", max: 1 },
-            { id: 2, sub: "Professional Image", detail: "Smell / Aroma", criteria: "Parfum ringan & segar", max: 1 },
-            { id: 3, sub: "Professional Image", detail: "Hair / Rambut", criteria: "Bersih, disisir, dan dirapikan atau ditata rapi", max: 2 },
-            { id: 4, sub: "Professional Image", detail: "Uniform / Seragam", criteria: "Seragam rapih, celana hitam/navy menutupi mata kaki", max: 2 },
-            { id: 5, sub: "Professional Image", detail: "Nails & Accessories", criteria: "Kuku bersih & aksesori sesuai batas wajar", max: 2 }
-        ],
-        "Fase 2: Engage (Percaya Diri & Bertanya)": [
-            { id: 6, sub: "Percaya Diri", detail: "Bahasa Tubuh & Postur Badan", criteria: "Sikap sales assistant, postur berdiri, kontak mata", max: 4 }
-        ],
-        "Fase 3: Recommend (Demo & Storytelling)": [
-            { id: 7, sub: "Keterampilan Demonstrasi", detail: "Product Demo & Tip Pengguna", criteria: "Demo utama produk Apple + Teknologi", max: 10 }
-        ],
-        "Fase 4: Asking & Analyze (Active Listening)": [
-            { id: 8, sub: "Active Listening", detail: "Rapport Building & Attentiveness", criteria: "Mendengar tanpa menyela, perhatian penuh", max: 7 }
-        ],
-        "Fase 5: Easy Deal (Negotiation & Upselling)": [
-            { id: 9, sub: "Negotiation Skills", detail: "Counter Objection & Upselling", criteria: "Solusi alternatif keberatan & upselling", max: 11 }
-        ],
-        "Fase 6: Settle & Support": [
-            { id: 10, sub: "Garansi & Prospek", detail: "Registrasi Garansi / Pengumpulan Data", criteria: "Registrasi garansi atau pengumpulan data MAP Club", max: 5 }
-        ]
-    };
-
-    const scores = {};
-    const notes = {};
-    const completedPhases = {};
-    let activePhaseKey = "";
-
     function initDashboard() {
         const gridContainer = document.getElementById('phaseGridContainer');
         gridContainer.innerHTML = '';
 
         Object.keys(phasesData).forEach(phaseName => {
             let isDone = completedPhases[phaseName];
+            let badgeText = isDone ? "Sudah Dinilai ✓" : "Belum Dinilai";
             let cardClass = isDone ? "phase-card completed" : "phase-card";
+
             gridContainer.innerHTML += `
                 <div class="${cardClass}" onclick="openPhase('${phaseName}')">
                     <div class="phase-title">${phaseName}</div>
-                    <div class="phase-desc">Klik untuk menilai fase ini.</div>
-                    <span class="phase-badge">${isDone ? "Sudah Dinilai ✓" : "Belum Dinilai"}</span>
+                    <div class="phase-desc">Klik untuk melakukan asesmen pada fase ini.</div>
+                    <span class="phase-badge">${badgeText}</span>
                 </div>
             `;
         });
@@ -276,8 +311,9 @@
         const store = document.getElementById('storeSelect').value;
         const staff = document.getElementById('staffSelect').value;
         const date = document.getElementById('coachingDate').value;
+
         if (!store || !staff || !date) {
-            alert('⚠️ Mohon pilih Toko, Nama Staff, dan Tanggal Coaching terlebih dahulu!');
+            alert('⚠️ PERINGATAN VALIDASI:\nMohon pilih Toko, Nama Staff, dan Tanggal Coaching terlebih dahulu di bagian atas!');
             return false;
         }
         return true;
@@ -285,6 +321,7 @@
 
     function openPhase(phaseName) {
         if (!validateMeta()) return;
+
         activePhaseKey = phaseName;
         document.getElementById('dashboardView').style.display = 'none';
         document.getElementById('phaseFormView').style.display = 'block';
@@ -302,14 +339,17 @@
                     <div style="font-size: 11px; font-weight: 700; color: #6e6e73; margin-bottom: 4px;">ASPEK: ${item.sub.toUpperCase()} (Maks: ${item.max})</div>
                     <div class="item-title">${item.detail}</div>
                     <div class="criteria-text">${item.criteria}</div>
-                    <div class="score-pills">
+                    <div class="score-pills" id="pills_${item.id}">
             `;
+
             for (let i = 0; i <= item.max; i++) {
                 let isSelected = scores[item.id] === i ? 'selected' : '';
                 html += `<button type="button" class="pill-btn ${isSelected}" onclick="setScore(${item.id}, ${i}, '${phaseName}')">${i}</button>`;
             }
-            html += `</div>
-                    <input type="text" class="note-input" value="${notes[item.id]}" oninput="setNote(${item.id}, this.value)" placeholder="Catatan opsional">
+
+            html += `
+                    </div>
+                    <input type="text" class="note-input" value="${notes[item.id]}" oninput="setNote(${item.id}, this.value)" placeholder="Catatan / Alasan non-scoring (opsional)">
                 </div>
             `;
             container.innerHTML += html;
@@ -322,11 +362,14 @@
         calculateTotal();
     }
 
-    function setNote(itemId, val) { notes[itemId] = val; }
+    function setNote(itemId, val) {
+        notes[itemId] = val;
+    }
 
     function calculateTotal() {
         let total = Object.values(scores).reduce((a, b) => a + b, 0);
-        document.getElementById('totalScoreVal').innerText = `${total > 100 ? 100 : total} / 100`;
+        let finalTotal = total > 100 ? 100 : total;
+        document.getElementById('totalScoreVal').innerText = `${finalTotal} / 100`;
     }
 
     function submitCurrentPhase() {
@@ -354,7 +397,7 @@
         })
         .then(() => {
             completedPhases[activePhaseKey] = true;
-            alert(`✅ Fase "${activePhaseKey}" berhasil tersimpan ke tab "Submit"!`);
+            alert(`✅ Sukses! Fase "${activePhaseKey}" berhasil dikirim dan dicatat ke tab "Submit".`);
             backToDashboard();
         })
         .catch(error => {
@@ -366,6 +409,16 @@
         document.getElementById('phaseFormView').style.display = 'none';
         document.getElementById('dashboardView').style.display = 'block';
         initDashboard();
+    }
+
+    function exportFinalReport() {
+        if (!validateMeta()) return;
+        const store = document.getElementById('storeSelect').value;
+        const staff = document.getElementById('staffSelect').value;
+        const date = document.getElementById('coachingDate').value;
+        let total = Object.values(scores).reduce((a, b) => a + b, 0);
+
+        alert(`📊 REKAPITULASI ASESMEN:\nStore: ${store}\nStaff: ${staff}\nTanggal: ${date}\nTotal Skor: ${total > 100 ? 100 : total} / 100`);
     }
 
     window.onload = loadMasterData;
