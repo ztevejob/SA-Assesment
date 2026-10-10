@@ -154,12 +154,12 @@
     <div class="meta-box">
         <div class="form-group">
             <label>Pilih Toko / Store</label>
-            <input type="text" id="storeInput" list="storeListOptions" placeholder="Ketik atau pilih toko..." oninput="onStoreChange()">
+            <input type="text" id="storeInput" list="storeListOptions" placeholder="Ketik atau pilih toko..." oninput="onStoreChange()" onchange="onStoreChange()" onblur="onStoreChange()">
             <datalist id="storeListOptions"></datalist>
         </div>
         <div class="form-group">
             <label>Nama Staff / Sales Assistant</label>
-            <input type="text" id="staffInput" list="staffListOptions" placeholder="Pilih toko terlebih dahulu..." oninput="checkStaffProgress()">
+            <input type="text" id="staffInput" list="staffListOptions" placeholder="Pilih toko terlebih dahulu..." oninput="checkStaffProgress()" onchange="checkStaffProgress()" onblur="checkStaffProgress()">
             <datalist id="staffListOptions"></datalist>
         </div>
         <div class="form-group">
@@ -189,7 +189,7 @@
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGIZtO-V5OHoc5j-I6EWA0-lhFhHb0TenYq72SjuA0ULMUjS70N8VtS-lCNon1ZEdI/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxqdiwcdvQd3GkfHY7ZGUyyXWB8BvFiMbzLfGQZray1L05bwJr_xFFxDf7GDZ_uzfyR/exec";
 
     let masterEmployees = [];
     let serverHistory = [];
@@ -237,12 +237,13 @@
         .then(res => res.json())
         .then(data => {
             masterEmployees = data;
-            let stores = [...new Set(data.map(item => item.store))];
+            let stores = [...new Set(data.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
             let storeDatalist = document.getElementById('storeListOptions');
             storeDatalist.innerHTML = '';
             stores.forEach(store => {
                 storeDatalist.innerHTML += `<option value="${store}">`;
             });
+            console.log("Master Karyawan dimuat:", data.length, "data");
         })
         .catch(err => console.log("Gagal memuat master karyawan:", err));
 
@@ -256,42 +257,49 @@
     };
 
     function onStoreChange() {
-        const store = document.getElementById('storeInput').value.trim();
+        const storeInputVal = document.getElementById('storeInput').value.trim().toLowerCase();
         const staffDatalist = document.getElementById('staffListOptions');
         staffDatalist.innerHTML = '';
         document.getElementById('staffInput').value = '';
         document.getElementById('statusInfoBox').style.display = 'none';
 
-        // Filter staff berdasarkan toko yang dipilih secara otomatis
-        let filteredStaff = masterEmployees.filter(item => item.store.toLowerCase() === store.toLowerCase());
+        if (!storeInputVal) return;
+
+        // Filter staff berdasarkan kemiripan/kecocokan nama toko
+        let filteredStaff = masterEmployees.filter(item => 
+            item.store && item.store.trim().toLowerCase().includes(storeInputVal)
+        );
         
         if (filteredStaff.length > 0) {
             filteredStaff.forEach(staff => {
-                staffDatalist.innerHTML += `<option value="${staff.name}">`;
+                staffDatalist.innerHTML += `<option value="${staff.name.trim()}">`;
             });
             document.getElementById('staffInput').placeholder = "Ketik atau pilih nama staff...";
         } else {
-            document.getElementById('staffInput').placeholder = "-- Toko tidak ditemukan / Pilih toko dulu --";
+            document.getElementById('staffInput').placeholder = "-- Toko tidak ditemukan dalam Master --";
         }
         
         initDashboard();
     }
 
     function checkStaffProgress() {
-        const store = document.getElementById('storeInput').value.trim();
-        const staff = document.getElementById('staffInput').value.trim();
+        const storeInputVal = document.getElementById('storeInput').value.trim().toLowerCase();
+        const staffVal = document.getElementById('staffInput').value.trim().toLowerCase();
         const statusBox = document.getElementById('statusInfoBox');
         const statusText = document.getElementById('progressStatusText');
 
         Object.keys(phasesData).forEach(p => completedPhases[p] = false);
 
-        if (!staff || !store) {
+        if (!staffVal || !storeInputVal) {
             statusBox.style.display = 'none';
             initDashboard();
             return;
         }
 
-        const staffRecords = serverHistory.filter(r => r.store.toLowerCase() === store.toLowerCase() && r.staffName.toLowerCase() === staff.toLowerCase());
+        const staffRecords = serverHistory.filter(r => 
+            r.store && r.store.trim().toLowerCase().includes(storeInputVal) && 
+            r.staffName && r.staffName.trim().toLowerCase() === staffVal
+        );
         
         staffRecords.forEach(rec => {
             if (phasesData[rec.phaseName]) {
@@ -304,7 +312,7 @@
         let remaining = allPhases.filter(p => !completedPhases[p]);
 
         if (remaining.length === 0) {
-            statusText.innerHTML = `<b>Sempurna!</b> Semua 6 fase asesmen untuk ${staff} sudah selesai dikerjakan.`;
+            statusText.innerHTML = `<b>Sempurna!</b> Semua 6 fase asesmen untuk staff ini sudah selesai dikerjakan.`;
         } else {
             statusText.innerHTML = `<b>Sisa Kekurangan:</b> Belum menyelesaikan ${remaining.length} fase (${remaining.join(', ')}).`;
         }
