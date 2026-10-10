@@ -189,7 +189,7 @@
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxqdiwcdvQd3GkfHY7ZGUyyXWB8BvFiMbzLfGQZray1L05bwJr_xFFxDf7GDZ_uzfyR/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw3ND9xZjARxGIgLJSczpyW1w4J2gsTgJ3oeSJV7XYOx6K0J6JPKnSFr0f5stjS_kEe/exec";
 
     let masterEmployees = [];
     let serverHistory = [];
@@ -232,7 +232,6 @@
     let activePhaseKey = "";
 
     window.onload = function() {
-        // Tarik Master Karyawan dari Google Sheets
         fetch(WEB_APP_URL)
         .then(res => res.json())
         .then(data => {
@@ -247,7 +246,6 @@
         })
         .catch(err => console.log("Gagal memuat master karyawan:", err));
 
-        // Tarik Riwayat Submit
         fetch(WEB_APP_URL + "?action=getHistory")
         .then(res => res.json())
         .then(data => { serverHistory = data; })
@@ -265,7 +263,6 @@
 
         if (!storeInputVal) return;
 
-        // Filter staff berdasarkan kemiripan/kecocokan nama toko
         let filteredStaff = masterEmployees.filter(item => 
             item.store && item.store.trim().toLowerCase().includes(storeInputVal)
         );
