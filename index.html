@@ -258,7 +258,7 @@
     let serverHistory = [];
 
     const phasesData = {
-        "Fase 1: Foundation (Professional & Retail)": [
+        "Fase 1a: Foundation (Professional & Retail)": [
             { 
                 id: 1, 
                 sub: "Professional Image", 
@@ -303,31 +303,421 @@
             },
             { 
                 id: 7, 
-                sub: "Retail Excellence", 
-                detail: "Teroganisir & Observasi", 
-                criteria: "Pengaturan demo sesuai planogram", 
-                max: 4 
+                sub: "Connect", 
+                detail: "Perkenalan Diri", 
+                criteria: "(1 Point) Menunjukkan kemampuan untuk memperkenalkan diri kepada customer\n• Nama saya Dewi / Saya dengan Dewi", 
+                max: 1 
+            },
+            { 
+                id: 8, 
+                sub: "Connect", 
+                detail: "Title (Bonus Point)", 
+                criteria: "(Bonus Point) Title\n• Saya seorang Store Trainer", 
+                max: 1 
+            },
+            { 
+                id: 9, 
+                sub: "Connect", 
+                detail: "Sambutan Standar", 
+                criteria: "(1 Point) Sambutan standar Digimap/Digiplus\n• \"Welcome to Digimap\" / \"Welcome to Digiplus\" / \"Welcome to Samsung Experience Store\"", 
+                max: 1 
+            },
+            { 
+                id: 10, 
+                sub: "Connect", 
+                detail: "Engaging Customer", 
+                criteria: "(Range Scoring - 2 Points) Menunjukkan kemampuan untuk menentukan apakah akan berinteraksi dengan pembeli, saat pembeli mendekati toko.\n\nKriteria Penilaian:\n0 Poin - Tidak mencoba melibatkan customer\n1 Poin - Upaya Kontak Mata, dan acknowledge customer\n2 Poin - Menunjukkan interaksi positif dengan customer. Misalnya. Tersenyum & mengangguk untuk menyambut", 
+                max: 2 
             }
         ],
-        "Fase 2: Engage (Percaya Diri & Bertanya)": [
-            { id: 8, sub: "Percaya Diri", detail: "Bahasa Tubuh & Postur", criteria: "Sikap, postur berdiri, kontak mata", max: 4 },
-            { id: 9, sub: "EQ & Suara", detail: "Fleksibilitas & Vokal", criteria: "Adaptif dengan tipe customer berbeda", max: 4 },
-            { id: 10, sub: "Pertanyaan", detail: "Open-ended & Klarifikasi", criteria: "Minimal 4 pertanyaan terbuka", max: 8 }
+        "Fase 1b: Foundation (Retail Excellence Skills)": [
+            {
+                id: 11,
+                sub: "Retail Excellence",
+                detail: "Teroganisir - Pengaturan Demo Produk",
+                criteria: "(1 Point) Menunjukkan kemampuan untuk mengatur tampilan demo product di lingkungan store sebelum demonstrasi\n1. Semua demo product dalam posisi semula sesuai planogram\n2. Semua product demo dalam keadaan baik dan menyala\n\n(Pelanggaran apa pun tidak akan diberi skor)",
+                max: 1
+            },
+            {
+                id: 12,
+                sub: "Retail Excellence",
+                detail: "Teroganisir - Kesiapan Produk & Aksesori",
+                criteria: "(1 Point) Tunjukkan tanggung jawab untuk memastikan kesiapan product demo dan aksesori sebelum demonstrasi\n1. Perlengkapan/alat yang tersedia pada saat demonstrasi dan dijaga/dirawat\n2. Rapikan laci/alas pajangan pada saat demonstrasi\n\n(Pelanggaran apa pun tidak akan diberi skor)",
+                max: 1
+            },
+            {
+                id: 13,
+                sub: "Retail Excellence",
+                detail: "Observasi - Inisiatif & Lingkungan Toko",
+                criteria: "(1 Point) Menunjukkan inisiatif untuk mengamati dan kemampuan bereaksi di lingkungan store\n1. Lantai store bebas dari stok yang tidak dijaga\n2. Semua lemari dan laci dalam keadaan tertutup\n3. Tidak ada masalah yang membahayakan kesehatan dan keselamatan yang terlihat seperti kabel terkoyak, bahaya tersandung, atau kebocoran air\n\n(Pelanggaran apa pun tidak akan diberi skor)",
+                max: 1
+            },
+            {
+                id: 14,
+                sub: "Retail Excellence",
+                detail: "Observasi - Kebersihan Produk Demo",
+                criteria: "(1 Point) Menunjukkan kemampuan untuk memastikan kebersihan product demo sebelum dan selama demonstrasi\n1. Product demo dalam keadaan bersih tidak terlihat cap jari dan kotoran pada saat demonstrasi\n\n(Pelanggaran apa pun tidak akan diberi skor)",
+                max: 1
+            },
+            {
+                id: 15,
+                sub: "Retail Excellence",
+                detail: "Observasi - Kebersihan Toko",
+                criteria: "(1 Point) Menunjukkan kemampuan untuk memastikan kebersihan toko sebelum dan selama demonstrasi\n1. Toko bersih tidak terlihat sampah, debu, kotoran, noda bekas.\n2. Rak bersih dari debu atau air\n\n(Pelanggaran apa pun tidak akan diberi skor)",
+                max: 1
+            },
+            {
+                id: 16,
+                sub: "Retail Excellence",
+                detail: "Tanggung Jawab - Kondisi Kerja Produk",
+                criteria: "(1 Point) Tunjukkan tanggung jawab untuk memastikan kesiapan product demo sebelum dan selama demonstrasi\n1. Product demo dalam kondisi kerja yang baik\n\n(Pelanggaran apa pun tidak akan diberi skor)",
+                max: 1
+            },
+            {
+                id: 17,
+                sub: "Retail Excellence",
+                detail: "Tanggung Jawab - Pengembalian Posisi Produk",
+                criteria: "(1 Point) Menunjukkan kemampuan untuk mengembalikan product demo ke posisi semula setelah demonstrasi\n1. Product demo pada posisi semula sesuai pedoman setelah demonstrasi\n\n(Pelanggaran apa pun tidak akan diberi skor)",
+                max: 1
+            },
+            {
+                id: 18,
+                sub: "Retail Excellence",
+                detail: "Tanggung Jawab - Pengembalian Alat/Perlengkapan",
+                criteria: "(1 Point) Tunjukkan tanggung jawab untuk mengembalikan alat/perlengkapan ke posisi semula setelah demonstrasi\n1. Mengembalikan alat/perlengkapan ke posisi semula setelah demonstrasi\n2. Atur ulang content demo unit bila belum terinstall retail mode",
+                max: 1
+            }
         ],
-        "Fase 3: Recommend (Demo & Storytelling)": [
-            { id: 11, sub: "Keterampilan", detail: "Merangkum & Inisiasi Demo", criteria: "Merangkum kekhawatiran customer", max: 10 },
-            { id: 12, sub: "Demonstrasi", detail: "Product Demo", criteria: "Demo utama produk Apple", max: 17 },
-            { id: 13, sub: "Storytelling", detail: "Narrative & Rediscovery", criteria: "Cerita akurat & hook menarik", max: 13 }
+        "Fase 2a: Engage (Percaya Diri & Adaptasi)": [
+            {
+                id: 19,
+                sub: "Bahasa Tubuh",
+                detail: "Sikap Sales Assistant",
+                criteria: "(1 Point) Perilaku seperti ngobrol dengan orang lain, makan atau bermain/memegang telepon (kecuali kebutuhan kerja)\n\n(Ketika customer mendekati store, pelanggaran apa pun tidak akan dinilai)",
+                max: 1
+            },
+            {
+                id: 20,
+                sub: "Bahasa Tubuh",
+                detail: "Postur Tangan dan Kaki",
+                criteria: "(1 Point)\nLengan (yang sebaiknya tidak dilakukan):\n• Tindakan seperti menabuh jari, menyilangkan tangan, bersandar pada alas demo, mengayunkan lengan, menggaruk badan, tangan di saku\n\nKaki (sebaiknya tidak dilakukan):\n• Tindakan seperti menendang kaki, menggerakkan badan, atau menghentakan kaki, bertumpu sebelah kaki\n\n(Saat melayani customer, pelanggaran apa pun tidak akan dinilai)",
+                max: 1
+            },
+            {
+                id: 21,
+                sub: "Postur Badan",
+                detail: "Posisi Berdiri",
+                criteria: "(1 Point) Mempertahankan posisi berdiri yang tepat, menghadap customer.\n• Dapat menjaga jarak antara customer dan Sales Assistant tidak bersebarangan meja\n\n(Saat melayani customer, pelanggaran apa pun tidak akan dinilai)",
+                max: 1
+            },
+            {
+                id: 22,
+                sub: "Postur Badan",
+                detail: "Gerakan Tubuh & Kepercayaan Diri",
+                criteria: "(Range Scoring - 2 Points) Menunjukkan kemampuan menggunakan gerakan tubuh untuk mengekspresikan kepercayaan diri dan antusiasme secara efektif\n\nKriteria Penilaian:\n0 Poin - Tidak percaya diri/percaya diri secara keseluruhan\n1 Poin - Percaya diri tetapi masih ada ruang untuk perbaikan\n2 Poin - Percaya diri secara wajar",
+                max: 2
+            },
+            {
+                id: 23,
+                sub: "Ekspresi Wajah",
+                detail: "Ekspresi Wajah yang Nyaman",
+                criteria: "(1 Point) Menggunakan ekspresi wajah yang tepat saat berinteraksi dengan customer\n• Ekspresi wajah yang nyaman",
+                max: 1
+            },
+            {
+                id: 24,
+                sub: "Ekspresi Wajah",
+                detail: "Kontak Mata",
+                criteria: "(1 Point) Memegang perhatian customer dengan menggunakan kontak mata yang tepat\n• Kontak mata yang nyaman sambil menjaga alur percakapan",
+                max: 1
+            },
+            {
+                id: 25,
+                sub: "Fleksible dan Adaptif (EQ)",
+                detail: "Adaptasi Tipe Customer",
+                criteria: "(Range Scoring - 3 Points) Tunjukkan fleksibel & adaptif untuk melibatkan customer dengan tipe customer berbeda\n\nKriteria Penilaian:\n0 Poin - Membiarkan customer\n1 Poin - Menjadi tidak nyaman saat interaksi\n2 Poin - Merasa nyaman dalam interaksi dan mampu mengatur kecepatan saat berbicara\n3 Poin - Menjadi sales assistant yang terampil dalam menarik dan mampu mengendalikan kecepatan interaksi",
+                max: 3
+            },
+            {
+                id: 26,
+                sub: "Ekspresi Suara",
+                detail: "Volume dan Nada Suara",
+                criteria: "(1 Point) Menggunakan volume dan nada suara yang sesuai secara efektif\n• 0,5 Poin - Volume nyaman, dapat didengar dengan jelas\n• 0,5 Poin - Menggunakan variasi ekspresi vokal untuk melayani customer, mengganti nada untuk mengekspresikan antusiasme",
+                max: 1
+            },
+            {
+                id: 27,
+                sub: "Ekspresi Suara",
+                detail: "Variasi Ekspresi Vokal",
+                criteria: "(1 Point) Menerapkan berbagai ekspresi vokal\n• Menunjukkan profesionalisme, keaslian dan kesopanan.",
+                max: 1
+            }
         ],
-        "Fase 4: Asking & Analyze": [
-            { id: 14, sub: "Listening", detail: "Rapport & Attentiveness", criteria: "Mendengar tanpa menyela", max: 7 }
+        "Fase 2b: Engage (Keterampilan Bertanya)": [
+            {
+                id: 28,
+                sub: "Keterampilan Bertanya",
+                detail: "Memperoleh Pertanyaan",
+                criteria: "(4 Points) Menunjukkan kemampuan untuk mengajukan pertanyaan terbuka untuk memahami kekhawatiran customer\n• 1 pertanyaan relevan = 1 poin (Maks 4 pertanyaan)\n\nContoh:\n- Siapa..? Apa..? Kapan..? Di mana..? Mengapa..? Bagaimana..?\n- Product Apple/Android apa yang Bapak/Ibu miliki saat ini?\n- Bagaimana penggunaan Apple/android Bapak/Ibu saat ini?\n- Apa saja masalah yang Bapak/Ibu hadapi?",
+                max: 4
+            },
+            {
+                id: 29,
+                sub: "Keterampilan Bertanya",
+                detail: "Memperjelas Pertanyaan",
+                criteria: "(2 Points) Menunjukkan kemampuan untuk menggali lebih dalam dan menghadapi kompleksitas respons pembeli\n• 1 pertanyaan relevan = 2 poin (Maks 2 poin)\n\nContoh:\n- Apa yang Bapak/Ibu sukai/tidak sukai dari device Ibu saat ini?\n- Bisakah Bapak/Ibu ceritakan lebih banyak tentang masalah/kesulitannya?\n- Bagaimana masalah/kesulitan ini mempengaruhi Bapak/Ibu?",
+                max: 2
+            },
+            {
+                id: 30,
+                sub: "Keterampilan Bertanya",
+                detail: "Pertanyaan Klarifikasi",
+                criteria: "(2 Points) Menunjukkan kemampuan untuk mendapatkan informasi lebih lanjut dari customer\n• 1 pertanyaan relevan = 2 poin (Maks 2 poin)\nTegaskan kembali masalah/kesulitan customer dengan pertanyaan klarifikasi yang akan mereka jawab \"ya\" untuk memperoleh pemahaman dan kepercayaan dari customer\n\nContoh:\n- Bapak/Ibu bilang kalau sering lupa, benar pak?\n- Kakak bilang kalau suka malas kalau harus selalu bawa laptop, benarkah?",
+                max: 2
+            }
         ],
-        "Fase 5: Easy Deal": [
-            { id: 15, sub: "Negotiation", detail: "Counter Objection", criteria: "Solusi alternatif keberatan", max: 11 },
-            { id: 16, sub: "Sales", detail: "Closing & Upselling", criteria: "Closing kreatif & upselling", max: 11 }
+        "Fase 3a: Recommend (Mencerminkan Keterampilan)": [
+            {
+                id: 31,
+                sub: "Mencerminkan Keterampilan",
+                detail: "Merangkum Kembali",
+                criteria: "(4 Points) Menunjukkan kemampuan untuk mereangkum kembali dan menghubungkan kekhawatiran customer dari pertanyaan terbuka\n• 1 berhasil merangkum = 2 poin\nMenggunakan ucapan atau cara komunikasi ekspresif yang mudah dipahami customer, sesuai dengan kebutuhan customer\n\nContoh:\n- Customer bercerita bahwa dia suka lari pagi\n- Sales Assistant merekomendasikan apple watch untuk mendeteksi detak jantung",
+                max: 4
+            },
+            {
+                id: 32,
+                sub: "Mencerminkan Keterampilan",
+                detail: "Inisiasi Demo",
+                criteria: "(2 Points) Menunjukkan kemampuan untuk memulai demonstrasi secara alami\n• 1 Poin - Memulai demonstrasi secara alami dan ramah\n• 1 Poin - Berhasil memulai demonstrasi",
+                max: 2
+            },
+            {
+                id: 33,
+                sub: "Mencerminkan Keterampilan",
+                detail: "Demo Penggunaan Iphone",
+                criteria: "(1 Point) Menggunakan Iphone secara efektif untuk mengkomunikasikan Teknologi Apple dengan customer\n• Berhasil membawa customer ke demo station",
+                max: 1
+            },
+            {
+                id: 34,
+                sub: "Mencerminkan Keterampilan",
+                detail: "Inisiasi Tip Pengguna",
+                criteria: "(3 Points) Menunjukkan kemampuan untuk menilai situasi dan memberikan tip kepada customer tanpa diarahkan selama demonstrasi\n• 1 Tip Pengguna = 1 Poin (Berbagi tip pengguna selama demonstrasi)\n\nPanduan:\n- iPhone: Mengapa mereka membutuhkan produk kita?\n- iPad: Dengan menggunakan iPad, Bapak/Ibu dapat dengan mudah....\n- Mac: Perbedaan kami dengan laptop windows adalah….\n- Apple Watch: Bapak/Ibu dapat dengan mudah....",
+                max: 3
+            }
+        ],
+        "Fase 3b: Recommend (Keterampilan Demonstrasi)": [
+            {
+                id: 35,
+                sub: "Keterampilan Demonstrasi",
+                detail: "Product Demo 1",
+                criteria: "(5 Points) Menunjukkan kemampuan dalam demonstrasi & menunjukkan kemampuan untuk mendorong customer mencoba product (Demo 1)\n• Trainer mendata demo apa saja yang dilakukan\n\nKriteria Penilaian (Skor Rata-rata dari semua demo):\n0 - Demo gagal\n1 - Langkah hilang\n2 - Dapat melakukan demo utama tetapi tidak mampu menghubungkan teknologi dengan kebutuhan customer\n3 - Menunjukkan kemampuan untuk berbicara melalui teknologi tetapi tidak mampu melakukan banyak demo\n4 - Kemampuan melakukan demo penuh tanpa faktor wow\n5 - Demonstrasi Sempurna \"Wow\" yang menunjukkan keunggulan Apple",
+                max: 5
+            },
+            {
+                id: 36,
+                sub: "Keterampilan Demonstrasi",
+                detail: "Product Demo 2",
+                criteria: "(5 Points) Menunjukkan kemampuan dalam demonstrasi & menunjukkan kemampuan untuk mendorong customer mencoba product (Demo 2)\n• Trainer mendata demo apa saja yang dilakukan\n\nKriteria Penilaian:\n0 - Demo gagal\n1 - Langkah hilang\n2 - Dapat melakukan demo utama tetapi tidak mampu menghubungkan teknologi dengan kebutuhan customer\n3 - Menunjukkan kemampuan untuk berbicara melalui teknologi tetapi tidak mampu melakukan banyak demo\n4 - Kemampuan melakukan demo penuh tanpa faktor wow\n5 - Demonstrasi Sempurna \"Wow\" yang menunjukkan keunggulan Apple",
+                max: 5
+            },
+            {
+                id: 37,
+                sub: "Keterampilan Demonstrasi",
+                detail: "Demo Tambahan (Bonus Point)",
+                criteria: "(5 Bonus Point) Demo tambahan, kriteria scoring yang sama dengan demo utama",
+                max: 5
+            },
+            {
+                id: 38,
+                sub: "Keterampilan Demonstrasi",
+                detail: "Creative Demo",
+                criteria: "(Bonus 2 Points) Creative/Innovative demo\n• Menunjukkan kemampuan yang kreatif dan inisiatif dalam menggunakan alat bantu demo",
+                max: 2
+            }
+        ],
+        "Fase 4a: Storytelling Skills": [
+            {
+                id: 39,
+                sub: "Storytelling Skills",
+                detail: "Narrative & Hook",
+                criteria: "(3 Points)\n- 2 Points (Narrative): Menunjukan kemampuan untuk menjelaskan cerita atau skenario yang akurat (1 Point jelas & ringkas, 1 Point bedakan info \"harus disampaikan\" vs \"nice to have\")\n- 1 Point (Hook): Mampu memikat customer dengan cara penyampaian informasi yang kreatif sehingga tetap engaged.",
+                max: 3
+            },
+            {
+                id: 40,
+                sub: "Storytelling Skills",
+                detail: "Relatability",
+                criteria: "(2 Points) Menunjukkan kemampuan untuk berhubungan dan berinteraksi dengan customer (1 Story = 1 Point)\n- 1 Poin — Membagikan pengalaman pribadi/teman & keluarga dalam menggunakan teknologi Apple/Android\n- 1 Poin — Membagikan pendapat atau memberikan saran",
+                max: 2
+            },
+            {
+                id: 41,
+                sub: "Storytelling Skills",
+                detail: "Get Personal",
+                criteria: "(1 Point) Menunjukkan kemampuan membagikan cerita pribadi untuk membangun koneksi dengan customer\n• Terlihat personal dan autentik saat membagikan cerita",
+                max: 1
+            },
+            {
+                id: 42,
+                sub: "Storytelling Skills",
+                detail: "Rediscovery",
+                criteria: "(Range Scoring - 6 Points) Menggunakan kosakata teknologi yang mencerminkan pengalaman dan cerita nyata\n• Istilah Teknologi Apple/Android + Penjelasan yang mudah dipahami = 2 Poin\n\nContoh Penilaian:\n- Teknologi = 1 Poin\n- Penjelasan = 1 Poin",
+                max: 6
+            },
+            {
+                id: 43,
+                sub: "Storytelling Skills",
+                detail: "Antusias",
+                criteria: "(1 Point) Menunjukkan antusiasme dalam menghubungkan cerita dengan shopper\n• Menyesuaikan energi dan antusiasme customer saat bercerita",
+                max: 1
+            }
+        ],
+        "Fase 4b: Active Listening Skills": [
+            {
+                id: 44,
+                sub: "Active Listening",
+                detail: "Rapport Building",
+                criteria: "(2 Points) Memahami alur percakapan customer dan menunjukkan kemampuan membangun hubungan dengan customer secara efektif\n- 1 Poin — Mampu menjaga percakapan dengan customer\n- 1 Poin — Interaksi terasa nyaman dan natural",
+                max: 2
+            },
+            {
+                id: 45,
+                sub: "Active Listening",
+                detail: "Attentiveness",
+                criteria: "(2 Points) Menunjukkan perhatian penuh saat mendengarkan\n- 1 Poin — Tidak terdistraksi dan menunjukkan perhatian penuh\n- 1 Poin — Memperhatikan detail yang disampaikan customer",
+                max: 2
+            },
+            {
+                id: 46,
+                sub: "Active Listening",
+                detail: "Listening",
+                criteria: "(2 Points) Menunjukkan kemampuan mendengarkan shopper tanpa memotong pembicaraan\n- 1 Poin — Mendengarkan tanpa menyela\n- 1 Poin — Tidak memaksakan opini kepada shopper",
+                max: 2
+            },
+            {
+                id: 47,
+                sub: "Active Listening",
+                detail: "Acknowledgement",
+                criteria: "(1 Point) Memberikan respons non-verbal saat shopper berbicara\n• Mengangguk dan tersenyum, memberikan respons kecil sebagai tanda mendengarkan (hmm, ya, ohh)",
+                max: 1
+            }
+        ],
+        "Fase 5: Easy Deal (Negotiation Skills)": [
+            {
+                id: 48,
+                sub: "Negotiation Skills",
+                detail: "Counter Objection",
+                criteria: "(1 Point) Saat menggali kebutuhan melalui pertanyaan, menunjukkan kemampuan dan kepercayaan diri dalam menyampaikan informasi\n• Menunjukkan rasa percaya diri saat menjawab pertanyaan",
+                max: 1
+            },
+            {
+                id: 49,
+                sub: "Negotiation Skills",
+                detail: "Solusi Alternatif Keberatan",
+                criteria: "(Range Scoring - 3 Points) Mampu menawarkan solusi alternatif\n• Respons yang tepat dalam menghadapi keberatan/penolakan yang diajukan, 1 solusi = 1 poin\n\nContoh:\n- Karena Apple berinvestasi besar dalam teknologi (1 Poin)\n- Menjaga kualitas produk tetap tinggi (1 Poin)",
+                max: 3
+            },
+            {
+                id: 50,
+                sub: "Negotiation Skills",
+                detail: "Positivity",
+                criteria: "(Range Scoring - 3 Points) Menunjukkan sikap positif saat menghadapi keberatan/penolakan\n• 0 Poin — Reaksi negatif\n• 1 Poin — Reaksi netral / hanya menyampaikan fakta\n• 2 Poin — Mengakui kekhawatiran customer sebelum menyampaikan fakta (mengangguk/postur terbuka)\n• 3 Poin — Menunjukkan empati saat menghadapi keberatan (mampu mengulang atau memahami kekhawatiran shopper)",
+                max: 3
+            },
+            {
+                id: 51,
+                sub: "Negotiation Skills",
+                detail: "Kata-Kata Positif",
+                criteria: "(1 Point) Menunjukkan kemampuan menggunakan kata-kata positif saat melakukan sales pitch\n• Menggunakan kata-kata positif seperti “membantu”, “menghemat waktu”",
+                max: 1
+            },
+            {
+                id: 52,
+                sub: "Negotiation Skills",
+                detail: "Convincing",
+                criteria: "(3 Points) Menunjukkan kemampuan menghubungkan teknologi dengan kehidupan shopper (1 Contoh Teknologi = 1 Poin)\n• Membagikan bagaimana teknologi dapat membantu customer\nContoh:\n- Dengan iPhone\n- Dengan iPad, Bapak/Ibu hanya butuh\n- Dengan Macbook, Bapak/Ibu dapat dengan mudah",
+                max: 3
+            },
+            {
+                id: 53,
+                sub: "Negotiation Skills",
+                detail: "Sales Initiation",
+                criteria: "(Range Scoring - 3 Points) Menunjukkan rasa percaya diri dan kreativitas dalam meminta penjualan\n• 0 Poin — Tidak closing\n• 1 Poin — Closing\n• 2 Poin — Closing secara kreatif (menawarkan opsi pembayaran fleksibel, gratis pengiriman, etc)",
+                max: 3
+            },
+            {
+                id: 54,
+                sub: "Negotiation Skills",
+                detail: "Upselling",
+                criteria: "(1 Point) Berusaha melakukan upselling saat demonstrasi\n• Memulai percakapan upsell",
+                max: 1
+            },
+            {
+                id: 55,
+                sub: "Negotiation Skills",
+                detail: "Lintas Kategori",
+                criteria: "(1 Point) Berusaha memulai percakapan lintas kategori\n• Memulai percakapan antar kategori",
+                max: 1
+            },
+            {
+                id: 56,
+                sub: "Negotiation Skills",
+                detail: "Maintenance",
+                criteria: "(2 Points) Menunjukkan kemampuan menjelaskan garansi Apple/Qoala serta tips perawatan/pembersihan kepada shopper\n• 1 Poin — Garansi\n• 1 Poin — 1 Tips Perawatan (Contoh: Ketika buka box pastikan di charge full terlebih dahulu)",
+                max: 2
+            },
+            {
+                id: 57,
+                sub: "Negotiation Skills",
+                detail: "Apple Care",
+                criteria: "(1 Point) Menunjukkan kemampuan memperkenalkan Apple Care\n• Memperkenalkan aplikasi dan menjelaskan manfaatnya",
+                max: 1
+            },
+            {
+                id: 58,
+                sub: "Negotiation Skills",
+                detail: "Apple Care Account (Bonus)",
+                criteria: "(Bonus 1 Point) Shopper mengunduh aplikasi dan membuat akun",
+                max: 1
+            }
         ],
         "Fase 6: Settle & Support": [
-            { id: 17, sub: "Garansi", detail: "Registrasi / MAP Club", criteria: "Registrasi garansi atau MAP Club", max: 5 }
+            {
+                id: 59,
+                sub: "Purchase",
+                detail: "Memulai Registrasi Garansi",
+                criteria: "(1 Point) Menyampaikan manfaat untuk prospek di masa depan serta keberhasilan registrasi garansi",
+                max: 1
+            },
+            {
+                id: 60,
+                sub: "Purchase",
+                detail: "Undangan Kembali ke Toko",
+                criteria: "(1 Point) Mengundang customer untuk kembali ke toko apabila membutuhkan bantuan secara natural",
+                max: 1
+            },
+            {
+                id: 61,
+                sub: "Non-Purchase",
+                detail: "Pengumpulan Informasi Prospek / MAP Club",
+                criteria: "(1 Point) Menyampaikan manfaat prospek di masa depan serta memulai pengumpulan data MAP Club",
+                max: 1
+            },
+            {
+                id: 62,
+                sub: "Non-Purchase",
+                detail: "Pengumpulan Data MAP Club (Bonus)",
+                criteria: "(Bonus 1 Point) Berhasil melakukan pengumpulan data",
+                max: 1
+            },
+            {
+                id: 63,
+                sub: "Non-Purchase",
+                detail: "Antusiasme Kunjungan Kembali",
+                criteria: "(1 Point) Menunjukkan antusiasme untuk mengundang shopper kembali apabila berubah pikiran (Mengundang dan menyambut customer untuk kembali berkunjung secara natural)",
+                max: 1
+            }
         ]
     };
 
@@ -419,7 +809,7 @@
             let detailsText = "";
 
             if (doneCount === totalAllPhases) {
-                statusBadge = `<span class="badge-done">Selesai Semua (6/6)</span>`;
+                statusBadge = `<span class="badge-done">Selesai Semua (${doneCount}/${totalAllPhases})</span>`;
                 detailsText = "Semua fase telah diselesaikan.";
             } else if (doneCount > 0) {
                 let allPhaseKeys = Object.keys(phasesData);
@@ -472,7 +862,7 @@
         let remaining = allPhases.filter(p => !completedPhases[p]);
 
         if (remaining.length === 0) {
-            statusText.innerHTML = `<b>Sempurna!</b> Semua 6 fase asesmen untuk staff ini sudah selesai dikerjakan.`;
+            statusText.innerHTML = `<b>Sempurna!</b> Semua ${allPhases.length} fase asesmen untuk staff ini sudah selesai dikerjakan.`;
         } else {
             statusText.innerHTML = `<b>Sisa Kekurangan:</b> Belum menyelesaikan ${remaining.length} fase (${remaining.join(', ')}).`;
         }
@@ -529,7 +919,7 @@
 
             let html = `
                 <div class="item-card">
-                    <div style="font-size: 11px; font-weight: 700; color: #6e6e73; margin-bottom: 4px;">ASPEK: ${item.sub.toUpperCase()} (Maks: ${item.max})</div>
+                    <div style="font-size: 11px; font-weight: 700; color: #6e6e73; margin-bottom: 4px;">ASSESSMENT CONTENT: ${item.sub.toUpperCase()} (Maks: ${item.max})</div>
                     <div class="item-title">${item.detail}</div>
                     <div class="criteria-text">${item.criteria}</div>
                     <div class="score-pills">
