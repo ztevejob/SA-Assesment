@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digimap Assessment Dashboard</title>
+    <!-- Memuat Chart.js untuk grafik visualisasi summary -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #0071e3;
@@ -43,7 +45,7 @@
             background: var(--gray-bg);
             padding: 18px;
             border-radius: 10px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             border: 1px solid var(--border);
         }
         .form-group label {
@@ -62,48 +64,34 @@
             box-sizing: border-box;
         }
 
-        /* Tabel Summary Store */
-        .store-summary-container {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 15px;
+        /* Navigasi Tab Menu */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
             margin-bottom: 25px;
-            display: none;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
         }
-        .store-summary-container h4 {
-            margin: 0 0 10px 0;
-            font-size: 14px;
-            color: var(--primary);
-        }
-        .summary-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-        .summary-table th, .summary-table td {
-            border: 1px solid var(--border);
-            padding: 8px 10px;
-            text-align: left;
-        }
-        .summary-table th {
+        .tab-btn {
             background: var(--gray-bg);
+            border: 1px solid var(--border);
+            padding: 10px 18px;
             font-weight: 600;
+            font-size: 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
         }
-        .badge-done {
-            background: #dcfce7;
-            color: #16a34a;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 600;
+        .tab-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
         }
-        .badge-pending {
-            background: #fef3c7;
-            color: #d97706;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
+
+        /* Tab Content Views */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
         .phase-grid {
             display: grid;
@@ -179,11 +167,48 @@
             background: var(--success); color: white; border: none; padding: 12px 20px;
             font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; font-size: 15px; margin-top: 20px;
         }
-        .floating-summary {
-            background: #e8f2fd; border: 1px solid #b3d7ff; padding: 20px; border-radius: 12px; margin-top: 25px;
-            display: flex; justify-content: space-between; align-items: center; font-weight: 700;
+
+        /* Styling Menu Summary & Chart */
+        .summary-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
         }
-        .status-info { background: #fffbeb; border: 1px solid #fde68a; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: #92400e; }
+        .summary-card {
+            background: var(--gray-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .summary-card h3 {
+            margin-top: 0;
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 280px;
+            width: 100%;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: #fff;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            text-align: left;
+        }
+        .data-table th {
+            background: #f1f1f3;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -191,9 +216,10 @@
 <div class="container">
     <header>
         <h1>Digimap Assessment Dashboard</h1>
-        <div class="subtitle">Sistem Penilaian Bertahap dengan Autofill Toko & Staff Otomatis</div>
+        <div class="subtitle">Sistem Penilaian Bertahap dengan Menu Summary & Chart Analitik</div>
     </header>
     
+    <!-- Meta Input Bar -->
     <div class="meta-box">
         <div class="form-group">
             <label>Pilih Toko / Store</label>
@@ -211,513 +237,161 @@
         </div>
     </div>
 
-    <!-- Tabel Ringkasan Staff Toko -->
-    <div id="storeSummaryBox" class="store-summary-container">
-        <h4 id="summaryStoreTitle">📊 Ringkasan Asesmen Staff Toko</h4>
-        <div style="overflow-x: auto;">
-            <table class="summary-table">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Staff</th>
-                        <th>Fase Selesai</th>
-                        <th>Status / Belum Selesai</th>
-                    </tr>
-                </thead>
-                <tbody id="storeSummaryTableBody">
-                    <!-- Data dimasukkan secara dinamis via JavaScript -->
-                </tbody>
-            </table>
+    <!-- Navigasi Menu Tab Utama -->
+    <div class="nav-tabs">
+        <button type="button" class="tab-btn active" onclick="switchTab('assessmentTab', this)">📝 Lembar Penilaian</button>
+        <button type="button" class="tab-btn" onclick="switchTab('summaryTab', this)">📊 Summary & Grafik Chart</button>
+    </div>
+
+    <!-- TAB 1: LEMBAR PENILAIAN -->
+    <div id="assessmentTab" class="tab-content active">
+        <div id="dashboardView">
+            <h3 style="margin-bottom: 15px; font-size: 16px;">Pilih Fase Asesmen yang Ingin Dinilai:</h3>
+            <div class="phase-grid" id="phaseGridContainer"></div>
+        </div>
+
+        <div id="phaseFormView" class="assessment-view">
+            <button type="button" class="back-btn" onclick="backToDashboard()">← Kembali ke Menu Fase</button>
+            <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0;"></h2>
+            <div id="phaseQuestionsContainer"></div>
+            <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Kirim ke Google Sheets</button>
         </div>
     </div>
 
-    <div id="statusInfoBox" class="status-info" style="display: none;">
-        🔍 <b>Status Asesmen Staff:</b> <span id="progressStatusText">Memeriksa data...</span>
-    </div>
+    <!-- TAB 2: SUMMARY & CHART ANALITIK -->
+    <div id="summaryTab" class="tab-content">
+        <div class="summary-container">
+            <!-- Kartu Statistik Singkat -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div style="background: #e8f2fd; border: 1px solid #b3d7ff; padding: 15px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">TOTAL SKOR AKHIR</div>
+                    <div id="summaryTotalScore" style="font-size: 24px; font-weight: 700; color: var(--primary); margin-top: 5px;">0 / 100</div>
+                </div>
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 12px; color: #166534; font-weight: 600;">FASE SELESAI</div>
+                    <div id="summaryCompletedPhases" style="font-size: 24px; font-weight: 700; color: #16a34a; margin-top: 5px;">0 / 7</div>
+                </div>
+            </div>
 
-    <div id="dashboardView">
-        <h3 style="margin-bottom: 15px; font-size: 16px;">Pilih Fase Asesmen yang Ingin Dinilai:</h3>
-        <div class="phase-grid" id="phaseGridContainer"></div>
-        <div class="floating-summary">
-            <div>Total Skor Sementara: <span id="totalScoreVal" style="color: var(--primary); font-size: 20px;">0 / 100</span></div>
+            <!-- Grafik Chart.js -->
+            <div class="summary-card">
+                <h3>📈 Grafik Performa Per Fase Asesmen</h3>
+                <div class="chart-wrapper">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tabel Detail Penilaian -->
+            <div class="summary-card">
+                <h3>📋 Tabel Rekapitulasi Poin & Catatan Staff</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Fase Asesmen</th>
+                                <th>Status</th>
+                                <th>Poin Diperoleh</th>
+                                <th>Catatan Asesor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Belum ada data asesmen tersimpan. Silakan isi lembar penilaian terlebih dahulu.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="phaseFormView" class="assessment-view">
-        <button type="button" class="back-btn" onclick="backToDashboard()">← Kembali ke Menu Fase</button>
-        <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0;"></h2>
-        <div id="phaseQuestionsContainer"></div>
-        <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Kirim ke Google Sheets</button>
-    </div>
 </div>
 
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyiJf4zQxL2aWvJpGpRGEuPDhZDXHfO4-fQ5jpJpFCybmDzJL5emyI35aU_cKRjTnJ7/exec";
 
     let masterEmployees = [];
-    let serverHistory = [];
-
     const phasesData = {
         "Fase 1a: Foundation (Professional & Retail)": [
-            { 
-                id: 1, 
-                sub: "Professional Image", 
-                detail: "Make up / Penampilan Wajah", 
-                criteria: "(1 Point) Penampilan wajah baik dan rapi\n• Wanita: Tata rias lengkap yang profesional dan sesuai\n• Laki-laki: Rambut wajah harus bersih dan dipangkas rapi menggunakan produk rambut\n\n(Pelanggaran apa pun tidak akan diberi skor)", 
-                max: 1 
-            },
-            { 
-                id: 2, 
-                sub: "Professional Image", 
-                detail: "Smell / Aroma", 
-                criteria: "(1 Point) Parfum harus ringan dan segar, tidak berbau menyengat\nTidak ada bau yang tidak sedap, mis. rokok, nafas bawang putih, bau badan\n\n(Pelanggaran apa pun tidak akan diberi skor)", 
-                max: 1 
-            },
-            { 
-                id: 3, 
-                sub: "Professional Image", 
-                detail: "Hair / Rambut", 
-                criteria: "(Range Scoring - 2 Points)\n0 Poin - Rambut tidak terawat (rambut yang terlalu pirang tidak diperbolehkan kecuali NPI)\n1 Poin - Bersih, disisir, dan dirapikan atau ditata rapi\n2 Poin - Rambut ditata dengan baik dan rapih", 
-                max: 2 
-            },
-            { 
-                id: 4, 
-                sub: "Professional Image", 
-                detail: "Uniform / Seragam", 
-                criteria: "(2 Points)\n½ Poin - Seragam digimap/digiplus, rapih dan tidak kusut dan lusuh\n½ Poin - Celana panjang hitam/navy blue jins untuk digiplus menutupi mata kaki, bukan legging\n1 Poin - Sepatu sneakers warna gelap Bersih (samsung putih)\n\n(Pelanggaran apa pun tidak akan diberi skor)", 
-                max: 2 
-            },
-            { 
-                id: 5, 
-                sub: "Professional Image", 
-                detail: "Nails & Accessories", 
-                criteria: "(1 Point) Tangan dan kuku bersih, terawat secara konservatif, tidak ada warna cat kuku nail art, tidak kuku extension, tidak ada kuku panjang untuk pria\n\n(Pelanggaran apa pun tidak akan diberi skor)", 
-                max: 2 
-            },
-            { 
-                id: 6, 
-                sub: "Accessories", 
-                detail: "Aksesoris", 
-                criteria: "(1 Point) Aksesoris: Satu cincin, Satu gelang/jam tangan, Anting diperbolehkan giwang\n\n(Pelanggaran apa pun tidak akan diberi skor)", 
-                max: 1 
-            },
-            { 
-                id: 7, 
-                sub: "Connect", 
-                detail: "Perkenalan Diri", 
-                criteria: "(1 Point) Menunjukkan kemampuan untuk memperkenalkan diri kepada customer\n• Nama saya Dewi / Saya dengan Dewi", 
-                max: 1 
-            },
-            { 
-                id: 8, 
-                sub: "Connect", 
-                detail: "Title (Bonus Point)", 
-                criteria: "(Bonus Point) Title\n• Saya seorang Store Trainer", 
-                max: 1 
-            },
-            { 
-                id: 9, 
-                sub: "Connect", 
-                detail: "Sambutan Standar", 
-                criteria: "(1 Point) Sambutan standar Digimap/Digiplus\n• \"Welcome to Digimap\" / \"Welcome to Digiplus\" / \"Welcome to Samsung Experience Store\"", 
-                max: 1 
-            },
-            { 
-                id: 10, 
-                sub: "Connect", 
-                detail: "Engaging Customer", 
-                criteria: "(Range Scoring - 2 Points) Menunjukkan kemampuan untuk menentukan apakah akan berinteraksi dengan pembeli, saat pembeli mendekati toko.\n\nKriteria Penilaian:\n0 Poin - Tidak mencoba melibatkan customer\n1 Poin - Upaya Kontak Mata, dan acknowledge customer\n2 Poin - Menunjukkan interaksi positif dengan customer. Misalnya. Tersenyum & mengangguk untuk menyambut", 
-                max: 2 
-            }
+            { id: 1, sub: "Professional Image", detail: "Make up / Penampilan Wajah", criteria: "(1 Point) Penampilan wajah baik dan rapi", max: 1 },
+            { id: 2, sub: "Professional Image", detail: "Smell / Aroma", criteria: "(1 Point) Parfum ringan dan segar, tidak berbau menyengat", max: 1 },
+            { id: 3, sub: "Professional Image", detail: "Hair / Rambut", criteria: "(Range Scoring - 2 Points) Rambut bersih dan ditata rapi", max: 2 },
+            { id: 4, sub: "Professional Image", detail: "Uniform / Seragam", criteria: "(2 Points) Seragam rapi, celana sesuai, sepatu bersih", max: 2 },
+            { id: 5, sub: "Professional Image", detail: "Nails & Accessories", criteria: "(1 Point) Tangan dan kuku bersih, terawat secara konservatif", max: 2 },
+            { id: 6, sub: "Accessories", detail: "Aksesoris", criteria: "(1 Point) Batas aksesoris wajar (cincin/gelang/jam)", max: 1 },
+            { id: 7, sub: "Connect", detail: "Perkenalan Diri", criteria: "(1 Point) Menyebutkan nama saat menyapa", max: 1 },
+            { id: 8, sub: "Connect", detail: "Title (Bonus Point)", criteria: "(Bonus Point) Menyebutkan peran Store Trainer", max: 1 },
+            { id: 9, sub: "Connect", detail: "Sambutan Standar", criteria: "(1 Point) Mengucapkan sambutan standar Digimap/Digiplus", max: 1 },
+            { id: 10, sub: "Connect", detail: "Engaging Customer", criteria: "(Range Scoring - 2 Points) Kontak mata dan interaksi positif", max: 2 }
         ],
         "Fase 1b: Foundation (Retail Excellence Skills)": [
-            {
-                id: 11,
-                sub: "Retail Excellence",
-                detail: "Teroganisir - Pengaturan Demo Produk",
-                criteria: "(1 Point) Menunjukkan kemampuan untuk mengatur tampilan demo product di lingkungan store sebelum demonstrasi\n1. Semua demo product dalam posisi semula sesuai planogram\n2. Semua product demo dalam keadaan baik dan menyala\n\n(Pelanggaran apa pun tidak akan diberi skor)",
-                max: 1
-            },
-            {
-                id: 12,
-                sub: "Retail Excellence",
-                detail: "Teroganisir - Kesiapan Produk & Aksesori",
-                criteria: "(1 Point) Tunjukkan tanggung jawab untuk memastikan kesiapan product demo dan aksesori sebelum demonstrasi\n1. Perlengkapan/alat yang tersedia pada saat demonstrasi dan dijaga/dirawat\n2. Rapikan laci/alas pajangan pada saat demonstrasi\n\n(Pelanggaran apa pun tidak akan diberi skor)",
-                max: 1
-            },
-            {
-                id: 13,
-                sub: "Retail Excellence",
-                detail: "Observasi - Inisiatif & Lingkungan Toko",
-                criteria: "(1 Point) Menunjukkan inisiatif untuk mengamati dan kemampuan bereaksi di lingkungan store\n1. Lantai store bebas dari stok yang tidak dijaga\n2. Semua lemari dan laci dalam keadaan tertutup\n3. Tidak ada masalah yang membahayakan kesehatan dan keselamatan yang terlihat seperti kabel terkoyak, bahaya tersandung, atau kebocoran air\n\n(Pelanggaran apa pun tidak akan diberi skor)",
-                max: 1
-            },
-            {
-                id: 14,
-                sub: "Retail Excellence",
-                detail: "Observasi - Kebersihan Produk Demo",
-                criteria: "(1 Point) Menunjukkan kemampuan untuk memastikan kebersihan product demo sebelum dan selama demonstrasi\n1. Product demo dalam keadaan bersih tidak terlihat cap jari dan kotoran pada saat demonstrasi\n\n(Pelanggaran apa pun tidak akan diberi skor)",
-                max: 1
-            },
-            {
-                id: 15,
-                sub: "Retail Excellence",
-                detail: "Observasi - Kebersihan Toko",
-                criteria: "(1 Point) Menunjukkan kemampuan untuk memastikan kebersihan toko sebelum dan selama demonstrasi\n1. Toko bersih tidak terlihat sampah, debu, kotoran, noda bekas.\n2. Rak bersih dari debu atau air\n\n(Pelanggaran apa pun tidak akan diberi skor)",
-                max: 1
-            },
-            {
-                id: 16,
-                sub: "Retail Excellence",
-                detail: "Tanggung Jawab - Kondisi Kerja Produk",
-                criteria: "(1 Point) Tunjukkan tanggung jawab untuk memastikan kesiapan product demo sebelum dan selama demonstrasi\n1. Product demo dalam kondisi kerja yang baik\n\n(Pelanggaran apa pun tidak akan diberi skor)",
-                max: 1
-            },
-            {
-                id: 17,
-                sub: "Retail Excellence",
-                detail: "Tanggung Jawab - Pengembalian Posisi Produk",
-                criteria: "(1 Point) Menunjukkan kemampuan untuk mengembalikan product demo ke posisi semula setelah demonstrasi\n1. Product demo pada posisi semula sesuai pedoman setelah demonstrasi\n\n(Pelanggaran apa pun tidak akan diberi skor)",
-                max: 1
-            },
-            {
-                id: 18,
-                sub: "Retail Excellence",
-                detail: "Tanggung Jawab - Pengembalian Alat/Perlengkapan",
-                criteria: "(1 Point) Tunjukkan tanggung jawab untuk mengembalikan alat/perlengkapan ke posisi semula setelah demonstrasi\n1. Mengembalikan alat/perlengkapan ke posisi semula setelah demonstrasi\n2. Atur ulang content demo unit bila belum terinstall retail mode",
-                max: 1
-            }
+            { id: 11, sub: "Retail Excellence", detail: "Teroganisir - Pengaturan Demo Produk", criteria: "Planogram & demo unit menyala dengan baik", max: 1 },
+            { id: 12, sub: "Retail Excellence", detail: "Teroganisir - Kesiapan Produk & Aksesori", criteria: "Perlengkapan terjaga dan laci rapi", max: 1 },
+            { id: 13, sub: "Retail Excellence", detail: "Observasi - Inisiatif & Lingkungan Toko", criteria: "Lantai bebas stok tak terjaga & area aman", max: 1 },
+            { id: 14, sub: "Retail Excellence", detail: "Observasi - Kebersihan Produk Demo", criteria: "Produk demo bersih dari cap jari", max: 1 },
+            { id: 15, sub: "Retail Excellence", detail: "Observasi - Kebersihan Toko", criteria: "Area rak & lantai bersih dari debu/sampah", max: 1 },
+            { id: 16, sub: "Retail Excellence", detail: "Tanggung Jawab - Kondisi Kerja Produk", criteria: "Unit demo berfungsi optimal", max: 1 },
+            { id: 17, sub: "Retail Excellence", detail: "Tanggung Jawab - Pengembalian Posisi Produk", criteria: "Posisi produk kembali sesuai pedoman", max: 1 },
+            { id: 18, sub: "Retail Excellence", detail: "Tanggung Jawab - Pengembalian Alat/Perlengkapan", criteria: "Peralatan dikembalikan & retail mode aktif", max: 1 }
         ],
         "Fase 2a: Engage (Percaya Diri & Adaptasi)": [
-            {
-                id: 19,
-                sub: "Bahasa Tubuh",
-                detail: "Sikap Sales Assistant",
-                criteria: "(1 Point) Perilaku seperti ngobrol dengan orang lain, makan atau bermain/memegang telepon (kecuali kebutuhan kerja)\n\n(Ketika customer mendekati store, pelanggaran apa pun tidak akan dinilai)",
-                max: 1
-            },
-            {
-                id: 20,
-                sub: "Bahasa Tubuh",
-                detail: "Postur Tangan dan Kaki",
-                criteria: "(1 Point)\nLengan (yang sebaiknya tidak dilakukan):\n• Tindakan seperti menabuh jari, menyilangkan tangan, bersandar pada alas demo, mengayunkan lengan, menggaruk badan, tangan di saku\n\nKaki (sebaiknya tidak dilakukan):\n• Tindakan seperti menendang kaki, menggerakkan badan, atau menghentakan kaki, bertumpu sebelah kaki\n\n(Saat melayani customer, pelanggaran apa pun tidak akan dinilai)",
-                max: 1
-            },
-            {
-                id: 21,
-                sub: "Postur Badan",
-                detail: "Posisi Berdiri",
-                criteria: "(1 Point) Mempertahankan posisi berdiri yang tepat, menghadap customer.\n• Dapat menjaga jarak antara customer dan Sales Assistant tidak bersebarangan meja\n\n(Saat melayani customer, pelanggaran apa pun tidak akan dinilai)",
-                max: 1
-            },
-            {
-                id: 22,
-                sub: "Postur Badan",
-                detail: "Gerakan Tubuh & Kepercayaan Diri",
-                criteria: "(Range Scoring - 2 Points) Menunjukkan kemampuan menggunakan gerakan tubuh untuk mengekspresikan kepercayaan diri dan antusiasme secara efektif\n\nKriteria Penilaian:\n0 Poin - Tidak percaya diri/percaya diri secara keseluruhan\n1 Poin - Percaya diri tetapi masih ada ruang untuk perbaikan\n2 Poin - Percaya diri secara wajar",
-                max: 2
-            },
-            {
-                id: 23,
-                sub: "Ekspresi Wajah",
-                detail: "Ekspresi Wajah yang Nyaman",
-                criteria: "(1 Point) Menggunakan ekspresi wajah yang tepat saat berinteraksi dengan customer\n• Ekspresi wajah yang nyaman",
-                max: 1
-            },
-            {
-                id: 24,
-                sub: "Ekspresi Wajah",
-                detail: "Kontak Mata",
-                criteria: "(1 Point) Memegang perhatian customer dengan menggunakan kontak mata yang tepat\n• Kontak mata yang nyaman sambil menjaga alur percakapan",
-                max: 1
-            },
-            {
-                id: 25,
-                sub: "Fleksible dan Adaptif (EQ)",
-                detail: "Adaptasi Tipe Customer",
-                criteria: "(Range Scoring - 3 Points) Tunjukkan fleksibel & adaptif untuk melibatkan customer dengan tipe customer berbeda\n\nKriteria Penilaian:\n0 Poin - Membiarkan customer\n1 Poin - Menjadi tidak nyaman saat interaksi\n2 Poin - Merasa nyaman dalam interaksi dan mampu mengatur kecepatan saat berbicara\n3 Poin - Menjadi sales assistant yang terampil dalam menarik dan mampu mengendalikan kecepatan interaksi",
-                max: 3
-            },
-            {
-                id: 26,
-                sub: "Ekspresi Suara",
-                detail: "Volume dan Nada Suara",
-                criteria: "(1 Point) Menggunakan volume dan nada suara yang sesuai secara efektif\n• 0,5 Poin - Volume nyaman, dapat didengar dengan jelas\n• 0,5 Poin - Menggunakan variasi ekspresi vokal untuk melayani customer, mengganti nada untuk mengekspresikan antusiasme",
-                max: 1
-            },
-            {
-                id: 27,
-                sub: "Ekspresi Suara",
-                detail: "Variasi Ekspresi Vokal",
-                criteria: "(1 Point) Menerapkan berbagai ekspresi vokal\n• Menunjukkan profesionalisme, keaslian dan kesopanan.",
-                max: 1
-            }
+            { id: 19, sub: "Bahasa Tubuh", detail: "Sikap Sales Assistant", criteria: "Tidak bermain HP/ngobrol saat melayani", max: 1 },
+            { id: 20, sub: "Bahasa Tubuh", detail: "Postur Tangan dan Kaki", criteria: "Menghindari gestur tertutup/kaki bertumpu sebelah", max: 1 },
+            { id: 21, sub: "Postur Badan", detail: "Posisi Berdiri", criteria: "Berdiri tegak menghadap customer dengan jarak ideal", max: 1 },
+            { id: 22, sub: "Postur Badan", detail: "Gerakan Tubuh & Kepercayaan Diri", criteria: "Gestur mengekspresikan antusiasme wajar", max: 2 },
+            { id: 23, sub: "Ekspresi Wajah", detail: "Ekspresi Wajah yang Nyaman", criteria: "Wajah ramah dan ekspresi nyaman", max: 1 },
+            { id: 24, sub: "Ekspresi Wajah", detail: "Kontak Mata", criteria: "Kontak mata terjaga natural sepanjang percakapan", max: 1 },
+            { id: 25, sub: "Fleksible dan Adaptif (EQ)", detail: "Adaptasi Tipe Customer", criteria: "Menyesuaikan gaya komunikasi dengan tipe customer", max: 3 },
+            { id: 26, sub: "Ekspresi Suara", detail: "Volume dan Nada Suara", criteria: "Volume jelas dan ada variasi nada vokal", max: 1 },
+            { id: 27, sub: "Ekspresi Suara", detail: "Variasi Ekspresi Vokal", criteria: "Profesional, autentik, dan sopan", max: 1 }
         ],
         "Fase 2b: Engage (Keterampilan Bertanya)": [
-            {
-                id: 28,
-                sub: "Keterampilan Bertanya",
-                detail: "Memperoleh Pertanyaan",
-                criteria: "(4 Points) Menunjukkan kemampuan untuk mengajukan pertanyaan terbuka untuk memahami kekhawatiran customer\n• 1 pertanyaan relevan = 1 poin (Maks 4 pertanyaan)\n\nContoh:\n- Siapa..? Apa..? Kapan..? Di mana..? Mengapa..? Bagaimana..?\n- Product Apple/Android apa yang Bapak/Ibu miliki saat ini?\n- Bagaimana penggunaan Apple/android Bapak/Ibu saat ini?\n- Apa saja masalah yang Bapak/Ibu hadapi?",
-                max: 4
-            },
-            {
-                id: 29,
-                sub: "Keterampilan Bertanya",
-                detail: "Memperjelas Pertanyaan",
-                criteria: "(2 Points) Menunjukkan kemampuan untuk menggali lebih dalam dan menghadapi kompleksitas respons pembeli\n• 1 pertanyaan relevan = 2 poin (Maks 2 poin)\n\nContoh:\n- Apa yang Bapak/Ibu sukai/tidak sukai dari device Ibu saat ini?\n- Bisakah Bapak/Ibu ceritakan lebih banyak tentang masalah/kesulitannya?\n- Bagaimana masalah/kesulitan ini mempengaruhi Bapak/Ibu?",
-                max: 2
-            },
-            {
-                id: 30,
-                sub: "Keterampilan Bertanya",
-                detail: "Pertanyaan Klarifikasi",
-                criteria: "(2 Points) Menunjukkan kemampuan untuk mendapatkan informasi lebih lanjut dari customer\n• 1 pertanyaan relevan = 2 poin (Maks 2 poin)\nTegaskan kembali masalah/kesulitan customer dengan pertanyaan klarifikasi yang akan mereka jawab \"ya\" untuk memperoleh pemahaman dan kepercayaan dari customer\n\nContoh:\n- Bapak/Ibu bilang kalau sering lupa, benar pak?\n- Kakak bilang kalau suka malas kalau harus selalu bawa laptop, benarkah?",
-                max: 2
-            }
+            { id: 28, sub: "Keterampilan Bertanya", detail: "Memperoleh Pertanyaan", criteria: "Mengajukan pertanyaan terbuka yang relevan", max: 4 },
+            { id: 29, sub: "Keterampilan Bertanya", detail: "Memperjelas Pertanyaan", criteria: "Menggali detail kebutuhan secara mendalam", max: 2 },
+            { id: 30, sub: "Keterampilan Bertanya", detail: "Pertanyaan Klarifikasi", criteria: "Konfirmasi ulang kendala untuk membangun kepercayaan", max: 2 }
         ],
         "Fase 3a: Recommend (Mencerminkan Keterampilan)": [
-            {
-                id: 31,
-                sub: "Mencerminkan Keterampilan",
-                detail: "Merangkum Kembali",
-                criteria: "(4 Points) Menunjukkan kemampuan untuk mereangkum kembali dan menghubungkan kekhawatiran customer dari pertanyaan terbuka\n• 1 berhasil merangkum = 2 poin\nMenggunakan ucapan atau cara komunikasi ekspresif yang mudah dipahami customer, sesuai dengan kebutuhan customer\n\nContoh:\n- Customer bercerita bahwa dia suka lari pagi\n- Sales Assistant merekomendasikan apple watch untuk mendeteksi detak jantung",
-                max: 4
-            },
-            {
-                id: 32,
-                sub: "Mencerminkan Keterampilan",
-                detail: "Inisiasi Demo",
-                criteria: "(2 Points) Menunjukkan kemampuan untuk memulai demonstrasi secara alami\n• 1 Poin - Memulai demonstrasi secara alami dan ramah\n• 1 Poin - Berhasil memulai demonstrasi",
-                max: 2
-            },
-            {
-                id: 33,
-                sub: "Mencerminkan Keterampilan",
-                detail: "Demo Penggunaan Iphone",
-                criteria: "(1 Point) Menggunakan Iphone secara efektif untuk mengkomunikasikan Teknologi Apple dengan customer\n• Berhasil membawa customer ke demo station",
-                max: 1
-            },
-            {
-                id: 34,
-                sub: "Mencerminkan Keterampilan",
-                detail: "Inisiasi Tip Pengguna",
-                criteria: "(3 Points) Menunjukkan kemampuan untuk menilai situasi dan memberikan tip kepada customer tanpa diarahkan selama demonstrasi\n• 1 Tip Pengguna = 1 Poin (Berbagi tip pengguna selama demonstrasi)\n\nPanduan:\n- iPhone: Mengapa mereka membutuhkan produk kita?\n- iPad: Dengan menggunakan iPad, Bapak/Ibu dapat dengan mudah....\n- Mac: Perbedaan kami dengan laptop windows adalah….\n- Apple Watch: Bapak/Ibu dapat dengan mudah....",
-                max: 3
-            }
+            { id: 31, sub: "Mencerminkan Keterampilan", detail: "Merangkum Kembali", criteria: "Merangkum poin kebutuhan shopper secara efektif", max: 4 },
+            { id: 32, sub: "Mencerminkan Keterampilan", detail: "Inisiasi Demo", criteria: "Memulai demonstrasi produk secara natural", max: 2 },
+            { id: 33, sub: "Mencerminkan Keterampilan", detail: "Demo Penggunaan Iphone", criteria: "Membawa customer ke demo station dengan tepat", max: 1 },
+            { id: 34, sub: "Mencerminkan Keterampilan", detail: "Inisiasi Tip Pengguna", criteria: "Berbagi tips penggunaan tanpa diarahkan", max: 3 }
         ],
         "Fase 3b: Recommend (Keterampilan Demonstrasi)": [
-            {
-                id: 35,
-                sub: "Keterampilan Demonstrasi",
-                detail: "Product Demo 1",
-                criteria: "(5 Points) Menunjukkan kemampuan dalam demonstrasi & menunjukkan kemampuan untuk mendorong customer mencoba product (Demo 1)\n• Trainer mendata demo apa saja yang dilakukan\n\nKriteria Penilaian (Skor Rata-rata dari semua demo):\n0 - Demo gagal\n1 - Langkah hilang\n2 - Dapat melakukan demo utama tetapi tidak mampu menghubungkan teknologi dengan kebutuhan customer\n3 - Menunjukkan kemampuan untuk berbicara melalui teknologi tetapi tidak mampu melakukan banyak demo\n4 - Kemampuan melakukan demo penuh tanpa faktor wow\n5 - Demonstrasi Sempurna \"Wow\" yang menunjukkan keunggulan Apple",
-                max: 5
-            },
-            {
-                id: 36,
-                sub: "Keterampilan Demonstrasi",
-                detail: "Product Demo 2",
-                criteria: "(5 Points) Menunjukkan kemampuan dalam demonstrasi & menunjukkan kemampuan untuk mendorong customer mencoba product (Demo 2)\n• Trainer mendata demo apa saja yang dilakukan\n\nKriteria Penilaian:\n0 - Demo gagal\n1 - Langkah hilang\n2 - Dapat melakukan demo utama tetapi tidak mampu menghubungkan teknologi dengan kebutuhan customer\n3 - Menunjukkan kemampuan untuk berbicara melalui teknologi tetapi tidak mampu melakukan banyak demo\n4 - Kemampuan melakukan demo penuh tanpa faktor wow\n5 - Demonstrasi Sempurna \"Wow\" yang menunjukkan keunggulan Apple",
-                max: 5
-            },
-            {
-                id: 37,
-                sub: "Keterampilan Demonstrasi",
-                detail: "Demo Tambahan (Bonus Point)",
-                criteria: "(5 Bonus Point) Demo tambahan, kriteria scoring yang sama dengan demo utama",
-                max: 5
-            },
-            {
-                id: 38,
-                sub: "Keterampilan Demonstrasi",
-                detail: "Creative Demo",
-                criteria: "(Bonus 2 Points) Creative/Innovative demo\n• Menunjukkan kemampuan yang kreatif dan inisiatif dalam menggunakan alat bantu demo",
-                max: 2
-            }
+            { id: 35, sub: "Keterampilan Demonstrasi", detail: "Product Demo 1", criteria: "Demonstrasi produk utama secara interaktif", max: 5 },
+            { id: 36, sub: "Keterampilan Demonstrasi", detail: "Product Demo 2", criteria: "Demonstrasi produk pendukung/kedua", max: 5 },
+            { id: 37, sub: "Keterampilan Demonstrasi", detail: "Demo Tambahan (Bonus Point)", criteria: "Demonstrasi fitur ekstra/bonus", max: 5 },
+            { id: 38, sub: "Keterampilan Demonstrasi", detail: "Creative Demo", criteria: "Inovasi penggunaan alat bantu demo kreatif", max: 2 }
         ],
         "Fase 4a: Storytelling Skills": [
-            {
-                id: 39,
-                sub: "Storytelling Skills",
-                detail: "Narrative & Hook",
-                criteria: "(3 Points)\n- 2 Points (Narrative): Menunjukan kemampuan untuk menjelaskan cerita atau skenario yang akurat (1 Point jelas & ringkas, 1 Point bedakan info \"harus disampaikan\" vs \"nice to have\")\n- 1 Point (Hook): Mampu memikat customer dengan cara penyampaian informasi yang kreatif sehingga tetap engaged.",
-                max: 3
-            },
-            {
-                id: 40,
-                sub: "Storytelling Skills",
-                detail: "Relatability",
-                criteria: "(2 Points) Menunjukkan kemampuan untuk berhubungan dan berinteraksi dengan customer (1 Story = 1 Point)\n- 1 Poin — Membagikan pengalaman pribadi/teman & keluarga dalam menggunakan teknologi Apple/Android\n- 1 Poin — Membagikan pendapat atau memberikan saran",
-                max: 2
-            },
-            {
-                id: 41,
-                sub: "Storytelling Skills",
-                detail: "Get Personal",
-                criteria: "(1 Point) Menunjukkan kemampuan membagikan cerita pribadi untuk membangun koneksi dengan customer\n• Terlihat personal dan autentik saat membagikan cerita",
-                max: 1
-            },
-            {
-                id: 42,
-                sub: "Storytelling Skills",
-                detail: "Rediscovery",
-                criteria: "(Range Scoring - 6 Points) Menggunakan kosakata teknologi yang mencerminkan pengalaman dan cerita nyata\n• Istilah Teknologi Apple/Android + Penjelasan yang mudah dipahami = 2 Poin\n\nContoh Penilaian:\n- Teknologi = 1 Poin\n- Penjelasan = 1 Poin",
-                max: 6
-            },
-            {
-                id: 43,
-                sub: "Storytelling Skills",
-                detail: "Antusias",
-                criteria: "(1 Point) Menunjukkan antusiasme dalam menghubungkan cerita dengan shopper\n• Menyesuaikan energi dan antusiasme customer saat bercerita",
-                max: 1
-            }
+            { id: 39, sub: "Storytelling Skills", detail: "Narrative & Hook", criteria: "Penyampaian cerita ringkas, jelas, dan memikat", max: 3 },
+            { id: 40, sub: "Storytelling Skills", detail: "Relatability", criteria: "Membagikan pengalaman nyata / saran relevan", max: 2 },
+            { id: 41, sub: "Storytelling Skills", detail: "Get Personal", criteria: "Autentik dan personal dalam bercerita", max: 1 },
+            { id: 42, sub: "Storytelling Skills", detail: "Rediscovery", criteria: "Penggunaan istilah teknologi & penjelasan mudah", max: 6 },
+            { id: 43, sub: "Storytelling Skills", detail: "Antusias", criteria: "Menyesuaikan energi antusiasme shopper", max: 1 }
         ],
         "Fase 4b: Active Listening Skills": [
-            {
-                id: 44,
-                sub: "Active Listening",
-                detail: "Rapport Building",
-                criteria: "(2 Points) Memahami alur percakapan customer dan menunjukkan kemampuan membangun hubungan dengan customer secara efektif\n- 1 Poin — Mampu menjaga percakapan dengan customer\n- 1 Poin — Interaksi terasa nyaman dan natural",
-                max: 2
-            },
-            {
-                id: 45,
-                sub: "Active Listening",
-                detail: "Attentiveness",
-                criteria: "(2 Points) Menunjukkan perhatian penuh saat mendengarkan\n- 1 Poin — Tidak terdistraksi dan menunjukkan perhatian penuh\n- 1 Poin — Memperhatikan detail yang disampaikan customer",
-                max: 2
-            },
-            {
-                id: 46,
-                sub: "Active Listening",
-                detail: "Listening",
-                criteria: "(2 Points) Menunjukkan kemampuan mendengarkan shopper tanpa memotong pembicaraan\n- 1 Poin — Mendengarkan tanpa menyela\n- 1 Poin — Tidak memaksakan opini kepada shopper",
-                max: 2
-            },
-            {
-                id: 47,
-                sub: "Active Listening",
-                detail: "Acknowledgement",
-                criteria: "(1 Point) Memberikan respons non-verbal saat shopper berbicara\n• Mengangguk dan tersenyum, memberikan respons kecil sebagai tanda mendengarkan (hmm, ya, ohh)",
-                max: 1
-            }
+            { id: 44, sub: "Active Listening", detail: "Rapport Building", criteria: "Menjaga alur percakapan tetap natural & nyaman", max: 2 },
+            { id: 45, sub: "Active Listening", detail: "Attentiveness", criteria: "Perhatian penuh dan peka terhadap detail", max: 2 },
+            { id: 46, sub: "Active Listening", detail: "Listening", criteria: "Mendengarkan tanpa menyela/memaksakan opini", max: 2 },
+            { id: 47, sub: "Active Listening", detail: "Acknowledgement", criteria: "Respons non-verbal aktif (mengangguk/senyum)", max: 1 }
         ],
         "Fase 5: Easy Deal (Negotiation Skills)": [
-            {
-                id: 48,
-                sub: "Negotiation Skills",
-                detail: "Counter Objection",
-                criteria: "(1 Point) Saat menggali kebutuhan melalui pertanyaan, menunjukkan kemampuan dan kepercayaan diri dalam menyampaikan informasi\n• Menunjukkan rasa percaya diri saat menjawab pertanyaan",
-                max: 1
-            },
-            {
-                id: 49,
-                sub: "Negotiation Skills",
-                detail: "Solusi Alternatif Keberatan",
-                criteria: "(Range Scoring - 3 Points) Mampu menawarkan solusi alternatif\n• Respons yang tepat dalam menghadapi keberatan/penolakan yang diajukan, 1 solusi = 1 poin\n\nContoh:\n- Karena Apple berinvestasi besar dalam teknologi (1 Poin)\n- Menjaga kualitas produk tetap tinggi (1 Poin)",
-                max: 3
-            },
-            {
-                id: 50,
-                sub: "Negotiation Skills",
-                detail: "Positivity",
-                criteria: "(Range Scoring - 3 Points) Menunjukkan sikap positif saat menghadapi keberatan/penolakan\n• 0 Poin — Reaksi negatif\n• 1 Poin — Reaksi netral / hanya menyampaikan fakta\n• 2 Poin — Mengakui kekhawatiran customer sebelum menyampaikan fakta (mengangguk/postur terbuka)\n• 3 Poin — Menunjukkan empati saat menghadapi keberatan (mampu mengulang atau memahami kekhawatiran shopper)",
-                max: 3
-            },
-            {
-                id: 51,
-                sub: "Negotiation Skills",
-                detail: "Kata-Kata Positif",
-                criteria: "(1 Point) Menunjukkan kemampuan menggunakan kata-kata positif saat melakukan sales pitch\n• Menggunakan kata-kata positif seperti “membantu”, “menghemat waktu”",
-                max: 1
-            },
-            {
-                id: 52,
-                sub: "Negotiation Skills",
-                detail: "Convincing",
-                criteria: "(3 Points) Menunjukkan kemampuan menghubungkan teknologi dengan kehidupan shopper (1 Contoh Teknologi = 1 Poin)\n• Membagikan bagaimana teknologi dapat membantu customer\nContoh:\n- Dengan iPhone\n- Dengan iPad, Bapak/Ibu hanya butuh\n- Dengan Macbook, Bapak/Ibu dapat dengan mudah",
-                max: 3
-            },
-            {
-                id: 53,
-                sub: "Negotiation Skills",
-                detail: "Sales Initiation",
-                criteria: "(Range Scoring - 3 Points) Menunjukkan rasa percaya diri dan kreativitas dalam meminta penjualan\n• 0 Poin — Tidak closing\n• 1 Poin — Closing\n• 2 Poin — Closing secara kreatif (menawarkan opsi pembayaran fleksibel, gratis pengiriman, etc)",
-                max: 3
-            },
-            {
-                id: 54,
-                sub: "Negotiation Skills",
-                detail: "Upselling",
-                criteria: "(1 Point) Berusaha melakukan upselling saat demonstrasi\n• Memulai percakapan upsell",
-                max: 1
-            },
-            {
-                id: 55,
-                sub: "Negotiation Skills",
-                detail: "Lintas Kategori",
-                criteria: "(1 Point) Berusaha memulai percakapan lintas kategori\n• Memulai percakapan antar kategori",
-                max: 1
-            },
-            {
-                id: 56,
-                sub: "Negotiation Skills",
-                detail: "Maintenance",
-                criteria: "(2 Points) Menunjukkan kemampuan menjelaskan garansi Apple/Qoala serta tips perawatan/pembersihan kepada shopper\n• 1 Poin — Garansi\n• 1 Poin — 1 Tips Perawatan (Contoh: Ketika buka box pastikan di charge full terlebih dahulu)",
-                max: 2
-            },
-            {
-                id: 57,
-                sub: "Negotiation Skills",
-                detail: "Apple Care",
-                criteria: "(1 Point) Menunjukkan kemampuan memperkenalkan Apple Care\n• Memperkenalkan aplikasi dan menjelaskan manfaatnya",
-                max: 1
-            },
-            {
-                id: 58,
-                sub: "Negotiation Skills",
-                detail: "Apple Care Account (Bonus)",
-                criteria: "(Bonus 1 Point) Shopper mengunduh aplikasi dan membuat akun",
-                max: 1
-            }
+            { id: 48, sub: "Negotiation Skills", detail: "Counter Objection", criteria: "Percaya diri menjawab keraguan customer", max: 1 },
+            { id: 49, sub: "Negotiation Skills", detail: "Solusi Alternatif Keberatan", criteria: "Menyediakan solusi dan nilai investasi produk", max: 3 },
+            { id: 50, sub: "Negotiation Skills", detail: "Positivity", criteria: "Sikap positif dan empati menghadapi keberatan", max: 3 },
+            { id: 51, sub: "Negotiation Skills", detail: "Kata-Kata Positif", criteria: "Penggunaan diksi positif (membantu, menghemat)", max: 1 },
+            { id: 52, sub: "Negotiation Skills", detail: "Convincing", criteria: "Menghubungkan teknologi dengan kebutuhan hidup", max: 3 },
+            { id: 53, sub: "Negotiation Skills", detail: "Sales Initiation", criteria: "Inisiasi closing penjualan secara kreatif", max: 3 },
+            { id: 54, sub: "Negotiation Skills", detail: "Upselling", criteria: "Upaya upselling produk", max: 1 },
+            { id: 55, sub: "Negotiation Skills", detail: "Lintas Kategori", criteria: "Percakapan lintas kategori produk", max: 1 },
+            { id: 56, sub: "Negotiation Skills", detail: "Maintenance", criteria: "Penjelasan garansi & tips perawatan awal", max: 2 },
+            { id: 57, sub: "Negotiation Skills", detail: "Apple Care", criteria: "Pengenalan layanan Apple Care", max: 1 },
+            { id: 58, sub: "Negotiation Skills", detail: "Apple Care Account (Bonus)", criteria: "Pembuatan akun & unduh aplikasi", max: 1 }
         ],
         "Fase 6: Settle & Support": [
-            {
-                id: 59,
-                sub: "Purchase",
-                detail: "Memulai Registrasi Garansi",
-                criteria: "(1 Point) Menyampaikan manfaat untuk prospek di masa depan serta keberhasilan registrasi garansi",
-                max: 1
-            },
-            {
-                id: 60,
-                sub: "Purchase",
-                detail: "Undangan Kembali ke Toko",
-                criteria: "(1 Point) Mengundang customer untuk kembali ke toko apabila membutuhkan bantuan secara natural",
-                max: 1
-            },
-            {
-                id: 61,
-                sub: "Non-Purchase",
-                detail: "Pengumpulan Informasi Prospek / MAP Club",
-                criteria: "(1 Point) Menyampaikan manfaat prospek di masa depan serta memulai pengumpulan data MAP Club",
-                max: 1
-            },
-            {
-                id: 62,
-                sub: "Non-Purchase",
-                detail: "Pengumpulan Data MAP Club (Bonus)",
-                criteria: "(Bonus 1 Point) Berhasil melakukan pengumpulan data",
-                max: 1
-            },
-            {
-                id: 63,
-                sub: "Non-Purchase",
-                detail: "Antusiasme Kunjungan Kembali",
-                criteria: "(1 Point) Menunjukkan antusiasme untuk mengundang shopper kembali apabila berubah pikiran (Mengundang dan menyambut customer untuk kembali berkunjung secara natural)",
-                max: 1
-            }
+            { id: 59, sub: "Purchase", detail: "Memulai Registrasi Garansi", criteria: "Registrasi garansi & penjelasan manfaat masa depan", max: 1 },
+            { id: 60, sub: "Purchase", detail: "Undangan Kembali ke Toko", criteria: "Undangan kunjungan kembali secara natural", max: 1 },
+            { id: 61, sub: "Non-Purchase", detail: "Pengumpulan Informasi Prospek / MAP Club", criteria: "Pengumpulan data prospek & MAP Club", max: 1 },
+            { id: 62, sub: "Non-Purchase", detail: "Pengumpulan Data MAP Club (Bonus)", criteria: "Keberhasilan input data MAP Club", max: 1 },
+            { id: 63, sub: "Non-Purchase", detail: "Antusiasme Kunjungan Kembali", criteria: "Sambutan hangat untuk kunjungan berikutnya", max: 1 }
         ]
     };
 
@@ -725,6 +399,7 @@
     const notes = {};
     const completedPhases = {};
     let activePhaseKey = "";
+    let performanceChart = null;
 
     window.onload = function() {
         fetch(WEB_APP_URL)
@@ -740,15 +415,8 @@
         })
         .catch(err => console.log("Gagal memuat master karyawan:", err));
 
-        fetch(WEB_APP_URL + "?action=getHistory")
-        .then(res => res.json())
-        .then(data => { 
-            serverHistory = data; 
-            checkStaffProgress(); // Otomatis hitung ulang skor dari riwayat server saat data dimuat
-        })
-        .catch(err => console.log("Gagal memuat riwayat:", err));
-
         initDashboard();
+        initChart();
     };
 
     function onStoreChange() {
@@ -756,12 +424,8 @@
         const staffDatalist = document.getElementById('staffListOptions');
         staffDatalist.innerHTML = '';
         document.getElementById('staffInput').value = '';
-        document.getElementById('statusInfoBox').style.display = 'none';
 
-        if (!storeInputVal) {
-            document.getElementById('storeSummaryBox').style.display = 'none';
-            return;
-        }
+        if (!storeInputVal) return;
 
         let filteredStaff = masterEmployees.filter(item => 
             item.store && item.store.trim().toLowerCase().includes(storeInputVal)
@@ -772,114 +436,14 @@
                 staffDatalist.innerHTML += `<option value="${staff.name.trim()}">`;
             });
             document.getElementById('staffInput').placeholder = "Ketik atau pilih nama staff...";
-            
-            renderStoreSummary(storeInputVal, filteredStaff);
         } else {
             document.getElementById('staffInput').placeholder = "-- Toko tidak ditemukan dalam Master --";
-            document.getElementById('storeSummaryBox').style.display = 'none';
         }
         
         initDashboard();
     }
 
-    function renderStoreSummary(storeQuery, staffList) {
-        const summaryBox = document.getElementById('storeSummaryBox');
-        const tableBody = document.getElementById('storeSummaryTableBody');
-        const titleEl = document.getElementById('summaryStoreTitle');
-        
-        titleEl.innerText = `📊 Ringkasan Asesmen Staff Toko (${document.getElementById('storeInput').value.trim()})`;
-        tableBody.innerHTML = '';
-        summaryBox.style.display = 'block';
-
-        const totalAllPhases = Object.keys(phasesData).length;
-
-        staffList.forEach((staff, index) => {
-            let staffNameLower = staff.name.trim().toLowerCase();
-            let staffRecords = serverHistory.filter(r => 
-                r.store && r.store.trim().toLowerCase().includes(storeQuery) && 
-                r.staffName && r.staffName.trim().toLowerCase() === staffNameLower
-            );
-
-            let completedPhasesList = [];
-            staffRecords.forEach(rec => {
-                if (phasesData[rec.phaseName] && !completedPhasesList.includes(rec.phaseName)) {
-                    completedPhasesList.push(rec.phaseName);
-                }
-            });
-
-            let doneCount = completedPhasesList.length;
-            let statusBadge = "";
-            let detailsText = "";
-
-            if (doneCount === totalAllPhases) {
-                statusBadge = `<span class="badge-done">Selesai Semua (${doneCount}/${totalAllPhases})</span>`;
-                detailsText = "Semua fase telah diselesaikan.";
-            } else if (doneCount > 0) {
-                let allPhaseKeys = Object.keys(phasesData);
-                let missing = allPhaseKeys.filter(p => !completedPhasesList.includes(p));
-                statusBadge = `<span class="badge-pending">Belum Lengkap (${doneCount}/${totalAllPhases})</span>`;
-                detailsText = `Kurang: ${missing.map(m => m.split(':')[0]).join(', ')}`;
-            } else {
-                statusBadge = `<span class="badge-pending">Belum Dinilai (0/${totalAllPhases})</span>`;
-                detailsText = "Belum ada fase yang dinilai.";
-            }
-
-            tableBody.innerHTML += `
-                <tr>
-                    <td style="text-align: center;">${index + 1}</td>
-                    <td style="font-weight: 600;">${staff.name.trim()}</td>
-                    <td>${statusBadge}</td>
-                    <td style="font-size: 11px; color: var(--text-secondary);">${detailsText}</td>
-                </tr>
-            `;
-        });
-    }
-
     function checkStaffProgress() {
-        const storeInputVal = document.getElementById('storeInput').value.trim().toLowerCase();
-        const staffVal = document.getElementById('staffInput').value.trim().toLowerCase();
-        const statusBox = document.getElementById('statusInfoBox');
-        const statusText = document.getElementById('progressStatusText');
-
-        Object.keys(phasesData).forEach(p => completedPhases[p] = false);
-
-        // Reset skor lokal saat ganti staff/toko
-        for (let k in scores) delete scores[k];
-
-        if (!staffVal || !storeInputVal) {
-            statusBox.style.display = 'none';
-            initDashboard();
-            return;
-        }
-
-        const staffRecords = serverHistory.filter(r => 
-            r.store && r.store.trim().toLowerCase().includes(storeInputVal) && 
-            r.staffName && r.staffName.trim().toLowerCase() === staffVal
-        );
-        
-        staffRecords.forEach(rec => {
-            if (phasesData[rec.phaseName]) {
-                completedPhases[rec.phaseName] = true;
-                // Ambil kembali skor yang tersimpan di server agar terhitung di total skor
-                if (rec.scores) {
-                    let parsedScores = typeof rec.scores === 'string' ? JSON.parse(rec.scores) : rec.scores;
-                    for (let id in parsedScores) {
-                        scores[id] = Number(parsedScores[id]);
-                    }
-                }
-            }
-        });
-
-        statusBox.style.display = 'block';
-        let allPhases = Object.keys(phasesData);
-        let remaining = allPhases.filter(p => !completedPhases[p]);
-
-        if (remaining.length === 0) {
-            statusText.innerHTML = `<b>Sempurna!</b> Semua ${allPhases.length} fase asesmen untuk staff ini sudah selesai dikerjakan.`;
-        } else {
-            statusText.innerHTML = `<b>Sisa Kekurangan:</b> Belum menyelesaikan ${remaining.length} fase (${remaining.join(', ')}).`;
-        }
-
         initDashboard();
     }
 
@@ -900,7 +464,18 @@
                 </div>
             `;
         });
-        calculateTotal();
+    }
+
+    function switchTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        btnElement.classList.add('active');
+
+        if (tabId === 'summaryTab') {
+            updateSummaryView();
+        }
     }
 
     function validateMeta() {
@@ -955,15 +530,9 @@
     function setScore(itemId, score, phaseName) {
         scores[itemId] = score;
         openPhase(phaseName);
-        calculateTotal();
     }
 
     function setNote(itemId, val) { notes[itemId] = val; }
-
-    function calculateTotal() {
-        let total = Object.values(scores).reduce((a, b) => a + b, 0);
-        document.getElementById('totalScoreVal').innerText = `${total > 100 ? 100 : total} / 100`;
-    }
 
     function submitCurrentPhase() {
         const store = document.getElementById('storeInput').value.trim();
@@ -992,7 +561,6 @@
         .then(() => {
             completedPhases[activePhaseKey] = true;
             alert(`✅ Sukses! Fase "${activePhaseKey}" beserta catatannya tersimpan.`);
-            checkStaffProgress();
             backToDashboard();
         })
         .catch(error => { alert('Gagal mengirim data: ' + error); });
@@ -1002,6 +570,88 @@
         document.getElementById('phaseFormView').style.display = 'none';
         document.getElementById('dashboardView').style.display = 'block';
         initDashboard();
+    }
+
+    // Fungsi Inisialisasi & Update Grafik Chart.js
+    function initChart() {
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        performanceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(phasesData).map(name => name.split(':')[0]), // Singkat nama fase
+                datasets: [{
+                    label: 'Skor Perolehan',
+                    data: new Array(Object.keys(phasesData).length).fill(0),
+                    backgroundColor: '#0071e3',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 20
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    function updateSummaryView() {
+        const tableBody = document.getElementById('summaryTableBody');
+        tableBody.innerHTML = '';
+
+        let totalOverallScore = 0;
+        let completedCount = 0;
+        let chartScores = [];
+        let phaseKeys = Object.keys(phasesData);
+
+        phaseKeys.forEach(phaseName => {
+            let isDone = completedPhases[phaseName];
+            let phaseItems = phasesData[phaseName];
+            let phaseScore = 0;
+            let phaseNotesList = [];
+
+            phaseItems.forEach(item => {
+                let s = scores[item.id] || 0;
+                phaseScore += s;
+                if (notes[item.id]) {
+                    phaseNotesList.push(`${item.detail}: ${notes[item.id]}`);
+                }
+            });
+
+            if (isDone) completedCount++;
+            totalOverallScore += phaseScore;
+            chartScores.push(phaseScore);
+
+            let statusBadge = isDone ? '<span class="badge-done">Selesai ✓</span>' : '<span class="badge-pending">Belum</span>';
+            let notesText = phaseNotesList.length > 0 ? phaseNotesList.join(' | ') : '-';
+
+            tableBody.innerHTML += `
+                <tr>
+                    <td style="font-weight: 600;">${phaseName}</td>
+                    <td>${statusBadge}</td>
+                    <td style="text-align: center; font-weight: 600;">${phaseScore} Poin</td>
+                    <td style="font-size: 11px; color: var(--text-secondary);">${notesText}</td>
+                </tr>
+            `;
+        });
+
+        // Update Kartu Statistik Ringkasan
+        let finalCappedScore = totalOverallScore > 100 ? 100 : totalOverallScore;
+        document.getElementById('summaryTotalScore').innerText = `${finalCappedScore} / 100`;
+        document.getElementById('summaryCompletedPhases').innerText = `${completedCount} / ${phaseKeys.length}`;
+
+        // Update Grafik Chart
+        if (performanceChart) {
+            performanceChart.data.datasets[0].data = chartScores;
+            performanceChart.update();
+        }
     }
 </script>
 
