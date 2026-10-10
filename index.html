@@ -170,7 +170,7 @@
 <div class="container">
     <header>
         <h1>Digimap & Digiplus Assessment Dashboard</h1>
-        <div class="subtitle">Sistem Penilaian Bertahap (Cicil Per Fase) Terhubung ke Google Sheets</div>
+        <div class="subtitle">Sistem Penilaian Bertahap (Cicil Per Fase) dengan Validasi Database Toko & Staff</div>
     </header>
     
     <!-- Bagian Identitas & Validasi Toko / Staff -->
@@ -178,7 +178,12 @@
         <div class="form-group">
             <label>Pilih Toko / Store</label>
             <select id="storeSelect" onchange="updateStaffList()">
-                <option value="">-- Memuat Data Toko... --</option>
+                <option value="">-- Pilih Toko --</option>
+                <option value="M103 Digimap Grand Indonesia">M103 Digimap Grand Indonesia</option>
+                <option value="M105 Digimap Mall Puri Indah">M105 Digimap Mall Puri Indah</option>
+                <option value="M106 Digimap Emporium Mall">M106 Digimap Emporium Mall</option>
+                <option value="M110 Digimap Ciputra World Surabaya">M110 Digimap Ciputra World Surabaya</option>
+                <option value="M116 Digimap Beachwalk Bali">M116 Digimap Beachwalk Bali</option>
             </select>
         </div>
         <div class="form-group">
@@ -211,32 +216,35 @@
         <button type="button" class="back-btn" onclick="backToDashboard()">← Kembali ke Menu Fase</button>
         <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0;"></h2>
         <div id="phaseQuestionsContainer"></div>
-        <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Kirim ke Google Sheets</button>
+        <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Selesaikan Fase Ini</button>
     </div>
 </div>
 
 <script>
-    let employeeDatabase = [];
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGIZtO-V5OHoc5j-I6EWA0-lhFhHb0TenYq72SjuA0ULMUjS70N8VtS-lCNon1ZEdI/exec";
-
-    // Tarik data Master Karyawan dari Google Sheet saat halaman dimuat
-    function loadMasterData() {
-        fetch(WEB_APP_URL)
-        .then(response => response.json())
-        .then(data => {
-            employeeDatabase = data;
-            let stores = [...new Set(data.map(item => item.store))];
-            let storeSelect = document.getElementById('storeSelect');
-            storeSelect.innerHTML = '<option value="">-- Pilih Toko --</option>';
-            stores.forEach(store => {
-                storeSelect.innerHTML += `<option value="${store}">${store}</option>`;
-            });
-        })
-        .catch(error => {
-            console.error("Gagal memuat master:", error);
-            document.getElementById('storeSelect').innerHTML = '<option value="">Gagal memuat data toko</option>';
-        });
-    }
+    // Database Referensi Toko & Staff Resmi
+    const storeStaffDatabase = {
+        "M103 Digimap Grand Indonesia": [
+            "Iwan Kurniawan", "Hakeem Abdul Jabbar", "Ida Bagus Krisna Putra", 
+            "Chilyatun Nada", "Nurjen Nurjen", "Dhania Anggraini", "Tika Purwanti", 
+            "Fajar Mahendra", "Sendy Irawan", "Liya Amelia Agustin", "Nurjanah"
+        ],
+        "M105 Digimap Mall Puri Indah": [
+            "Indiana Krismonita", "Tony Cascarino Maldini", "Samsul Arip", 
+            "Alfa Shinta Nuraini", "Agung Setiawan", "Siti Nur Hayati", "Faras Yusuf", "Mawaddah"
+        ],
+        "M106 Digimap Emporium Mall": [
+            "Adrian Mahardika", "Mohammad Fahmi Fahrizi", "Indah Lestari", 
+            "M Nur Chaidar Farras", "Syifa Nazhira", "Meisy Marselina Tanjung", "Fikkih Muammar"
+        ],
+        "M110 Digimap Ciputra World Surabaya": [
+            "Ela Novita Sari", "Muhammad Iqbal Augustiyant", "Hartono Hartono", 
+            "Rema Hatta Siswanto", "Linda Indi Kusumaningrum", "Bella Putri Sabrina"
+        ],
+        "M116 Digimap Beachwalk Bali": [
+            "Yesi Tri Utami", "Widya Putri Kirana", "Rysma Astrin Nurvyanti", 
+            "Tri Nur Havivah", "Anggara Saputra Ilham Baitulloh", "I Kadek Dwiki Astawa"
+        ]
+    };
 
     // 6 Fase Kategori Asesmen Lengkap
     const phasesData = {
@@ -281,10 +289,11 @@
         const staffSelect = document.getElementById('staffSelect');
         staffSelect.innerHTML = '<option value="">-- Pilih Staff --</option>';
 
-        let filteredStaff = employeeDatabase.filter(item => item.store === store);
-        filteredStaff.forEach(item => {
-            staffSelect.innerHTML += `<option value="${item.name}">${item.name} (${item.role})</option>`;
-        });
+        if (store && storeStaffDatabase[store]) {
+            storeStaffDatabase[store].forEach(staff => {
+                staffSelect.innerHTML += `<option value="${staff}">${staff}</option>`;
+            });
+        }
     }
 
     function initDashboard() {
@@ -316,6 +325,13 @@
             alert('⚠️ PERINGATAN VALIDASI:\nMohon pilih Toko, Nama Staff, dan Tanggal Coaching terlebih dahulu di bagian atas!');
             return false;
         }
+
+        // Validasi database toko dan staff yang dipilih
+        if (!storeStaffDatabase[store] || !storeStaffDatabase[store].includes(staff)) {
+            alert(`❌ ERROR VALIDASI DATABASE:\nStaff "${staff}" tidak terdaftar di store "${store}". Mohon periksa kembali pilihan Anda!`);
+            return false;
+        }
+
         return true;
     }
 
@@ -358,7 +374,7 @@
 
     function setScore(itemId, score, phaseName) {
         scores[itemId] = score;
-        openPhase(phaseName);
+        openPhase(phaseName); // Refresh view untuk update tombol terpilih
         calculateTotal();
     }
 
@@ -373,36 +389,9 @@
     }
 
     function submitCurrentPhase() {
-        const store = document.getElementById('storeSelect').value;
-        const staffName = document.getElementById('staffSelect').value;
-        const coachingDate = document.getElementById('coachingDate').value;
-        let total = Object.values(scores).reduce((a, b) => a + b, 0);
-
-        const payload = {
-            store: store,
-            staffName: staffName,
-            coachingDate: coachingDate,
-            phaseName: activePhaseKey,
-            totalScore: total > 100 ? 100 : total,
-            scores: scores
-        };
-
-        alert('Mengirim data fase ke Google Sheets (Tab Submit)...');
-
-        fetch(WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(() => {
-            completedPhases[activePhaseKey] = true;
-            alert(`✅ Sukses! Fase "${activePhaseKey}" berhasil dikirim dan dicatat ke tab "Submit".`);
-            backToDashboard();
-        })
-        .catch(error => {
-            alert('Gagal mengirim data: ' + error);
-        });
+        completedPhases[activePhaseKey] = true;
+        alert(`✅ Sukses! Fase "${activePhaseKey}" berhasil disimpan.`);
+        backToDashboard();
     }
 
     function backToDashboard() {
@@ -418,10 +407,10 @@
         const date = document.getElementById('coachingDate').value;
         let total = Object.values(scores).reduce((a, b) => a + b, 0);
 
-        alert(`📊 REKAPITULASI ASESMEN:\nStore: ${store}\nStaff: ${staff}\nTanggal: ${date}\nTotal Skor: ${total > 100 ? 100 : total} / 100`);
+        alert(`📊 REKAPITULASI ASESMEN:\nStore: ${store}\nStaff: ${staff}\nTanggal: ${date}\nTotal Skor: ${total > 100 ? 100 : total} / 100\n\nData siap direkap/diekspor!`);
     }
 
-    window.onload = loadMasterData;
+    window.onload = initDashboard;
 </script>
 
 </body>
