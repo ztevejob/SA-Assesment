@@ -259,13 +259,55 @@
 
     const phasesData = {
         "Fase 1: Foundation (Professional & Retail)": [
-            { id: 1, sub: "Professional Image", detail: "Make up / Penampilan Wajah", criteria: "Penampilan wajah baik dan rapi", max: 1 },
-            { id: 2, sub: "Professional Image", detail: "Smell / Aroma", criteria: "Parfum ringan & segar", max: 1 },
-            { id: 3, sub: "Professional Image", detail: "Hair / Rambut", criteria: "Bersih, disisir, dan dirapikan", max: 2 },
-            { id: 4, sub: "Professional Image", detail: "Uniform / Seragam", criteria: "Seragam rapih, celana hitam/navy", max: 2 },
-            { id: 5, sub: "Professional Image", detail: "Nails & Accessories", criteria: "Kuku bersih tanpa cat kuku", max: 2 },
-            { id: 6, sub: "Connect", detail: "Perkenalan Diri & Sambutan", criteria: "Menyebutkan nama & sambutan standar", max: 2 },
-            { id: 7, sub: "Retail Excellence", detail: "Teroganisir & Observasi", criteria: "Pengaturan demo sesuai planogram", max: 4 }
+            { 
+                id: 1, 
+                sub: "Professional Image", 
+                detail: "Make up / Penampilan Wajah", 
+                criteria: "(1 Point) Penampilan wajah baik dan rapi\n• Wanita: Tata rias lengkap yang profesional dan sesuai\n• Laki-laki: Rambut wajah harus bersih dan dipangkas rapi menggunakan produk rambut\n\n(Pelanggaran apa pun tidak akan diberi skor)", 
+                max: 1 
+            },
+            { 
+                id: 2, 
+                sub: "Professional Image", 
+                detail: "Smell / Aroma", 
+                criteria: "(1 Point) Parfum harus ringan dan segar, tidak berbau menyengat\nTidak ada bau yang tidak sedap, mis. rokok, nafas bawang putih, bau badan\n\n(Pelanggaran apa pun tidak akan diberi skor)", 
+                max: 1 
+            },
+            { 
+                id: 3, 
+                sub: "Professional Image", 
+                detail: "Hair / Rambut", 
+                criteria: "(Range Scoring - 2 Points)\n0 Poin - Rambut tidak terawat (rambut yang terlalu pirang tidak diperbolehkan kecuali NPI)\n1 Poin - Bersih, disisir, dan dirapikan atau ditata rapi\n2 Poin - Rambut ditata dengan baik dan rapih", 
+                max: 2 
+            },
+            { 
+                id: 4, 
+                sub: "Professional Image", 
+                detail: "Uniform / Seragam", 
+                criteria: "(2 Points)\n½ Poin - Seragam digimap/digiplus, rapih dan tidak kusut dan lusuh\n½ Poin - Celana panjang hitam/navy blue jins untuk digiplus menutupi mata kaki, bukan legging\n1 Poin - Sepatu sneakers warna gelap Bersih (samsung putih)\n\n(Pelanggaran apa pun tidak akan diberi skor)", 
+                max: 2 
+            },
+            { 
+                id: 5, 
+                sub: "Professional Image", 
+                detail: "Nails & Accessories", 
+                criteria: "(1 Point) Tangan dan kuku bersih, terawat secara konservatif, tidak ada warna cat kuku nail art, tidak kuku extension, tidak ada kuku panjang untuk pria\n\n(Pelanggaran apa pun tidak akan diberi skor)", 
+                max: 2 
+            },
+            { 
+                id: 6, 
+                sub: "Accessories", 
+                detail: "Aksesoris", 
+                criteria: "(1 Point) Aksesoris: Satu cincin, Satu gelang/jam tangan, Anting diperbolehkan giwang\n\n(Pelanggaran apa pun tidak akan diberi skor)", 
+                max: 1 
+            },
+            { 
+                id: 7, 
+                sub: "Retail Excellence", 
+                detail: "Teroganisir & Observasi", 
+                criteria: "Pengaturan demo sesuai planogram", 
+                max: 4 
+            }
         ],
         "Fase 2: Engage (Percaya Diri & Bertanya)": [
             { id: 8, sub: "Percaya Diri", detail: "Bahasa Tubuh & Postur", criteria: "Sikap, postur berdiri, kontak mata", max: 4 },
@@ -338,7 +380,6 @@
             });
             document.getElementById('staffInput').placeholder = "Ketik atau pilih nama staff...";
             
-            // Tampilkan tabel summary staff toko
             renderStoreSummary(storeInputVal, filteredStaff);
         } else {
             document.getElementById('staffInput').placeholder = "-- Toko tidak ditemukan dalam Master --";
@@ -361,7 +402,6 @@
 
         staffList.forEach((staff, index) => {
             let staffNameLower = staff.name.trim().toLowerCase();
-            // Cari riwayat submit untuk staff ini di toko terkait
             let staffRecords = serverHistory.filter(r => 
                 r.store && r.store.trim().toLowerCase().includes(storeQuery) && 
                 r.staffName && r.staffName.trim().toLowerCase() === staffNameLower
