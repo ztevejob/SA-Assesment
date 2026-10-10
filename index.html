@@ -170,27 +170,28 @@
 <div class="container">
     <header>
         <h1>Digimap & Digiplus Assessment Dashboard</h1>
-        <div class="subtitle">Sistem Penilaian Bertahap (Cicil Per Fase) dengan Validasi Database Toko & Staff</div>
+        <div class="subtitle">Sistem Penilaian Bertahap (Cicil Per Fase) dengan Autofill Toko & Staff</div>
     </header>
     
     <!-- Bagian Identitas & Validasi Toko / Staff -->
     <div class="meta-box">
         <div class="form-group">
             <label>Pilih Toko / Store</label>
-            <select id="storeSelect" onchange="updateStaffList()">
-                <option value="">-- Pilih Toko --</option>
-                <option value="M103 Digimap Grand Indonesia">M103 Digimap Grand Indonesia</option>
-                <option value="M105 Digimap Mall Puri Indah">M105 Digimap Mall Puri Indah</option>
-                <option value="M106 Digimap Emporium Mall">M106 Digimap Emporium Mall</option>
-                <option value="M110 Digimap Ciputra World Surabaya">M110 Digimap Ciputra World Surabaya</option>
-                <option value="M116 Digimap Beachwalk Bali">M116 Digimap Beachwalk Bali</option>
-            </select>
+            <input type="text" id="storeInput" list="storeListOptions" placeholder="Ketik atau pilih toko..." oninput="updateStaffList()">
+            <datalist id="storeListOptions">
+                <option value="M103 Digimap Grand Indonesia">
+                <option value="M105 Digimap Mall Puri Indah">
+                <option value="M106 Digimap Emporium Mall">
+                <option value="M110 Digimap Ciputra World Surabaya">
+                <option value="M116 Digimap Beachwalk Bali">
+            </datalist>
         </div>
         <div class="form-group">
             <label>Nama Staff / Sales Assistant</label>
-            <select id="staffSelect">
-                <option value="">-- Pilih Toko Dahulu --</option>
-            </select>
+            <input type="text" id="staffInput" list="staffListOptions" placeholder="Ketik atau pilih nama staff...">
+            <datalist id="staffListOptions">
+                <!-- Diisi otomatis berdasarkan toko yang dipilih -->
+            </datalist>
         </div>
         <div class="form-group">
             <label>Tanggal Coaching</label>
@@ -216,11 +217,13 @@
         <button type="button" class="back-btn" onclick="backToDashboard()">← Kembali ke Menu Fase</button>
         <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0;"></h2>
         <div id="phaseQuestionsContainer"></div>
-        <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Selesaikan Fase Ini</button>
+        <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Kirim ke Google Sheets</button>
     </div>
 </div>
 
 <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGIZtO-V5OHoc5j-I6EWA0-lhFhHb0TenYq72SjuA0ULMUjS70N8VtS-lCNon1ZEdI/exec";
+
     // Database Referensi Toko & Staff Resmi
     const storeStaffDatabase = {
         "M103 Digimap Grand Indonesia": [
@@ -285,13 +288,14 @@
     let activePhaseKey = "";
 
     function updateStaffList() {
-        const store = document.getElementById('storeSelect').value;
-        const staffSelect = document.getElementById('staffSelect');
-        staffSelect.innerHTML = '<option value="">-- Pilih Staff --</option>';
+        const store = document.getElementById('storeInput').value.trim();
+        const datalist = document.getElementById('staffListOptions');
+        datalist.innerHTML = '';
+        document.getElementById('staffInput').value = '';
 
         if (store && storeStaffDatabase[store]) {
             storeStaffDatabase[store].forEach(staff => {
-                staffSelect.innerHTML += `<option value="${staff}">${staff}</option>`;
+                datalist.innerHTML += `<option value="${staff}">`;
             });
         }
     }
@@ -317,18 +321,24 @@
     }
 
     function validateMeta() {
-        const store = document.getElementById('storeSelect').value;
-        const staff = document.getElementById('staffSelect').value;
+        const store = document.getElementById('storeInput').value.trim();
+        const staff = document.getElementById('staffInput').value.trim();
         const date = document.getElementById('coachingDate').value;
 
         if (!store || !staff || !date) {
-            alert('⚠️ PERINGATAN VALIDASI:\nMohon pilih Toko, Nama Staff, dan Tanggal Coaching terlebih dahulu di bagian atas!');
+            alert('⚠️ PERINGATAN VALIDASI:\nMohon isi Toko, Nama Staff, dan Tanggal Coaching terlebih dahulu di bagian atas!');
             return false;
         }
 
-        // Validasi database toko dan staff yang dipilih
-        if (!storeStaffDatabase[store] || !storeStaffDatabase[store].includes(staff)) {
-            alert(`❌ ERROR VALIDASI DATABASE:\nStaff "${staff}" tidak terdaftar di store "${store}". Mohon periksa kembali pilihan Anda!`);
+        // Validasi database toko
+        if (!storeStaffDatabase[store]) {
+            alert(`❌ ERROR VALIDASI TOKO:\nToko "${store}" tidak ditemukan dalam database resmi.`);
+            return false;
+        }
+
+        // Validasi database staff sesuai toko
+        if (!storeStaffDatabase[store].includes(staff)) {
+            alert(`❌ ERROR VALIDASI DATABASE:\nStaff "${staff}" tidak terdaftar di store "${store}".`);
             return false;
         }
 
@@ -374,7 +384,7 @@
 
     function setScore(itemId, score, phaseName) {
         scores[itemId] = score;
-        openPhase(phaseName); // Refresh view untuk update tombol terpilih
+        openPhase(phaseName);
         calculateTotal();
     }
 
@@ -389,9 +399,36 @@
     }
 
     function submitCurrentPhase() {
-        completedPhases[activePhaseKey] = true;
-        alert(`✅ Sukses! Fase "${activePhaseKey}" berhasil disimpan.`);
-        backToDashboard();
+        const store = document.getElementById('storeInput').value.trim();
+        const staffName = document.getElementById('staffInput').value.trim();
+        const coachingDate = document.getElementById('coachingDate').value;
+        let total = Object.values(scores).reduce((a, b) => a + b, 0);
+
+        const payload = {
+            store: store,
+            staffName: staffName,
+            coachingDate: coachingDate,
+            phaseName: activePhaseKey,
+            totalScore: total > 100 ? 100 : total,
+            scores: scores
+        };
+
+        alert('Mengirim data fase ke Google Sheets (Tab Submit)...');
+
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            completedPhases[activePhaseKey] = true;
+            alert(`✅ Sukses! Fase "${activePhaseKey}" berhasil dikirim dan dicatat ke tab "Submit".`);
+            backToDashboard();
+        })
+        .catch(error => {
+            alert('Gagal mengirim data: ' + error);
+        });
     }
 
     function backToDashboard() {
@@ -402,8 +439,8 @@
 
     function exportFinalReport() {
         if (!validateMeta()) return;
-        const store = document.getElementById('storeSelect').value;
-        const staff = document.getElementById('staffSelect').value;
+        const store = document.getElementById('storeInput').value.trim();
+        const staff = document.getElementById('staffInput').value.trim();
         const date = document.getElementById('coachingDate').value;
         let total = Object.values(scores).reduce((a, b) => a + b, 0);
 
