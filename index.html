@@ -232,8 +232,8 @@
             <datalist id="staffListOptions"></datalist>
         </div>
         <div class="form-group">
-            <label>Tanggal Coaching</label>
-            <input type="date" id="coachingDate" required>
+            <label>Tanggal Coaching (Opsional untuk lihat nilai)</label>
+            <input type="date" id="coachingDate">
         </div>
     </div>
 
@@ -295,7 +295,7 @@
                             </tr>
                         </thead>
                         <tbody id="summaryTableBody">
-                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Belum ada data asesmen tersimpan. Silakan isi lembar penilaian terlebih dahulu.</td></tr>
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko/Store di atas untuk memuat data rekap.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -478,20 +478,21 @@
         }
     }
 
-    function validateMeta() {
+    // Validasi khusus untuk Mode Asesmen/Coaching (Wajib Toko, Staff, & Tanggal)
+    function validateMetaForCoaching() {
         const store = document.getElementById('storeInput').value.trim();
         const staff = document.getElementById('staffInput').value.trim();
         const date = document.getElementById('coachingDate').value;
 
         if (!store || !staff || !date) {
-            alert('⚠️ Mohon isi Toko, Nama Staff, dan Tanggal Coaching terlebih dahulu!');
+            alert('⚠️ Untuk mulai coaching, mohon isi Toko, Nama Staff, dan Tanggal Coaching terlebih dahulu!');
             return false;
         }
         return true;
     }
 
     function openPhase(phaseName) {
-        if (!validateMeta()) return;
+        if (!validateMetaForCoaching()) return;
 
         activePhaseKey = phaseName;
         document.getElementById('dashboardView').style.display = 'none';
@@ -572,7 +573,7 @@
         initDashboard();
     }
 
-    // Fungsi Inisialisasi & Update Grafik Chart.js
+    // Inisialisasi Grafik Chart.js
     function initChart() {
         const ctx = document.getElementById('performanceChart').getContext('2d');
         performanceChart = new Chart(ctx, {
@@ -602,56 +603,75 @@
         });
     }
 
+    // Fungsi untuk memuat dan menampilkan Summary & Grafik dari Google Sheets berdasarkan Toko/Staff (Tanpa perlu tanggal)
     function updateSummaryView() {
+        const store = document.getElementById('storeInput').value.trim();
+        const staffName = document.getElementById('staffInput').value.trim();
         const tableBody = document.getElementById('summaryTableBody');
-        tableBody.innerHTML = '';
 
-        let totalOverallScore = 0;
-        let completedCount = 0;
-        let chartScores = [];
-        let phaseKeys = Object.keys(phasesData);
+        if (!store) {
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas untuk melihat rekap nilai.</td></tr>`;
+            return;
+        }
 
-        phaseKeys.forEach(phaseName => {
-            let isDone = completedPhases[phaseName];
-            let phaseItems = phasesData[phaseName];
-            let phaseScore = 0;
-            let phaseNotesList = [];
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Sedang memuat rekap data dari Google Sheets...</td></tr>`;
 
-            phaseItems.forEach(item => {
-                let s = scores[item.id] || 0;
-                phaseScore += s;
-                if (notes[item.id]) {
-                    phaseNotesList.push(`${item.detail}: ${notes[item.id]}`);
+        // Panggil doGet dengan action=getHistory serta parameter store dan staffName
+        let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}`;
+        if (staffName) {
+            url += `&staffName=${encodeURIComponent(staffName)}`;
+        }
+
+        fetch(url)
+        .then(res => res.json())
+        .then(historyData => {
+            tableBody.innerHTML = '';
+
+            let phaseKeys = Object.keys(phasesData);
+            let chartScores = new Array(phaseKeys.length).fill(0);
+            let totalOverallScore = 0;
+            let completedCount = 0;
+
+            phaseKeys.forEach((phaseName, index) => {
+                let found = historyData.find(item => item.phaseName === phaseName && (!staffName || item.staffName.toLowerCase() === staffName.toLowerCase()));
+                
+                let phaseScore = found ? Number(found.totalScore) : 0;
+                let isDone = phaseScore > 0;
+                let notesText = found && found.notes ? found.notes : '-';
+
+                if (isDone) {
+                    completedCount++;
+                    totalOverallScore += phaseScore;
                 }
+                chartScores[index] = phaseScore;
+
+                let statusBadge = isDone ? '<span style="color:#16a34a; font-weight:600;">Selesai ✓</span>' : '<span style="color:#6e6e73;">Belum</span>';
+
+                tableBody.innerHTML += `
+                    <tr>
+                        <td style="font-weight: 600;">${phaseName}</td>
+                        <td>${statusBadge}</td>
+                        <td style="text-align: center; font-weight: 600;">${phaseScore} Poin</td>
+                        <td style="font-size: 11px; color: var(--text-secondary);">${notesText}</td>
+                    </tr>
+                `;
             });
 
-            if (isDone) completedCount++;
-            totalOverallScore += phaseScore;
-            chartScores.push(phaseScore);
+            // Update Kartu Statistik Singkat di Tab Summary
+            let finalCappedScore = totalOverallScore > 100 ? 100 : totalOverallScore;
+            document.getElementById('summaryTotalScore').innerText = `${finalCappedScore} / 100`;
+            document.getElementById('summaryCompletedPhases').innerText = `${completedCount} / ${phaseKeys.length}`;
 
-            let statusBadge = isDone ? '<span class="badge-done">Selesai ✓</span>' : '<span class="badge-pending">Belum</span>';
-            let notesText = phaseNotesList.length > 0 ? phaseNotesList.join(' | ') : '-';
-
-            tableBody.innerHTML += `
-                <tr>
-                    <td style="font-weight: 600;">${phaseName}</td>
-                    <td>${statusBadge}</td>
-                    <td style="text-align: center; font-weight: 600;">${phaseScore} Poin</td>
-                    <td style="font-size: 11px; color: var(--text-secondary);">${notesText}</td>
-                </tr>
-            `;
+            // Update Grafik Chart.js
+            if (performanceChart) {
+                performanceChart.data.datasets[0].data = chartScores;
+                performanceChart.update();
+            }
+        })
+        .catch(err => {
+            console.log("Gagal memuat riwayat:", err);
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #dc2626;">Gagal mengambil data riwayat dari Google Sheets.</td></tr>`;
         });
-
-        // Update Kartu Statistik Ringkasan
-        let finalCappedScore = totalOverallScore > 100 ? 100 : totalOverallScore;
-        document.getElementById('summaryTotalScore').innerText = `${finalCappedScore} / 100`;
-        document.getElementById('summaryCompletedPhases').innerText = `${completedCount} / ${phaseKeys.length}`;
-
-        // Update Grafik Chart
-        if (performanceChart) {
-            performanceChart.data.datasets[0].data = chartScores;
-            performanceChart.update();
-        }
     }
 </script>
 
