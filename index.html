@@ -23,40 +23,43 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 20px;
-            line-height: 1.5;
+            padding: 15px;
+            line-height: 1.4;
         }
         .container {
             max-width: 950px;
             margin: 0 auto;
             background: var(--card);
-            padding: 30px;
+            padding: 20px;
             border-radius: var(--radius);
             box-shadow: 0 10px 30px rgba(0,0,0,0.06);
         }
-        header { text-align: center; margin-bottom: 25px; }
-        h1 { font-size: 22px; font-weight: 700; margin: 0 0 5px 0; }
-        .subtitle { font-size: 13px; color: var(--text-secondary); }
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { font-size: 20px; font-weight: 700; margin: 0 0 5px 0; }
+        .subtitle { font-size: 12px; color: var(--text-secondary); }
         
         .meta-box {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
+            grid-template-columns: 1fr;
+            gap: 12px;
             background: var(--gray-bg);
-            padding: 18px;
+            padding: 15px;
             border-radius: 10px;
             margin-bottom: 20px;
             border: 1px solid var(--border);
         }
+        @media(min-width: 768px) {
+            .meta-box { grid-template-columns: 1fr 1fr 1fr; }
+        }
         .form-group label {
             font-weight: 600;
-            font-size: 12px;
+            font-size: 11px;
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .form-group input {
             width: 100%;
-            padding: 9px 12px;
+            padding: 8px 10px;
             border: 1px solid var(--border);
             border-radius: 6px;
             font-size: 13px;
@@ -67,17 +70,17 @@
         /* Navigasi Tab Menu */
         .nav-tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
+            gap: 8px;
+            margin-bottom: 20px;
             border-bottom: 1px solid var(--border);
-            padding-bottom: 12px;
+            padding-bottom: 10px;
         }
         .tab-btn {
             background: var(--gray-bg);
             border: 1px solid var(--border);
-            padding: 10px 18px;
+            padding: 8px 14px;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
             border-radius: 8px;
             cursor: pointer;
             color: var(--text-secondary);
@@ -93,24 +96,25 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
+        /* Grid Fase Lebih Rapat & Compact */
         .phase-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
         }
         .phase-card {
             background: var(--gray-bg);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 18px;
+            border-radius: 8px;
+            padding: 12px 15px;
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
         }
         .phase-card:hover {
             border-color: var(--primary);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
         .phase-card.completed {
             border-color: var(--success);
@@ -118,77 +122,66 @@
         }
         .phase-title {
             font-weight: 700;
-            font-size: 15px;
+            font-size: 13px;
             color: var(--primary);
-            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .phase-card.completed .phase-title { color: #166534; }
-        .phase-desc { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
-        .phase-badge {
-            display: inline-block;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 12px;
-            background: #e5e5ea;
-            color: #3a3a3c;
-        }
-        .phase-card.completed .phase-badge {
-            background: #dcfce7;
-            color: #16a34a;
-        }
+        .phase-badge { display: none; } /* Disembunyikan agar lebih ringkas */
 
         .assessment-view { display: none; }
         .assessment-view.active { display: block; }
         
         .back-btn {
-            background: #e5e5ea; border: none; padding: 8px 14px;
-            font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 20px;
+            background: #e5e5ea; border: none; padding: 6px 12px;
+            font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px; margin-bottom: 15px;
         }
         .item-card {
             background: var(--gray-bg); border: 1px solid #e5e5ea;
-            border-radius: 8px; padding: 15px; margin-bottom: 15px;
+            border-radius: 8px; padding: 12px; margin-bottom: 12px;
         }
-        .item-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+        .item-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
         .criteria-text {
-            font-size: 11px; background: #fff; padding: 10px; border-radius: 6px;
-            border-left: 3px solid var(--primary); margin-bottom: 10px; white-space: pre-line;
+            font-size: 11px; background: #fff; padding: 8px; border-radius: 6px;
+            border-left: 3px solid var(--primary); margin-bottom: 8px; white-space: pre-line;
         }
-        .score-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+        .score-pills { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
         .pill-btn {
-            flex: 1; min-width: 40px; padding: 8px; text-align: center;
+            flex: 1; min-width: 35px; padding: 6px; text-align: center;
             border: 1px solid var(--border); border-radius: 6px; background: #fff;
-            font-weight: 600; font-size: 13px; cursor: pointer;
+            font-weight: 600; font-size: 12px; cursor: pointer;
         }
         .pill-btn.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .note-input { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; box-sizing: border-box; }
+        .note-input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; box-sizing: border-box; }
 
         .submit-phase-btn {
-            background: var(--success); color: white; border: none; padding: 12px 20px;
-            font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; font-size: 15px; margin-top: 20px;
+            background: var(--success); color: white; border: none; padding: 10px 16px;
+            font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; margin-top: 15px;
         }
 
         /* Styling Menu Summary & Chart */
         .summary-container {
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 20px;
         }
         .summary-card {
             background: var(--gray-bg);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
         }
         .summary-card h3 {
             margin-top: 0;
-            font-size: 16px;
+            font-size: 14px;
             color: var(--primary);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         .chart-wrapper {
             position: relative;
-            height: 280px;
+            height: 220px;
             width: 100%;
         }
         .table-responsive {
@@ -197,12 +190,12 @@
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 12px;
             background: #fff;
         }
         .data-table th, .data-table td {
             border: 1px solid var(--border);
-            padding: 10px 12px;
+            padding: 8px 10px;
             text-align: left;
         }
         .data-table th {
@@ -246,13 +239,13 @@
     <!-- TAB 1: LEMBAR PENILAIAN -->
     <div id="assessmentTab" class="tab-content active">
         <div id="dashboardView">
-            <h3 style="margin-bottom: 15px; font-size: 16px;">Pilih Fase Asesmen yang Ingin Dinilai:</h3>
+            <h3 style="margin-bottom: 12px; font-size: 14px;">Pilih Fase Asesmen yang Ingin Dinilai:</h3>
             <div class="phase-grid" id="phaseGridContainer"></div>
         </div>
 
         <div id="phaseFormView" class="assessment-view">
             <button type="button" class="back-btn" onclick="backToDashboard()">← Kembali ke Menu Fase</button>
-            <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0;"></h2>
+            <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0; font-size: 18px;"></h2>
             <div id="phaseQuestionsContainer"></div>
             <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Kirim ke Google Sheets</button>
         </div>
@@ -262,14 +255,14 @@
     <div id="summaryTab" class="tab-content">
         <div class="summary-container">
             <!-- Kartu Statistik Singkat -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                <div style="background: #e8f2fd; border: 1px solid #b3d7ff; padding: 15px; border-radius: 10px; text-align: center;">
-                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">TOTAL SKOR AKHIR</div>
-                    <div id="summaryTotalScore" style="font-size: 24px; font-weight: 700; color: var(--primary); margin-top: 5px;">0 / 100</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+                <div style="background: #e8f2fd; border: 1px solid #b3d7ff; padding: 12px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">TOTAL SKOR AKHIR</div>
+                    <div id="summaryTotalScore" style="font-size: 20px; font-weight: 700; color: var(--primary); margin-top: 4px;">0 / 100</div>
                 </div>
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 10px; text-align: center;">
-                    <div style="font-size: 12px; color: #166534; font-weight: 600;">FASE SELESAI</div>
-                    <div id="summaryCompletedPhases" style="font-size: 24px; font-weight: 700; color: #16a34a; margin-top: 5px;">0 / 7</div>
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 11px; color: #166534; font-weight: 600;">FASE SELESAI</div>
+                    <div id="summaryCompletedPhases" style="font-size: 20px; font-weight: 700; color: #16a34a; margin-top: 4px;">0 / 7</div>
                 </div>
             </div>
 
@@ -290,8 +283,8 @@
                             <tr>
                                 <th>Fase Asesmen</th>
                                 <th>Status</th>
-                                <th>Poin Diperoleh</th>
-                                <th>Catatan Asesor</th>
+                                <th>Poin</th>
+                                <th>Catatan</th>
                             </tr>
                         </thead>
                         <tbody id="summaryTableBody">
@@ -310,8 +303,8 @@
                             <tr>
                                 <th>Nama Staff</th>
                                 <th>Fase Selesai</th>
-                                <th>Total Skor Kumulatif</th>
-                                <th>Status Progress</th>
+                                <th>Total Skor</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody id="storeProgressTableBody">
@@ -326,7 +319,7 @@
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2hI6yTV7kQrQLs4kno0nxP9C9LWNwLboXX9tCu14dxv2HfJfOHNhlJSP3ZhOslVwD/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyiJf4zQxL2aWvJpGpRGEuPDhZDXHfO4-fQ5jpJpFCybmDzJL5emyI35aU_cKRjTnJ7/exec";
 
     let masterEmployees = [];
     const phasesData = {
@@ -439,7 +432,6 @@
         initChart();
     };
 
-    // Fungsi untuk mereset status penilaian lokal saat ganti toko/staff
     function resetAssessmentState() {
         for (let key in scores) delete scores[key];
         for (let key in notes) delete notes[key];
@@ -483,7 +475,6 @@
         const staffName = document.getElementById('staffInput').value.trim();
 
         if (store && staffName) {
-            // Tarik riwayat progress staff untuk centang otomatis di lembar penilaian
             let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}&staffName=${encodeURIComponent(staffName)}`;
             fetch(url)
             .then(res => res.json())
@@ -515,18 +506,17 @@
         Object.keys(phasesData).forEach(phaseName => {
             let isDone = completedPhases[phaseName];
             
-            // Indikator Icon dan Warna Visual
-            let badgeText = isDone ? "Sudah Dinilai ✓" : "Belum Dinilai ✗";
             let cardClass = isDone ? "phase-card completed" : "phase-card";
             let iconIndicator = isDone 
-                ? '<span style="float: right; color: #16a34a; font-weight: bold; font-size: 13px;">✓ Selesai</span>' 
-                : '<span style="float: right; color: #dc2626; font-weight: bold; font-size: 13px;">✗ Belum</span>';
+                ? '<span style="color: #16a34a; font-weight: bold; font-size: 12px;">✓ Selesai</span>' 
+                : '<span style="color: #dc2626; font-weight: bold; font-size: 12px;">✗ Belum</span>';
 
             gridContainer.innerHTML += `
                 <div class="${cardClass}" onclick="openPhase('${phaseName}')">
-                    <div class="phase-title">${phaseName} ${iconIndicator}</div>
-                    <div class="phase-desc">Klik untuk menilai atau memperbarui fase ini.</div>
-                    <span class="phase-badge">${badgeText}</span>
+                    <div class="phase-title">
+                        <span>${phaseName}</span>
+                        <span>${iconIndicator}</span>
+                    </div>
                 </div>
             `;
         });
@@ -544,7 +534,6 @@
         }
     }
 
-    // Validasi khusus untuk Mode Asesmen/Coaching (Wajib Toko, Staff, & Tanggal)
     function validateMetaForCoaching() {
         const store = document.getElementById('storeInput').value.trim();
         const staff = document.getElementById('staffInput').value.trim();
@@ -574,7 +563,7 @@
 
             let html = `
                 <div class="item-card">
-                    <div style="font-size: 11px; font-weight: 700; color: #6e6e73; margin-bottom: 4px;">ASSESSMENT CONTENT: ${item.sub.toUpperCase()} (Maks: ${item.max})</div>
+                    <div style="font-size: 10px; font-weight: 700; color: #6e6e73; margin-bottom: 2px;">${item.sub.toUpperCase()} (Maks: ${item.max})</div>
                     <div class="item-title">${item.detail}</div>
                     <div class="criteria-text">${item.criteria}</div>
                     <div class="score-pills">
@@ -639,13 +628,12 @@
         initDashboard();
     }
 
-    // Inisialisasi Grafik Chart.js
     function initChart() {
         const ctx = document.getElementById('performanceChart').getContext('2d');
         performanceChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: Object.keys(phasesData).map(name => name.split(':')[0]), // Singkat nama fase
+                labels: Object.keys(phasesData).map(name => name.split(':')[0]),
                 datasets: [{
                     label: 'Skor Perolehan',
                     data: new Array(Object.keys(phasesData).length).fill(0),
@@ -669,7 +657,6 @@
         });
     }
 
-    // Fungsi untuk memuat dan menampilkan Summary, Grafik, dan Tabel Progress Toko
     function updateSummaryView() {
         const store = document.getElementById('storeInput').value.trim();
         const staffName = document.getElementById('staffInput').value.trim();
@@ -685,7 +672,6 @@
         tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Sedang memuat rekap data dari Google Sheets...</td></tr>`;
         storeProgressTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Sedang memuat progress staff toko...</td></tr>`;
 
-        // Panggil doGet dengan action=getHistory serta parameter store
         let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}`;
 
         fetch(url)
@@ -698,7 +684,6 @@
             let totalOverallScore = 0;
             let completedCount = 0;
 
-            // Jika staff dipilih, tampilkan detail per fase untuk staff tersebut
             if (staffName) {
                 phaseKeys.forEach((phaseName, index) => {
                     let found = historyData.find(item => item.phaseName === phaseName && item.staffName && item.staffName.toLowerCase() === staffName.toLowerCase());
@@ -743,9 +728,7 @@
                 }
             }
 
-            // --- TABEL PROGRESS KESELURUHAN STAFF DI TOKO TERSEBUT ---
             storeProgressTableBody.innerHTML = '';
-            
             let storeStaffList = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
 
             if (storeStaffList.length === 0) {
@@ -762,17 +745,17 @@
                 
                 let progressBadge = '';
                 if (uniqueCompletedPhases >= phaseKeys.length) {
-                    progressBadge = '<span style="color:#16a34a; font-weight:600;">Selesai Total (100%)</span>';
+                    progressBadge = '<span style="color:#16a34a; font-weight:600;">Selesai (100%)</span>';
                 } else if (uniqueCompletedPhases > 0) {
-                    progressBadge = '<span style="color:#0071e3; font-weight:600;">Dalam Proses (' + uniqueCompletedPhases + '/' + phaseKeys.length + ')</span>';
+                    progressBadge = '<span style="color:#0071e3; font-weight:600;">Proses (' + uniqueCompletedPhases + '/' + phaseKeys.length + ')</span>';
                 } else {
-                    progressBadge = '<span style="color:#6e6e73;">Belum Mulai</span>';
+                    progressBadge = '<span style="color:#6e6e73;">Belum</span>';
                 }
 
                 storeProgressTableBody.innerHTML += `
                     <tr>
                         <td style="font-weight: 600;">${empName}</td>
-                        <td style="text-align: center;">${uniqueCompletedPhases} / ${phaseKeys.length} Fase</td>
+                        <td style="text-align: center;">${uniqueCompletedPhases} / ${phaseKeys.length}</td>
                         <td style="text-align: center; font-weight: 600;">${totalScoreKumulatif} Poin</td>
                         <td>${progressBadge}</td>
                     </tr>
