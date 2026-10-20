@@ -301,7 +301,7 @@
                 </div>
             </div>
 
-            <!-- Tabel Baru: Rekapitulasi Progress Seluruh Staff di Toko Tersebut -->
+            <!-- Tabel Progress Seluruh Staff di Toko Tersebut -->
             <div class="summary-card">
                 <h3>👥 Tabel Progress Keseluruhan Staff di Toko Ini</h3>
                 <div class="table-responsive">
@@ -439,11 +439,21 @@
         initChart();
     };
 
+    // Fungsi untuk mereset status penilaian lokal saat ganti toko/staff
+    function resetAssessmentState() {
+        for (let key in scores) delete scores[key];
+        for (let key in notes) delete notes[key];
+        for (let key in completedPhases) delete completedPhases[key];
+    }
+
     function onStoreChange() {
         const storeInputVal = document.getElementById('storeInput').value.trim().toLowerCase();
         const staffDatalist = document.getElementById('staffListOptions');
         staffDatalist.innerHTML = '';
         document.getElementById('staffInput').value = '';
+
+        // Reset data penilaian sebelumnya otomatis saat toko diganti
+        resetAssessmentState();
 
         if (!storeInputVal) return;
 
@@ -461,10 +471,21 @@
         }
         
         initDashboard();
+
+        // Refresh tampilan summary jika sedang aktif di tab summary
+        if (document.getElementById('summaryTab').classList.contains('active')) {
+            updateSummaryView();
+        }
     }
 
     function checkStaffProgress() {
+        // Reset data penilaian sebelumnya otomatis saat staff diganti
+        resetAssessmentState();
         initDashboard();
+
+        if (document.getElementById('summaryTab').classList.contains('active')) {
+            updateSummaryView();
+        }
     }
 
     function initDashboard() {
@@ -710,7 +731,6 @@
 
             storeStaffList.forEach(emp => {
                 let empName = emp.name.trim();
-                // Filter riwayat history berdasarkan nama staff ini
                 let empHistory = historyData.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
                 
                 let uniqueCompletedPhases = [...new Set(empHistory.map(item => item.phaseName))].length;
