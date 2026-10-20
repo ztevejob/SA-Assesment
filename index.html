@@ -326,7 +326,7 @@
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynabcdpyAqhdyTaMSwrqtfJcqXpGW3tOSPdxR9t_NMmJfyFBaCalRxBHTtzsAa1RaG/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyiJf4zQxL2aWvJpGpRGEuPDhZDXHfO4-fQ5jpJpFCybmDzJL5emyI35aU_cKRjTnJ7/exec";
 
     let masterEmployees = [];
     const phasesData = {
@@ -452,7 +452,6 @@
         staffDatalist.innerHTML = '';
         document.getElementById('staffInput').value = '';
 
-        // Reset data penilaian sebelumnya otomatis saat toko diganti
         resetAssessmentState();
 
         if (!storeInputVal) return;
@@ -472,16 +471,37 @@
         
         initDashboard();
 
-        // Refresh tampilan summary jika sedang aktif di tab summary
         if (document.getElementById('summaryTab').classList.contains('active')) {
             updateSummaryView();
         }
     }
 
     function checkStaffProgress() {
-        // Reset data penilaian sebelumnya otomatis saat staff diganti
         resetAssessmentState();
-        initDashboard();
+        
+        const store = document.getElementById('storeInput').value.trim();
+        const staffName = document.getElementById('staffInput').value.trim();
+
+        if (store && staffName) {
+            // Tarik riwayat progress staff untuk centang otomatis di lembar penilaian
+            let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}&staffName=${encodeURIComponent(staffName)}`;
+            fetch(url)
+            .then(res => res.json())
+            .then(historyData => {
+                historyData.forEach(item => {
+                    if (item.phaseName && Number(item.totalScore) > 0) {
+                        completedPhases[item.phaseName] = true;
+                    }
+                });
+                initDashboard();
+            })
+            .catch(err => {
+                console.log("Gagal memuat progress staff:", err);
+                initDashboard();
+            });
+        } else {
+            initDashboard();
+        }
 
         if (document.getElementById('summaryTab').classList.contains('active')) {
             updateSummaryView();
@@ -494,13 +514,18 @@
 
         Object.keys(phasesData).forEach(phaseName => {
             let isDone = completedPhases[phaseName];
-            let badgeText = isDone ? "Sudah Dinilai ✓" : "Belum Dinilai (Kurang)";
+            
+            // Indikator Icon dan Warna Visual
+            let badgeText = isDone ? "Sudah Dinilai ✓" : "Belum Dinilai ✗";
             let cardClass = isDone ? "phase-card completed" : "phase-card";
+            let iconIndicator = isDone 
+                ? '<span style="float: right; color: #16a34a; font-weight: bold; font-size: 13px;">✓ Selesai</span>' 
+                : '<span style="float: right; color: #dc2626; font-weight: bold; font-size: 13px;">✗ Belum</span>';
 
             gridContainer.innerHTML += `
                 <div class="${cardClass}" onclick="openPhase('${phaseName}')">
-                    <div class="phase-title">${phaseName}</div>
-                    <div class="phase-desc">Klik untuk menilai fase ini.</div>
+                    <div class="phase-title">${phaseName} ${iconIndicator}</div>
+                    <div class="phase-desc">Klik untuk menilai atau memperbarui fase ini.</div>
                     <span class="phase-badge">${badgeText}</span>
                 </div>
             `;
@@ -721,7 +746,6 @@
             // --- TABEL PROGRESS KESELURUHAN STAFF DI TOKO TERSEBUT ---
             storeProgressTableBody.innerHTML = '';
             
-            // Ambil daftar staff dari masterEmployees yang sesuai dengan toko ini
             let storeStaffList = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
 
             if (storeStaffList.length === 0) {
