@@ -43,46 +43,101 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        .app-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            display: none;
-        }
-
-        .mobile-header {
+        /* TOP NAVIGATION BAR (Desktop) */
+        .top-navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: var(--card);
             border-bottom: 1px solid var(--border);
-            padding: 12px 15px;
+            padding: 15px 30px;
             position: sticky;
             top: 0;
-            z-index: 99;
+            z-index: 1000;
+            box-sizing: border-box;
         }
-        .mobile-header h2 {
-            font-size: 15px;
+        .nav-brand h2 {
+            font-size: 16px;
             font-weight: 700;
+            margin: 0 0 2px 0;
+            color: var(--text);
+        }
+        .nav-brand p {
+            font-size: 10px;
+            color: var(--text-secondary);
             margin: 0;
         }
 
+        .top-nav-tabs {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .top-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .widget-box {
+            background: var(--gray-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .theme-toggle-btn {
+            background: var(--gray-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+        }
+        .tab-btn {
+            background: var(--gray-bg);
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            font-weight: 600;
+            font-size: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn span.icon { font-size: 14px; }
+        .tab-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
         .main-content {
-            flex: 1;
-            padding: 20px;
-            max-width: 1100px;
+            padding: 25px 30px;
+            max-width: 1200px;
             margin: 0 auto;
             width: 100%;
             box-sizing: border-box;
             padding-bottom: 60px;
         }
 
-        header { text-align: center; margin-bottom: 20px; }
-        h1 { font-size: 20px; font-weight: 700; margin: 0 0 5px 0; }
-        .subtitle { font-size: 12px; color: var(--text-secondary); }
-        
         .meta-box {
             display: grid;
             grid-template-columns: 1fr;
@@ -113,75 +168,20 @@
             box-sizing: border-box;
         }
 
-        .widget-box {
-            background: var(--gray-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-bottom: 15px;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            color: var(--text-secondary);
-        }
-        .theme-toggle-btn {
-            background: var(--card);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 6px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .nav-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-            flex-wrap: wrap;
-        }
-        .tab-btn {
-            background: var(--gray-bg);
-            border: 1px solid var(--border);
-            padding: 8px 14px;
-            font-weight: 600;
-            font-size: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .tab-btn span.icon { font-size: 14px; }
-        .tab-btn.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
         .phase-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
             margin-bottom: 20px;
         }
         .phase-card {
             background: var(--gray-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 12px 15px;
+            padding: 14px 16px;
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
@@ -213,7 +213,7 @@
         }
         .item-card {
             background: var(--gray-bg); border: 1px solid var(--border);
-            border-radius: 8px; padding: 12px; margin-bottom: 12px;
+            border-radius: 8px; padding: 14px; margin-bottom: 12px;
         }
         .item-card.bonus-card {
             background: rgba(245, 158, 11, 0.08) !important;
@@ -248,76 +248,62 @@
             padding: 15px;
         }
         .summary-card h3 { margin-top: 0; font-size: 14px; color: var(--primary); margin-bottom: 12px; }
-        .chart-wrapper { position: relative; height: 240px; width: 100%; }
+        .chart-wrapper { position: relative; height: 260px; width: 100%; }
         .table-responsive { overflow-x: auto; }
         .data-table { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--card); color: var(--text); }
         .data-table th, .data-table td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
         .data-table th { background: var(--gray-bg); font-weight: 600; }
 
-        /* KHUSUS TAMPILAN DESKTOP (Fixed Sidebar Profesional) */
-        @media (min-width: 768px) {
-            .mobile-header { display: none; }
-            .app-layout { display: flex; }
-            .sidebar {
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                width: 270px;
-                background: var(--card);
-                border-right: 1px solid var(--border);
-                padding: 25px 20px;
-                position: fixed;
-                top: 0; bottom: 0; left: 0;
-                z-index: 100;
-            }
-            .sidebar-top h2 { font-size: 16px; font-weight: 700; margin: 0 0 4px 0; }
-            .sidebar-top p { font-size: 11px; color: var(--text-secondary); margin: 0 0 20px 0; }
-            .sidebar .nav-tabs { display: flex; flex-direction: column; border-bottom: none; gap: 6px; }
-            .sidebar .tab-btn { width: 100%; justify-content: flex-start; padding: 10px 14px; border: none; background: transparent; color: var(--text); }
-            .sidebar .tab-btn:hover { background: var(--gray-bg); }
-            .sidebar .tab-btn.active { background: var(--primary); color: #fff; }
-            
-            .sidebar-footer {
-                border-top: 1px solid var(--border);
-                padding-top: 15px;
-                font-size: 10px;
-                line-height: 1.4;
-                color: var(--text-secondary);
-                text-align: center;
-                white-space: nowrap;
-            }
-            .sidebar-footer span { font-weight: 600; color: var(--primary); }
-
-            .main-content {
-                margin-left: 270px !important;
-                width: calc(100% - 270px) !important;
-                max-width: none !important;
-                padding: 30px 40px !important;
-                box-sizing: border-box;
-            }
-            header { display: none; }
-            .mobile-bottom-nav { display: none; }
+        .app-footer {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 40px;
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+            line-height: 1.5;
         }
+        .app-footer span { font-weight: 600; color: var(--primary); }
 
-        /* KHUSUS TAMPILAN MOBILE (iPhone & Android) */
+        /* RESPONSIF MOBILE (iPhone & Android) */
+        .mobile-header { display: none; }
+        .mobile-bottom-nav { display: none; }
+
         @media (max-width: 767px) {
+            .top-navbar { display: none; }
+            .mobile-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: var(--card);
+                border-bottom: 1px solid var(--border);
+                padding: 12px 15px;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+            .mobile-header h2 { font-size: 15px; font-weight: 700; margin: 0; }
+            
             body { padding-bottom: 75px; }
             .main-content { padding: 12px; }
-            .nav-tabs {
+            
+            .mobile-bottom-nav {
+                display: flex;
                 position: fixed; bottom: 0; left: 0; right: 0;
                 background: var(--card);
                 backdrop-filter: blur(10px);
                 border-top: 1px solid var(--border);
-                display: flex; justify-content: space-around;
-                padding: 6px 4px; margin-bottom: 0; z-index: 1000;
+                justify-content: space-around;
+                padding: 6px 4px; z-index: 1000;
             }
-            .tab-btn {
+            .mobile-bottom-nav .tab-btn {
                 background: transparent; border: none; padding: 4px 6px;
                 font-size: 10px; border-radius: 6px; flex-direction: column;
                 align-items: center; gap: 2px; flex: 1; color: var(--text-secondary);
             }
-            .tab-btn span.icon { display: block; font-size: 16px; }
-            .tab-btn.active { background: transparent; color: var(--primary); font-weight: 700; }
+            .mobile-bottom-nav .tab-btn span.icon { display: block; font-size: 16px; }
+            .mobile-bottom-nav .tab-btn.active { background: transparent; color: var(--primary); font-weight: 700; }
+            
             .floating-submit-container {
                 position: fixed; bottom: 58px; left: 0; right: 0;
                 padding: 8px 12px; background: linear-gradient(to top, var(--card), rgba(255,255,255,0));
@@ -328,268 +314,261 @@
 </head>
 <body>
 
-<div class="app-layout">
-
-    <!-- MOBILE HEADER BAR -->
-    <div class="mobile-header">
-        <h2>Digimap Dashboard</h2>
-        <button type="button" class="theme-toggle-btn" onclick="toggleTheme()">🌙 <span id="themeTextMobile">Dark</span></button>
+<!-- TOP NAVIGATION BAR (Desktop Full-Width) -->
+<nav class="top-navbar">
+    <div class="nav-brand">
+        <h2>Digimap Assessment Dashboard</h2>
+        <p>Monthly Assessment & National System</p>
     </div>
 
-    <!-- SIDEBAR DESKTOP -->
-    <nav class="sidebar">
-        <div class="sidebar-top">
-            <h2>Digimap Dashboard</h2>
-            <p>Assessment System</p>
+    <div class="top-nav-tabs nav-tabs">
+        <button type="button" class="tab-btn active" onclick="switchTab('assessmentTab', this)">
+            <span class="icon">📝</span>
+            <span>Lembar Penilaian</span>
+        </button>
+        <button type="button" class="tab-btn" onclick="switchTab('summaryTab', this)">
+            <span class="icon">📊</span>
+            <span>Summary & Grafik</span>
+        </button>
+        <button type="button" class="tab-btn" onclick="switchTab('allStoresTab', this)">
+            <span class="icon">🌐</span>
+            <span>Dashboard Semua Toko</span>
+        </button>
+    </div>
 
-            <div class="widget-box">
-                <span id="weatherWidgetText">📍 Surabaya: Memuat...</span>
-            </div>
-
-            <div class="nav-tabs">
-                <button type="button" class="tab-btn active" onclick="switchTab('assessmentTab', this)">
-                    <span class="icon">📝</span>
-                    <span>Lembar Penilaian</span>
-                </button>
-                <button type="button" class="tab-btn" onclick="switchTab('summaryTab', this)">
-                    <span class="icon">📊</span>
-                    <span>Summary & Grafik</span>
-                </button>
-                <button type="button" class="tab-btn" onclick="switchTab('allStoresTab', this)">
-                    <span class="icon">🌐</span>
-                    <span>Dashboard Semua Toko</span>
-                </button>
-            </div>
+    <div class="top-nav-right">
+        <div class="widget-box">
+            <span id="weatherWidgetText">📍 Surabaya: Memuat...</span>
         </div>
+        <button type="button" class="theme-toggle-btn" onclick="toggleTheme()">🌙 <span id="themeTextDesktop">Bright</span></button>
+    </div>
+</nav>
 
-        <div class="sidebar-footer">
-            <div style="margin-bottom: 8px;">
-                <button type="button" class="theme-toggle-btn" style="width:100%; justify-content:center;" onclick="toggleTheme()">🌙 <span id="themeTextDesktop">Mode Dark / Bright</span></button>
-            </div>
-            <div>Framework by Alia<br>Developed by <span style="color: var(--primary);">Novi</span></div>
-        </div>
-    </nav>
-
-    <!-- KONTEN UTAMA -->
-    <main class="main-content">
-        <header>
-            <h1>Digimap Assessment Dashboard</h1>
-            <div class="subtitle">Sistem Penilaian Bulanan (Monthly) & Dashboard Nasional</div>
-        </header>
-
-        <!-- Widget Cuaca Mobile -->
-        <div class="widget-box" style="display: flex; @media(min-width: 768px) { display: none; }">
-            <span id="weatherWidgetTextMobile">📍 Surabaya: Memuat cuaca...</span>
-        </div>
-        
-        <!-- Meta Input Bar UTAMA -->
-        <div class="meta-box" id="globalMetaBox">
-            <div class="form-group">
-                <label>Pilih Toko / Store</label>
-                <input type="text" id="storeInput" list="storeListOptions" placeholder="Ketik atau pilih toko..." oninput="onStoreChange()" onchange="onStoreChange()" onblur="onStoreChange()">
-                <datalist id="storeListOptions"></datalist>
-            </div>
-            <div class="form-group">
-                <label>Nama Staff / Sales Assistant</label>
-                <input type="text" id="staffInput" list="staffListOptions" placeholder="Pilih toko terlebih dahulu..." oninput="checkStaffProgress()" onchange="checkStaffProgress()" onblur="checkStaffProgress()">
-                <datalist id="staffListOptions"></datalist>
-            </div>
-            <div class="form-group">
-                <label>Tanggal Coaching</label>
-                <input type="date" id="coachingDate" onchange="checkStaffProgress()">
-            </div>
-        </div>
-
-        <!-- MOBILE BOTTOM DOCK NAV -->
-        <div class="nav-tabs mobile-bottom-nav">
-            <button type="button" class="tab-btn active" onclick="switchTab('assessmentTab', this)">
-                <span class="icon">📝</span>
-                <span>Penilaian</span>
-            </button>
-            <button type="button" class="tab-btn" onclick="switchTab('summaryTab', this)">
-                <span class="icon">📊</span>
-                <span>Summary</span>
-            </button>
-            <button type="button" class="tab-btn" onclick="switchTab('allStoresTab', this)">
-                <span class="icon">🌐</span>
-                <span>Nasional</span>
-            </button>
-        </div>
-
-        <!-- TAB 1: LEMBAR PENILAIAN -->
-        <div id="assessmentTab" class="tab-content active">
-            <div id="dashboardView">
-                <h3 style="margin-bottom: 12px; font-size: 14px;">Pilih Fase Asesmen yang Ingin Dinilai:</h3>
-                <div class="phase-grid" id="phaseGridContainer"></div>
-            </div>
-
-            <div id="phaseFormView" class="assessment-view">
-                <button type="button" class="back-btn" onclick="backToDashboard()">← Kembali ke Menu Fase</button>
-                <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0; font-size: 18px;"></h2>
-                <div id="phaseQuestionsContainer"></div>
-                
-                <div id="floatingSubmitWrapper" style="display: none;">
-                    <div class="floating-submit-container">
-                        <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Kirim ke Google Sheets</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 2: SUMMARY & CHART ANALITIK -->
-        <div id="summaryTab" class="tab-content">
-            <div class="summary-container">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
-                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">SKOR AKHIR STAFF</div>
-                        <div id="summaryTotalScore" style="font-size: 18px; font-weight: 700; color: var(--primary); margin-top: 4px;">0 / 100</div>
-                    </div>
-                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">FASE SELESAI STAFF</div>
-                        <div id="summaryCompletedPhases" style="font-size: 18px; font-weight: 700; color: var(--success); margin-top: 4px;">0 / 10</div>
-                    </div>
-                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">RATA-RATA SKOR TOKO</div>
-                        <div id="summaryStoreAvgScore" style="font-size: 18px; font-weight: 700; color: #f59e0b; margin-top: 4px;">0 Poin</div>
-                    </div>
-                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">KELULUSAN TOKO</div>
-                        <div id="summaryStoreCompletion" style="font-size: 18px; font-weight: 700; color: #a21caf; margin-top: 4px;">0%</div>
-                    </div>
-                </div>
-
-                <div class="summary-card">
-                    <h3>📈 Grafik Performa Per Fase Asesmen (Staff Terpilih)</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="performanceChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="summary-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
-                        <h3 style="margin: 0; font-size: 14px;">📋 Rekapitulasi Poin & Catatan: <span id="activeStaffLabel" style="color: var(--primary); font-weight: 700;">(Belum dipilih)</span></h3>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Fase Asesmen</th>
-                                    <th>Status</th>
-                                    <th>Poin</th>
-                                    <th>Catatan</th>
-                                </tr>
-                            </thead>
-                            <tbody id="summaryTableBody">
-                                <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff di atas untuk memuat data rekap.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="summary-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
-                        <h3 style="margin: 0; font-size: 14px;">👥 Tabel Progress Keseluruhan Staff di Toko Ini</h3>
-                        <button type="button" onclick="copyStoreReportForWhatsApp()" style="background: var(--primary); color: white; border: none; padding: 6px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA Toko Ini</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Nama Staff</th>
-                                    <th>Fase Selesai</th>
-                                    <th>Total Skor</th>
-                                    <th>Tanggal Coaching</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="storeProgressTableBody">
-                                <tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko di atas untuk melihat progress staff.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3: DASHBOARD SEMUA TOKO -->
-        <div id="allStoresTab" class="tab-content">
-            <div class="summary-container">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
-                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOTAL TOKO</div>
-                        <div id="statTotalStores" style="font-size: 18px; font-weight: 700; color: var(--primary); margin-top: 4px;">0</div>
-                    </div>
-                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">SELESAI (100%)</div>
-                        <div id="statCompletedStores" style="font-size: 18px; font-weight: 700; color: var(--success); margin-top: 4px;">0</div>
-                    </div>
-                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">BELUM SUBMIT</div>
-                        <div id="statUnstartedStores" style="font-size: 18px; font-weight: 700; color: #dc2626; margin-top: 4px;">0</div>
-                    </div>
-                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOKO AKTIF SUBMIT</div>
-                        <div id="statActiveStores" style="font-size: 18px; font-weight: 700; color: #f59e0b; margin-top: 4px;">0 Toko</div>
-                    </div>
-                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">RATA-RATA SKOR</div>
-                        <div id="statAvgScore" style="font-size: 18px; font-weight: 700; color: #a21caf; margin-top: 4px;">0 Poin</div>
-                    </div>
-                </div>
-
-                <div class="summary-card">
-                    <h3>📊 Grafik Persebaran Status Pengerjaan Toko Nasional</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="allStoresChart"></canvas>
-                    </div>
-                </div>
-
-                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
-                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
-                        <div style="min-width: 180px;">
-                            <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">🔍 Cari Toko:</label>
-                            <input type="text" id="allStoresSearchInput" placeholder="Ketik nama toko..." oninput="renderAllStoresDashboard()" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Status Filter:</label>
-                            <select id="allStoresStatusFilter" onchange="renderAllStoresDashboard()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
-                                <option value="all">Semua Toko</option>
-                                <option value="completed">Selesai 100%</option>
-                                <option value="inprogress">Dalam Proses</option>
-                                <option value="notstarted">⚠️ Belum Ada Submit</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: flex-end;">
-                        <button type="button" onclick="exportToCSV()" style="background: var(--success); color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📥 Export Excel (CSV)</button>
-                        <button type="button" onclick="copyReportForWhatsApp()" style="background: var(--primary); color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA Nasional</button>
-                    </div>
-                </div>
-
-                <div class="summary-card">
-                    <h3>🏢 Rekapitulasi Performa & Progress Seluruh Toko Nasional</h3>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Nama Toko</th>
-                                    <th>Jumlah Staff Terdaftar</th>
-                                    <th>Staff Selesai Asesmen</th>
-                                    <th>Rata-Rata Skor Toko</th>
-                                    <th>Status Toko</th>
-                                </tr>
-                            </thead>
-                            <tbody id="allStoresTableBody">
-                                <tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data global seluruh toko...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </main>
+<!-- MOBILE HEADER BAR -->
+<div class="mobile-header">
+    <h2>Digimap Dashboard</h2>
+    <div style="display: flex; gap: 8px; align-items: center;">
+        <span id="weatherWidgetTextMobile" style="font-size: 10px; color: var(--text-secondary);">Surabaya...</span>
+        <button type="button" class="theme-toggle-btn" onclick="toggleTheme()">🌙 <span id="themeTextMobile">Dark</span></button>
+    </div>
 </div>
+
+<!-- KONTEN UTAMA -->
+<main class="main-content">
+    
+    <!-- Meta Input Bar UTAMA -->
+    <div class="meta-box" id="globalMetaBox">
+        <div class="form-group">
+            <label>Pilih Toko / Store</label>
+            <input type="text" id="storeInput" list="storeListOptions" placeholder="Ketik atau pilih toko..." oninput="onStoreChange()" onchange="onStoreChange()" onblur="onStoreChange()">
+            <datalist id="storeListOptions"></datalist>
+        </div>
+        <div class="form-group">
+            <label>Nama Staff / Sales Assistant</label>
+            <input type="text" id="staffInput" list="staffListOptions" placeholder="Pilih toko terlebih dahulu..." oninput="checkStaffProgress()" onchange="checkStaffProgress()" onblur="checkStaffProgress()">
+            <datalist id="staffListOptions"></datalist>
+        </div>
+        <div class="form-group">
+            <label>Tanggal Coaching</label>
+            <input type="date" id="coachingDate" onchange="checkStaffProgress()">
+        </div>
+    </div>
+
+    <!-- MOBILE BOTTOM DOCK NAV -->
+    <div class="mobile-bottom-nav nav-tabs">
+        <button type="button" class="tab-btn active" onclick="switchTab('assessmentTab', this)">
+            <span class="icon">📝</span>
+            <span>Penilaian</span>
+        </button>
+        <button type="button" class="tab-btn" onclick="switchTab('summaryTab', this)">
+            <span class="icon">📊</span>
+            <span>Summary</span>
+        </button>
+        <button type="button" class="tab-btn" onclick="switchTab('allStoresTab', this)">
+            <span class="icon">🌐</span>
+            <span>Nasional</span>
+        </button>
+    </div>
+
+    <!-- TAB 1: LEMBAR PENILAIAN -->
+    <div id="assessmentTab" class="tab-content active">
+        <div id="dashboardView">
+            <h3 style="margin-bottom: 12px; font-size: 14px;">Pilih Fase Asesmen yang Ingin Dinilai:</h3>
+            <div class="phase-grid" id="phaseGridContainer"></div>
+        </div>
+
+        <div id="phaseFormView" class="assessment-view">
+            <button type="button" class="back-btn" onclick="backToDashboard()">← Kembali ke Menu Fase</button>
+            <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0; font-size: 18px;"></h2>
+            <div id="phaseQuestionsContainer"></div>
+            
+            <div id="floatingSubmitWrapper" style="display: none;">
+                <div class="floating-submit-container">
+                    <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Kirim ke Google Sheets</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: SUMMARY & CHART ANALITIK -->
+    <div id="summaryTab" class="tab-content">
+        <div class="summary-container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">SKOR AKHIR STAFF</div>
+                    <div id="summaryTotalScore" style="font-size: 18px; font-weight: 700; color: var(--primary); margin-top: 4px;">0 / 100</div>
+                </div>
+                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">FASE SELESAI STAFF</div>
+                    <div id="summaryCompletedPhases" style="font-size: 18px; font-weight: 700; color: var(--success); margin-top: 4px;">0 / 10</div>
+                </div>
+                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">RATA-RATA SKOR TOKO</div>
+                    <div id="summaryStoreAvgScore" style="font-size: 18px; font-weight: 700; color: #f59e0b; margin-top: 4px;">0 Poin</div>
+                </div>
+                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">KELULUSAN TOKO</div>
+                    <div id="summaryStoreCompletion" style="font-size: 18px; font-weight: 700; color: #a21caf; margin-top: 4px;">0%</div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>📈 Grafik Performa Per Fase Asesmen (Staff Terpilih)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 14px;">📋 Rekapitulasi Poin & Catatan: <span id="activeStaffLabel" style="color: var(--primary); font-weight: 700;">(Belum dipilih)</span></h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Fase Asesmen</th>
+                                <th>Status</th>
+                                <th>Poin</th>
+                                <th>Catatan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff di atas untuk memuat data rekap.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
+                    <h3 style="margin: 0; font-size: 14px;">👥 Tabel Progress Keseluruhan Staff di Toko Ini</h3>
+                    <button type="button" onclick="copyStoreReportForWhatsApp()" style="background: var(--primary); color: white; border: none; padding: 6px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA Toko Ini</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nama Staff</th>
+                                <th>Fase Selesai</th>
+                                <th>Total Skor</th>
+                                <th>Tanggal Coaching</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="storeProgressTableBody">
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko di atas untuk melihat progress staff.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: DASHBOARD SEMUA TOKO -->
+    <div id="allStoresTab" class="tab-content">
+        <div class="summary-container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOTAL TOKO</div>
+                    <div id="statTotalStores" style="font-size: 18px; font-weight: 700; color: var(--primary); margin-top: 4px;">0</div>
+                </div>
+                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">SELESAI (100%)</div>
+                    <div id="statCompletedStores" style="font-size: 18px; font-weight: 700; color: var(--success); margin-top: 4px;">0</div>
+                </div>
+                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">BELUM SUBMIT</div>
+                    <div id="statUnstartedStores" style="font-size: 18px; font-weight: 700; color: #dc2626; margin-top: 4px;">0</div>
+                </div>
+                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOKO AKTIF SUBMIT</div>
+                    <div id="statActiveStores" style="font-size: 18px; font-weight: 700; color: #f59e0b; margin-top: 4px;">0 Toko</div>
+                </div>
+                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">RATA-RATA SKOR</div>
+                    <div id="statAvgScore" style="font-size: 18px; font-weight: 700; color: #a21caf; margin-top: 4px;">0 Poin</div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>📊 Grafik Persebaran Status Pengerjaan Toko Nasional</h3>
+                <div class="chart-wrapper">
+                    <canvas id="allStoresChart"></canvas>
+                </div>
+            </div>
+
+            <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+                    <div style="min-width: 180px;">
+                        <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">🔍 Cari Toko:</label>
+                        <input type="text" id="allStoresSearchInput" placeholder="Ketik nama toko..." oninput="renderAllStoresDashboard()" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Status Filter:</label>
+                        <select id="allStoresStatusFilter" onchange="renderAllStoresDashboard()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
+                            <option value="all">Semua Toko</option>
+                            <option value="completed">Selesai 100%</option>
+                            <option value="inprogress">Dalam Proses</option>
+                            <option value="notstarted">⚠️ Belum Ada Submit</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: flex-end;">
+                    <button type="button" onclick="exportToCSV()" style="background: var(--success); color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📥 Export Excel (CSV)</button>
+                    <button type="button" onclick="copyReportForWhatsApp()" style="background: var(--primary); color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA Nasional</button>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>🏢 Rekapitulasi Performa & Progress Seluruh Toko Nasional</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nama Toko</th>
+                                <th>Jumlah Staff Terdaftar</th>
+                                <th>Staff Selesai Asesmen</th>
+                                <th>Rata-Rata Skor Toko</th>
+                                <th>Status Toko</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allStoresTableBody">
+                            <tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data global seluruh toko...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER & CREDIT -->
+    <footer class="app-footer">
+        <div>Framework by Alia | Developed by <span>Novi Riyanto</span></div>
+        <div style="margin-top: 4px; font-size: 10px;">Digimap Assessment & Performance Dashboard System</div>
+    </footer>
+
+</main>
 
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyiJf4zQxL2aWvJpGpRGEuPDhZDXHfO4-fQ5jpJpFCybmDzJL5emyI35aU_cKRjTnJ7/exec";
@@ -735,11 +714,11 @@
         if (currentTheme === 'dark') {
             html.setAttribute('data-theme', 'light');
             document.getElementById('themeTextMobile').innerText = 'Dark';
-            document.getElementById('themeTextDesktop').innerText = 'Mode Dark / Bright';
+            document.getElementById('themeTextDesktop').innerText = 'Bright';
         } else {
             html.setAttribute('data-theme', 'dark');
             document.getElementById('themeTextMobile').innerText = 'Bright';
-            document.getElementById('themeTextDesktop').innerText = 'Mode Dark / Bright';
+            document.getElementById('themeTextDesktop').innerText = 'Dark';
         }
     }
 
