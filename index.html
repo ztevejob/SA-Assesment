@@ -149,10 +149,18 @@
             background: var(--gray-bg); border: 1px solid #e5e5ea;
             border-radius: 8px; padding: 12px; margin-bottom: 12px;
         }
+        /* Styling Khusus Kartu Pertanyaan Bonus */
+        .item-card.bonus-card {
+            background: #fffbeb !important;
+            border: 1.5px solid #f59e0b !important;
+        }
         .item-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
         .criteria-text {
             font-size: 11px; background: #fff; padding: 8px; border-radius: 6px;
             border-left: 3px solid var(--primary); margin-bottom: 8px; white-space: pre-line;
+        }
+        .bonus-card .criteria-text {
+            border-left-color: #f59e0b;
         }
         .score-pills { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
         .pill-btn {
@@ -161,6 +169,7 @@
             font-weight: 600; font-size: 12px; cursor: pointer;
         }
         .pill-btn.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .bonus-card .pill-btn.selected { background: #d97706; border-color: #d97706; }
         .note-input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; box-sizing: border-box; }
 
         .submit-phase-btn {
@@ -364,7 +373,7 @@
     <!-- TAB 3: DASHBOARD SEMUA TOKO -->
     <div id="allStoresTab" class="tab-content">
         <div class="summary-container">
-            <!-- Kartu Ringkasan (Urutan Disempurnakan) -->
+            <!-- Kartu Ringkasan -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                 <div style="background: #e8f2fd; border: 1px solid #b3d7ff; padding: 12px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOTAL TOKO</div>
@@ -458,7 +467,7 @@
             { id: 5, sub: "Professional Image", detail: "Nails & Accessories", criteria: "(1 Point) Tangan dan kuku bersih, terawat secara konservatif", max: 2 },
             { id: 6, sub: "Accessories", detail: "Aksesoris", criteria: "(1 Point) Batas aksesoris wajar (cincin/gelang/jam)", max: 1 },
             { id: 7, sub: "Connect", detail: "Perkenalan Diri", criteria: "(1 Point) Menyebutkan nama saat menyapa", max: 1 },
-            { id: 8, sub: "Connect", detail: "Title (Bonus Point)", criteria: "(Bonus Point) Menyebutkan peran Store Trainer", max: 1 },
+            { id: 8, sub: "Connect", detail: "Title (Bonus Point)", criteria: "(Bonus Point) Menyebutkan peran Store Trainer (Saya seorang Store Trainer)", max: 1 },
             { id: 9, sub: "Connect", detail: "Sambutan Standar", criteria: "(1 Point) Mengucapkan sambutan standar Digimap/Digiplus", max: 1 },
             { id: 10, sub: "Connect", detail: "Engaging Customer", criteria: "(Range Scoring - 2 Points) Kontak mata dan interaksi positif", max: 2 }
         ],
@@ -700,9 +709,17 @@
             if (scores[item.id] === undefined) scores[item.id] = 0;
             if (notes[item.id] === undefined) notes[item.id] = '';
 
+            // Deteksi otomatis apakah pertanyaan ini adalah bonus
+            let isBonus = item.detail.toLowerCase().includes('bonus') || item.criteria.toLowerCase().includes('bonus');
+            let cardClass = isBonus ? 'item-card bonus-card' : 'item-card';
+            let bonusBadge = isBonus ? '<span style="background: #f59e0b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-left: 6px;">⭐ BONUS POINT</span>' : '';
+
             let html = `
-                <div class="item-card">
-                    <div style="font-size: 10px; font-weight: 700; color: #6e6e73; margin-bottom: 2px;">${item.sub.toUpperCase()} (Maks: ${item.max})</div>
+                <div class="${cardClass}">
+                    <div style="font-size: 10px; font-weight: 700; color: ${isBonus ? '#b45309' : '#6e6e73'}; margin-bottom: 2px; display: flex; align-items: center;">
+                        <span>${item.sub.toUpperCase()} (Maks: ${item.max})</span>
+                        ${bonusBadge}
+                    </div>
                     <div class="item-title">${item.detail}</div>
                     <div class="criteria-text">${item.criteria}</div>
                     <div class="score-pills">
@@ -815,7 +832,6 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    // Menampilkan angka persis di atas batang grafik
                     datalabels: {
                         anchor: 'end',
                         align: 'top',
@@ -829,7 +845,7 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grace: '15%' // Memberikan ruang kosong di atas batang tertinggi agar label angka tidak terpotong
+                        grace: '15%'
                     }
                 }
             },
