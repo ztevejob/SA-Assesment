@@ -57,7 +57,7 @@
             display: block;
             margin-bottom: 4px;
         }
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 8px 10px;
             border: 1px solid var(--border);
@@ -209,10 +209,10 @@
 <div class="container">
     <header>
         <h1>Digimap Assessment Dashboard</h1>
-        <div class="subtitle">Sistem Penilaian Bertahap dengan Menu Summary & Chart Analitik</div>
+        <div class="subtitle">Sistem Penilaian Bertahap dengan Menu Summary & Dashboard Nasional</div>
     </header>
     
-    <!-- Meta Input Bar -->
+    <!-- Meta Input Bar UTAMA (Digunakan untuk Penilaian & Summary Perorangan) -->
     <div class="meta-box">
         <div class="form-group">
             <label>Pilih Toko / Store</label>
@@ -225,7 +225,7 @@
             <datalist id="staffListOptions"></datalist>
         </div>
         <div class="form-group">
-            <label>Tanggal Coaching (Opsional untuk lihat nilai)</label>
+            <label>Tanggal Coaching</label>
             <input type="date" id="coachingDate">
         </div>
     </div>
@@ -233,7 +233,7 @@
     <!-- Navigasi Menu Tab Utama -->
     <div class="nav-tabs">
         <button type="button" class="tab-btn active" onclick="switchTab('assessmentTab', this)">📝 Lembar Penilaian</button>
-        <button type="button" class="tab-btn" onclick="switchTab('summaryTab', this)">📊 Summary & Grafik Chart</button>
+        <button type="button" class="tab-btn" onclick="switchTab('summaryTab', this)">📊 Summary & Grafik Perorangan</button>
         <button type="button" class="tab-btn" onclick="switchTab('allStoresTab', this)">🌐 Dashboard Semua Toko</button>
     </div>
 
@@ -255,7 +255,6 @@
     <!-- TAB 2: SUMMARY & CHART ANALITIK -->
     <div id="summaryTab" class="tab-content">
         <div class="summary-container">
-            <!-- Kartu Statistik Singkat -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
                 <div style="background: #e8f2fd; border: 1px solid #b3d7ff; padding: 12px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">TOTAL SKOR AKHIR</div>
@@ -267,7 +266,6 @@
                 </div>
             </div>
 
-            <!-- Grafik Chart.js -->
             <div class="summary-card">
                 <h3>📈 Grafik Performa Per Fase Asesmen</h3>
                 <div class="chart-wrapper">
@@ -275,7 +273,6 @@
                 </div>
             </div>
 
-            <!-- Tabel Detail Penilaian Per Fase -->
             <div class="summary-card">
                 <h3>📋 Tabel Rekapitulasi Poin & Catatan Staff (Per Fase)</h3>
                 <div class="table-responsive">
@@ -289,13 +286,12 @@
                             </tr>
                         </thead>
                         <tbody id="summaryTableBody">
-                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko/Store di atas untuk memuat data rekap.</td></tr>
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff di atas untuk memuat data rekap.</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Tabel Progress Seluruh Staff di Toko Tersebut -->
             <div class="summary-card">
                 <h3>👥 Tabel Progress Keseluruhan Staff di Toko Ini</h3>
                 <div class="table-responsive">
@@ -309,7 +305,7 @@
                             </tr>
                         </thead>
                         <tbody id="storeProgressTableBody">
-                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko/Store di atas untuk melihat progress staff.</td></tr>
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko di atas untuk melihat progress staff.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -317,65 +313,41 @@
         </div>
     </div>
 
-    <!-- TAB 3: DASHBOARD SEMUA TOKO -->
+    <!-- TAB 3: DASHBOARD SEMUA TOKO (MEMILIKI FILTER SENDIRI) -->
     <div id="allStoresTab" class="tab-content">
         <div class="summary-container">
-            <!-- Kartu Metrik Nasional -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
-                <div style="background: #e8f2fd; border: 1px solid #b3d7ff; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOTAL TOKO</div>
-                    <div id="natTotalStores" style="font-size: 18px; font-weight: 700; color: var(--primary); margin-top: 4px;">0</div>
+            <!-- Filter Khusus Dashboard Semua Toko (Independen) -->
+            <div style="background: #eef2f6; border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">🔍 Filter / Cari Toko di Dashboard Ini:</label>
+                    <input type="text" id="allStoresSearchInput" placeholder="Ketik nama toko untuk menyaring..." oninput="renderAllStoresDashboard()" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
                 </div>
-                <div style="background: #f3e8ff; border: 1px solid #e9d5ff; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: #6b21a8; font-weight: 600;">TOTAL STAFF</div>
-                    <div id="natTotalStaff" style="font-size: 18px; font-weight: 700; color: #7e22ce; margin-top: 4px;">0</div>
-                </div>
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: #166534; font-weight: 600;">PENILAIAN SELESAI</div>
-                    <div id="natTotalCompleted" style="font-size: 18px; font-weight: 700; color: #16a34a; margin-top: 4px;">0</div>
-                </div>
-                <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: #b45309; font-weight: 600;">RATA-RATA SKOR</div>
-                    <div id="natAvgScore" style="font-size: 18px; font-weight: 700; color: #d97706; margin-top: 4px;">0</div>
+                <div>
+                    <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Status Filter:</label>
+                    <select id="allStoresStatusFilter" onchange="renderAllStoresDashboard()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: #fff;">
+                        <option value="all">Semua Toko</option>
+                        <option value="completed">Selesai 100%</option>
+                        <option value="inprogress">Dalam Proses</option>
+                    </select>
                 </div>
             </div>
 
-            <!-- Tabel Rekapitulasi Per Toko -->
+            <!-- Tabel Ringkasan Semua Toko -->
             <div class="summary-card">
-                <h3>🏢 Tabel Rekapitulasi Performa Per Toko</h3>
+                <h3>🏢 Rekapitulasi Performa & Progress Seluruh Toko Nasional</h3>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Nama Toko</th>
-                                <th>Jumlah Staff</th>
+                                <th>Jumlah Staff Terdaftar</th>
                                 <th>Staff Selesai Asesmen</th>
-                                <th>Rata-rata Skor Toko</th>
+                                <th>Rata-Rata Skor Toko</th>
+                                <th>Status Toko</th>
                             </tr>
                         </thead>
                         <tbody id="allStoresTableBody">
-                            <tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Memuat data rekapitulasi seluruh toko...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tabel Progress Nasional Seluruh Staff -->
-            <div class="summary-card">
-                <h3>👥 Tabel Progress Keseluruhan Staff (Nasional)</h3>
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nama Staff</th>
-                                <th>Toko</th>
-                                <th>Fase Selesai</th>
-                                <th>Total Skor</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="allStaffProgressTableBody">
-                            <tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data progress nasional...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data global seluruh toko...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -389,6 +361,8 @@
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyiJf4zQxL2aWvJpGpRGEuPDhZDXHfO4-fQ5jpJpFCybmDzJL5emyI35aU_cKRjTnJ7/exec";
 
     let masterEmployees = [];
+    let globalHistoryData = []; // Menyimpan riwayat global untuk tab semua toko
+    
     const phasesData = {
         "Fase 1a: Foundation (Professional & Retail)": [
             { id: 1, sub: "Professional Image", detail: "Make up / Penampilan Wajah", criteria: "(1 Point) Penampilan wajah baik dan rapi", max: 1 },
@@ -601,7 +575,7 @@
         if (tabId === 'summaryTab') {
             updateSummaryView();
         } else if (tabId === 'allStoresTab') {
-            updateAllStoresDashboard();
+            loadAllStoresDashboard();
         }
     }
 
@@ -735,8 +709,8 @@
         const storeProgressTableBody = document.getElementById('storeProgressTableBody');
 
         if (!store) {
-            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas untuk melihat rekap nilai.</td></tr>`;
-            storeProgressTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> di atas untuk melihat rekap nilai.</td></tr>`;
+            storeProgressTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> di atas.</td></tr>`;
             return;
         }
 
@@ -840,116 +814,93 @@
         });
     }
 
-    function updateAllStoresDashboard() {
-        const allStoresTableBody = document.getElementById('allStoresTableBody');
-        const allStaffProgressTableBody = document.getElementById('allStaffProgressTableBody');
+    // Fungsi khusus untuk Tab Dashboard Semua Toko
+    function loadAllStoresDashboard() {
+        const tableBody = document.getElementById('allStoresTableBody');
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data global seluruh toko...</td></tr>`;
 
-        allStoresTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Mengambil rekapitulasi data seluruh toko...</td></tr>`;
-        allStaffProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Mengambil data progress nasional...</td></tr>`;
-
-        // Ambil seluruh history nasional (tanpa parameter store)
-        let url = `${WEB_APP_URL}?action=getHistory`;
-
-        fetch(url)
+        // Ambil data riwayat global seluruh toko tanpa spesifik toko
+        fetch(`${WEB_APP_URL}?action=getHistory`)
         .then(res => res.json())
-        .then(historyData => {
-            let phaseKeys = Object.keys(phasesData);
-            let stores = [...new Set(masterEmployees.map(emp => emp.store ? emp.store.trim() : ""))].filter(Boolean);
-            if (stores.length === 0) {
-                stores = [...new Set(historyData.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
-            }
-
-            let totalStoresCount = stores.length;
-            let totalStaffCount = masterEmployees.length;
-            let totalCompletedAssessments = 0;
-            let sumAllScores = 0;
-            let countScores = 0;
-
-            allStoresTableBody.innerHTML = '';
-            stores.forEach(storeName => {
-                let storeStaffs = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-                let storeStaffCount = storeStaffs.length;
-                let storeHistory = historyData.filter(item => item.store && item.store.trim().toLowerCase() === storeName.toLowerCase());
-
-                let completedStaffCount = 0;
-                let storeTotalScoreAccum = 0;
-
-                storeStaffs.forEach(emp => {
-                    let empName = emp.name.trim();
-                    let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
-                    let uniquePhases = [...new Set(empHist.map(item => item.phaseName))].length;
-                    let empScore = empHist.reduce((s, it) => s + Number(it.totalScore || 0), 0);
-                    
-                    storeTotalScoreAccum += empScore;
-                    sumAllScores += empScore;
-                    countScores++;
-
-                    if (uniquePhases >= phaseKeys.length) {
-                        completedStaffCount++;
-                        totalCompletedAssessments++;
-                    }
-                });
-
-                let avgStoreScore = storeStaffCount > 0 ? (storeTotalScoreAccum / storeStaffCount).toFixed(1) : 0;
-
-                allStoresTableBody.innerHTML += `
-                    <tr>
-                        <td style="font-weight: 600;">${storeName}</td>
-                        <td style="text-align: center;">${storeStaffCount} Staff</td>
-                        <td style="text-align: center; color: #16a34a; font-weight: 600;">${completedStaffCount} Orang</td>
-                        <td style="text-align: center; font-weight: 600;">${avgStoreScore} Poin</td>
-                    </tr>
-                `;
-            });
-
-            let nationalAvgScore = countScores > 0 ? (sumAllScores / countScores).toFixed(1) : 0;
-
-            // Update Kartu Metrik Nasional
-            document.getElementById('natTotalStores').innerText = totalStoresCount;
-            document.getElementById('natTotalStaff').innerText = totalStaffCount;
-            document.getElementById('natTotalCompleted').innerText = totalCompletedAssessments;
-            document.getElementById('natAvgScore').innerText = `${nationalAvgScore} Poin`;
-
-            // Update Tabel Progress Nasional Seluruh Staff
-            allStaffProgressTableBody.innerHTML = '';
-            if (masterEmployees.length === 0) {
-                allStaffProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Data master karyawan tidak tersedia.</td></tr>`;
-                return;
-            }
-
-            masterEmployees.forEach(emp => {
-                let empName = emp.name.trim();
-                let empStore = emp.store ? emp.store.trim() : "-";
-                let empHist = historyData.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
-                
-                let uniquePhases = [...new Set(empHist.map(item => item.phaseName))].length;
-                let totalEmpScore = empHist.reduce((s, it) => s + Number(it.totalScore || 0), 0);
-
-                let progressBadge = '';
-                if (uniquePhases >= phaseKeys.length) {
-                    progressBadge = '<span style="color:#16a34a; font-weight:600;">Selesai (100%)</span>';
-                } else if (uniquePhases > 0) {
-                    progressBadge = '<span style="color:#0071e3; font-weight:600;">Proses (' + uniquePhases + '/' + phaseKeys.length + ')</span>';
-                } else {
-                    progressBadge = '<span style="color:#6e6e73;">Belum</span>';
-                }
-
-                allStaffProgressTableBody.innerHTML += `
-                    <tr>
-                        <td style="font-weight: 600;">${empName}</td>
-                        <td>${empStore}</td>
-                        <td style="text-align: center;">${uniquePhases} / ${phaseKeys.length}</td>
-                        <td style="text-align: center; font-weight: 600;">${totalEmpScore} Poin</td>
-                        <td>${progressBadge}</td>
-                    </tr>
-                `;
-            });
+        .then(data => {
+            globalHistoryData = data;
+            renderAllStoresDashboard();
         })
         .catch(err => {
-            console.log("Gagal memuat rekap nasional:", err);
-            allStoresTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #dc2626;">Gagal mengambil data rekap dari Google Sheets.</td></tr>`;
-            allStaffProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Gagal mengambil data progress nasional.</td></tr>`;
+            console.log("Gagal memuat rekap semua toko:", err);
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Gagal mengambil data dari server.</td></tr>`;
         });
+    }
+
+    function renderAllStoresDashboard() {
+        const tableBody = document.getElementById('allStoresTableBody');
+        const searchVal = document.getElementById('allStoresSearchInput').value.trim().toLowerCase();
+        const statusFilter = document.getElementById('allStoresStatusFilter').value;
+
+        let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
+        
+        // Filter nama toko berdasarkan kotak pencarian mandiri di tab ini
+        if (searchVal) {
+            allStores = allStores.filter(store => store.toLowerCase().includes(searchVal));
+        }
+
+        if (allStores.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Tidak ada toko yang cocok dengan filter pencarian.</td></tr>`;
+            return;
+        }
+
+        let totalPhasesCount = Object.keys(phasesData).length;
+        let htmlRows = "";
+
+        allStores.forEach(storeName => {
+            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let totalStaffCount = storeStaff.length;
+
+            let storeHistory = globalHistoryData.filter(item => item.store && item.store.trim().toLowerCase() === storeName.toLowerCase());
+
+            let completedStaffCount = 0;
+            let accumulatedStoreScore = 0;
+
+            storeStaff.forEach(emp => {
+                let empName = emp.name.trim();
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
+                let uniquePhases = [...new Set(empHist.map(item => item.phaseName))].length;
+                let empScore = empHist.reduce((sum, h) => sum + Number(h.totalScore || 0), 0);
+
+                accumulatedStoreScore += empScore;
+                if (uniquePhases >= totalPhasesCount) {
+                    completedStaffCount++;
+                }
+            });
+
+            let avgStoreScore = totalStaffCount > 0 ? Math.round(accumulatedStoreScore / totalStaffCount) : 0;
+            
+            let storeStatus = "Dalam Proses";
+            let statusBadge = '<span style="color:#0071e3; font-weight:600;">Dalam Proses</span>';
+            if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) {
+                storeStatus = "completed";
+                statusBadge = '<span style="color:#16a34a; font-weight:600;">Selesai (100%)</span>';
+            } else if (completedStaffCount === 0) {
+                storeStatus = "notstarted";
+                statusBadge = '<span style="color:#6e6e73;">Belum Mulai</span>';
+            }
+
+            // Terapkan filter status dropdown di tab ini
+            if (statusFilter === 'completed' && storeStatus !== 'completed') return;
+            if (statusFilter === 'inprogress' && storeStatus === 'completed') return;
+
+            htmlRows += `
+                <tr>
+                    <td style="font-weight: 600;">${storeName}</td>
+                    <td style="text-align: center;">${totalStaffCount} Orang</td>
+                    <td style="text-align: center;">${completedStaffCount} / ${totalStaffCount} Selesai</td>
+                    <td style="text-align: center; font-weight: 600;">${avgStoreScore} Poin</td>
+                    <td>${statusBadge}</td>
+                </tr>
+            `;
+        });
+
+        tableBody.innerHTML = htmlRows || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Tidak ada data toko yang sesuai dengan filter status.</td></tr>`;
     }
 </script>
 
