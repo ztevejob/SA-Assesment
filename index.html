@@ -313,22 +313,30 @@
         </div>
     </div>
 
-    <!-- TAB 3: DASHBOARD SEMUA TOKO (MEMILIKI FILTER SENDIRI) -->
+    <!-- TAB 3: DASHBOARD SEMUA TOKO -->
     <div id="allStoresTab" class="tab-content">
         <div class="summary-container">
-            <!-- Filter Khusus Dashboard Semua Toko (Independen) -->
-            <div style="background: #eef2f6; border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 200px;">
-                    <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">🔍 Filter / Cari Toko di Dashboard Ini:</label>
-                    <input type="text" id="allStoresSearchInput" placeholder="Ketik nama toko untuk menyaring..." oninput="renderAllStoresDashboard()" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+            <!-- Filter & Tombol Export Khusus Dashboard Semua Toko -->
+            <div style="background: #eef2f6; border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+                    <div style="min-width: 180px;">
+                        <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">🔍 Cari Toko:</label>
+                        <input type="text" id="allStoresSearchInput" placeholder="Ketik nama toko..." oninput="renderAllStoresDashboard()" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Status Filter:</label>
+                        <select id="allStoresStatusFilter" onchange="renderAllStoresDashboard()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: #fff;">
+                            <option value="all">Semua Toko</option>
+                            <option value="completed">Selesai 100%</option>
+                            <option value="inprogress">Dalam Proses</option>
+                            <option value="notstarted">⚠️ Belum Ada Submit</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Status Filter:</label>
-                    <select id="allStoresStatusFilter" onchange="renderAllStoresDashboard()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: #fff;">
-                        <option value="all">Semua Toko</option>
-                        <option value="completed">Selesai 100%</option>
-                        <option value="inprogress">Dalam Proses</option>
-                    </select>
+                <!-- Tombol Export untuk Laporan Atasan -->
+                <div style="display: flex; gap: 8px; align-items: flex-end;">
+                    <button type="button" onclick="exportToCSV()" style="background: #34c759; color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📥 Export Excel (CSV)</button>
+                    <button type="button" onclick="copyReportForWhatsApp()" style="background: #0071e3; color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA</button>
                 </div>
             </div>
 
@@ -361,7 +369,7 @@
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyiJf4zQxL2aWvJpGpRGEuPDhZDXHfO4-fQ5jpJpFCybmDzJL5emyI35aU_cKRjTnJ7/exec";
 
     let masterEmployees = [];
-    let globalHistoryData = []; // Menyimpan riwayat global untuk tab semua toko
+    let globalHistoryData = [];
     
     const phasesData = {
         "Fase 1a: Foundation (Professional & Retail)": [
@@ -814,12 +822,11 @@
         });
     }
 
-    // Fungsi khusus untuk Tab Dashboard Semua Toko
+    // Fungsi Dashboard Semua Toko
     function loadAllStoresDashboard() {
         const tableBody = document.getElementById('allStoresTableBody');
         tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data global seluruh toko...</td></tr>`;
 
-        // Ambil data riwayat global seluruh toko tanpa spesifik toko
         fetch(`${WEB_APP_URL}?action=getHistory`)
         .then(res => res.json())
         .then(data => {
@@ -839,7 +846,6 @@
 
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         
-        // Filter nama toko berdasarkan kotak pencarian mandiri di tab ini
         if (searchVal) {
             allStores = allStores.filter(store => store.toLowerCase().includes(searchVal));
         }
@@ -875,19 +881,20 @@
 
             let avgStoreScore = totalStaffCount > 0 ? Math.round(accumulatedStoreScore / totalStaffCount) : 0;
             
-            let storeStatus = "Dalam Proses";
+            let storeStatus = "inprogress";
             let statusBadge = '<span style="color:#0071e3; font-weight:600;">Dalam Proses</span>';
-            if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) {
+
+            if (storeHistory.length === 0) {
+                storeStatus = "notstarted";
+                statusBadge = '<span style="color:#dc2626; font-weight:600;">⚠️ Belum Ada Submit (0%)</span>';
+            } else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) {
                 storeStatus = "completed";
                 statusBadge = '<span style="color:#16a34a; font-weight:600;">Selesai (100%)</span>';
-            } else if (completedStaffCount === 0) {
-                storeStatus = "notstarted";
-                statusBadge = '<span style="color:#6e6e73;">Belum Mulai</span>';
             }
 
-            // Terapkan filter status dropdown di tab ini
             if (statusFilter === 'completed' && storeStatus !== 'completed') return;
-            if (statusFilter === 'inprogress' && storeStatus === 'completed') return;
+            if (statusFilter === 'inprogress' && storeStatus !== 'inprogress') return;
+            if (statusFilter === 'notstarted' && storeStatus !== 'notstarted') return;
 
             htmlRows += `
                 <tr>
@@ -900,7 +907,107 @@
             `;
         });
 
-        tableBody.innerHTML = htmlRows || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Tidak ada data toko yang sesuai dengan filter status.</td></tr>`;
+        tableBody.innerHTML = htmlRows || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Tidak ada data toko yang sesuai dengan filter status tersebut.</td></tr>`;
+    }
+
+    // Fungsi Export ke CSV
+    function exportToCSV() {
+        let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
+        let totalPhasesCount = Object.keys(phasesData).length;
+
+        let csvContent = "Nama Toko,Jumlah Staff,Staff Selesai,Rata-Rata Skor,Status\n";
+
+        allStores.forEach(storeName => {
+            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let totalStaffCount = storeStaff.length;
+            let storeHistory = globalHistoryData.filter(item => item.store && item.store.trim().toLowerCase() === storeName.toLowerCase());
+
+            let completedStaffCount = 0;
+            let accumulatedStoreScore = 0;
+
+            storeStaff.forEach(emp => {
+                let empName = emp.name.trim();
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
+                let uniquePhases = [...new Set(empHist.map(item => item.phaseName))].length;
+                let empScore = empHist.reduce((sum, h) => sum + Number(h.totalScore || 0), 0);
+
+                accumulatedStoreScore += empScore;
+                if (uniquePhases >= totalPhasesCount) {
+                    completedStaffCount++;
+                }
+            });
+
+            let avgStoreScore = totalStaffCount > 0 ? Math.round(accumulatedStoreScore / totalStaffCount) : 0;
+            let storeStatus = "Dalam Proses";
+            if (storeHistory.length === 0) {
+                storeStatus = "Belum Ada Submit";
+            } else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) {
+                storeStatus = "Selesai 100%";
+            }
+
+            csvContent += `"${storeName}",${totalStaffCount},"${completedStaffCount} / ${totalStaffCount}",${avgStoreScore},"${storeStatus}"\n`;
+        });
+
+        let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        let url = URL.createObjectURL(blob);
+        let link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Rekap_Assessment_Digimap_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Fungsi Salin Laporan WhatsApp
+    function copyReportForWhatsApp() {
+        let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
+        let totalPhasesCount = Object.keys(phasesData).length;
+        
+        let totalStoresCount = allStores.length;
+        let completedStoresCount = 0;
+        let unstartedStoresCount = 0;
+
+        let storeDetailsText = "";
+
+        allStores.forEach((storeName, index) => {
+            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let totalStaffCount = storeStaff.length;
+            let storeHistory = globalHistoryData.filter(item => item.store && item.store.trim().toLowerCase() === storeName.toLowerCase());
+
+            let completedStaffCount = 0;
+            storeStaff.forEach(emp => {
+                let empName = emp.name.trim();
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
+                let uniquePhases = [...new Set(empHist.map(item => item.phaseName))].length;
+                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
+            });
+
+            let statusText = "Sedang Proses 🔄";
+            if (storeHistory.length === 0) {
+                statusText = "Belum Ada Submit ❌";
+                unstartedStoresCount++;
+            } else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) {
+                statusText = "Selesai 100% ✅";
+                completedStoresCount++;
+            }
+
+            storeDetailsText += `${index + 1}. *${storeName}* — ${completedStaffCount}/${totalStaffCount} Selesai (${statusText})\n`;
+        });
+
+        let reportText = `📊 *RINGKASAN LAPORAN ASESMEN DIGIMAP*\n` +
+                         `📅 Tanggal: ${new Date().toLocaleDateString('id-ID')}\n\n` +
+                         `🏢 Total Toko: ${totalStoresCount}\n` +
+                         `✅ Toko Selesai: ${completedStoresCount}\n` +
+                         `❌ Belum Submit: ${unstartedStoresCount}\n\n` +
+                         `📋 *Detail Per Toko:*\n` +
+                         storeDetailsText + `\n` +
+                         `_Disimpan otomatis dari Digimap Assessment Dashboard_`;
+
+        navigator.clipboard.writeText(reportText).then(() => {
+            alert("✅ Laporan berhasil disalin! Anda tinggal *Paste (Tempel)* langsung ke chat WhatsApp atasan.");
+        }).catch(err => {
+            alert("Gagal menyalin teks: " + err);
+        });
     }
 </script>
 
