@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digimap Assessment Dashboard</title>
     <!-- Memuat Chart.js untuk grafik visualisasi summary -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Memuat Plugin Chart.js Datalabels untuk menampilkan angka di atas batang grafik -->
+    <!-- Memuat Plugin Chart.js Datalabels -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
         :root {
@@ -20,23 +20,67 @@
             --gray-bg: #f9f9fb;
             --radius: 14px;
         }
+
+        /* Tema Dark Mode */
+        [data-theme="dark"] {
+            --primary: #0a84ff;
+            --success: #30d158;
+            --bg: #000000;
+            --card: #1c1c1e;
+            --text: #f5f5f7;
+            --text-secondary: #98989d;
+            --border: #38383a;
+            --gray-bg: #2c2c2e;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 15px;
-            padding-bottom: 30px;
+            padding: 0;
             line-height: 1.4;
+            transition: background-color 0.3s, color 0.3s;
         }
-        .container {
-            max-width: 950px;
-            margin: 0 auto;
+
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Desktop */
+        .sidebar {
+            display: none;
+        }
+
+        /* Mobile Header Bar */
+        .mobile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             background: var(--card);
-            padding: 20px;
-            border-radius: var(--radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 15px;
+            position: sticky;
+            top: 0;
+            z-index: 99;
         }
+        .mobile-header h2 {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            padding-bottom: 60px;
+        }
+
         header { text-align: center; margin-bottom: 20px; }
         h1 { font-size: 20px; font-weight: 700; margin: 0 0 5px 0; }
         .subtitle { font-size: 12px; color: var(--text-secondary); }
@@ -66,8 +110,36 @@
             border: 1px solid var(--border);
             border-radius: 6px;
             font-size: 13px;
-            background: #fff;
+            background: var(--card);
+            color: var(--text);
             box-sizing: border-box;
+        }
+
+        /* Widget Cuaca & Theme Toggle Style */
+        .widget-box {
+            background: var(--gray-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 20px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-secondary);
+        }
+        .theme-toggle-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
 
         /* Navigasi Tab Menu */
@@ -91,16 +163,15 @@
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
-        .tab-btn span.icon { display: none; }
+        .tab-btn span.icon { font-size: 14px; }
         .tab-btn.active {
             background: var(--primary);
             color: #fff;
             border-color: var(--primary);
         }
 
-        /* Tab Content Views */
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
@@ -126,7 +197,7 @@
         }
         .phase-card.completed {
             border-color: var(--success);
-            background: #f0fdf4;
+            background: rgba(52, 199, 89, 0.08);
         }
         .phase-title {
             font-weight: 700;
@@ -136,101 +207,106 @@
             justify-content: space-between;
             align-items: center;
         }
-        .phase-card.completed .phase-title { color: #166534; }
+        .phase-card.completed .phase-title { color: var(--success); }
 
         .assessment-view { display: none; }
         .assessment-view.active { display: block; }
         
         .back-btn {
-            background: #e5e5ea; border: none; padding: 6px 12px;
+            background: var(--gray-bg); border: 1px solid var(--border); color: var(--text); padding: 6px 12px;
             font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px; margin-bottom: 15px;
         }
         .item-card {
-            background: var(--gray-bg); border: 1px solid #e5e5ea;
+            background: var(--gray-bg); border: 1px solid var(--border);
             border-radius: 8px; padding: 12px; margin-bottom: 12px;
         }
-        /* Styling Khusus Kartu Pertanyaan Bonus */
         .item-card.bonus-card {
-            background: #fffbeb !important;
+            background: rgba(245, 158, 11, 0.08) !important;
             border: 1.5px solid #f59e0b !important;
         }
         .item-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
         .criteria-text {
-            font-size: 11px; background: #fff; padding: 8px; border-radius: 6px;
-            border-left: 3px solid var(--primary); margin-bottom: 8px; white-space: pre-line;
+            font-size: 11px; background: var(--card); padding: 8px; border-radius: 6px;
+            border-left: 3px solid var(--primary); margin-bottom: 8px; white-space: pre-line; color: var(--text);
         }
-        .bonus-card .criteria-text {
-            border-left-color: #f59e0b;
-        }
+        .bonus-card .criteria-text { border-left-color: #f59e0b; }
         .score-pills { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
         .pill-btn {
             flex: 1; min-width: 35px; padding: 6px; text-align: center;
-            border: 1px solid var(--border); border-radius: 6px; background: #fff;
+            border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text);
             font-weight: 600; font-size: 12px; cursor: pointer;
         }
         .pill-btn.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
         .bonus-card .pill-btn.selected { background: #d97706; border-color: #d97706; }
-        .note-input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; box-sizing: border-box; }
+        .note-input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; box-sizing: border-box; background: var(--card); color: var(--text); }
 
         .submit-phase-btn {
             background: var(--success); color: white; border: none; padding: 10px 16px;
             font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; margin-top: 15px;
         }
 
-        .summary-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+        .summary-container { display: flex; flex-direction: column; gap: 20px; }
         .summary-card {
             background: var(--gray-bg);
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 15px;
         }
-        .summary-card h3 {
-            margin-top: 0;
-            font-size: 14px;
-            color: var(--primary);
-            margin-bottom: 12px;
-        }
-        .chart-wrapper {
-            position: relative;
-            height: 240px;
-            width: 100%;
-        }
-        .table-responsive {
-            overflow-x: auto;
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-            background: #fff;
-        }
-        .data-table th, .data-table td {
-            border: 1px solid var(--border);
-            padding: 8px 10px;
-            text-align: left;
-        }
-        .data-table th {
-            background: #f1f1f3;
-            font-weight: 600;
+        .summary-card h3 { margin-top: 0; font-size: 14px; color: var(--primary); margin-bottom: 12px; }
+        .chart-wrapper { position: relative; height: 240px; width: 100%; }
+        .table-responsive { overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--card); color: var(--text); }
+        .data-table th, .data-table td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+        .data-table th { background: var(--gray-bg); font-weight: 600; }
+
+        /* KHUSUS TAMPILAN DESKTOP (Sidebar) */
+        @media (min-width: 768px) {
+            .mobile-header { display: none; }
+            .app-layout { display: flex; }
+            .sidebar {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                width: 270px;
+                background: var(--card);
+                border-right: 1px solid var(--border);
+                padding: 25px 20px;
+                position: fixed;
+                top: 0; bottom: 0; left: 0;
+                z-index: 100;
+            }
+            .sidebar-top h2 { font-size: 16px; font-weight: 700; margin: 0 0 4px 0; }
+            .sidebar-top p { font-size: 11px; color: var(--text-secondary); margin: 0 0 20px 0; }
+            .sidebar .nav-tabs { display: flex; flex-direction: column; border-bottom: none; gap: 6px; }
+            .sidebar .tab-btn { width: 100%; justify-content: flex-start; padding: 10px 14px; border: none; background: transparent; color: var(--text); }
+            .sidebar .tab-btn:hover { background: var(--gray-bg); }
+            .sidebar .tab-btn.active { background: var(--primary); color: #fff; }
+            
+            .sidebar-footer {
+                border-top: 1px solid var(--border);
+                padding-top: 15px;
+                font-size: 11px;
+                color: var(--text-secondary);
+                text-align: center;
+            }
+            .sidebar-footer span { font-weight: 600; color: var(--primary); }
+
+            .main-content { margin-left: 270px; padding: 30px; max-width: 1100px; }
+            header { display: none; }
+            .mobile-bottom-nav { display: none; }
         }
 
         /* Responsive HP */
         @media (max-width: 767px) {
-            body { padding: 10px; padding-bottom: 75px; }
-            .container { padding: 12px; }
+            body { padding-bottom: 75px; }
+            .main-content { padding: 12px; }
             .nav-tabs {
                 position: fixed; bottom: 0; left: 0; right: 0;
-                background: rgba(255, 255, 255, 0.95);
+                background: var(--card);
                 backdrop-filter: blur(10px);
                 border-top: 1px solid var(--border);
-                border-bottom: none;
                 display: flex; justify-content: space-around;
                 padding: 6px 4px; margin-bottom: 0; z-index: 1000;
-                box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
             }
             .tab-btn {
                 background: transparent; border: none; padding: 4px 6px;
@@ -241,7 +317,7 @@
             .tab-btn.active { background: transparent; color: var(--primary); font-weight: 700; }
             .floating-submit-container {
                 position: fixed; bottom: 58px; left: 0; right: 0;
-                padding: 8px 12px; background: linear-gradient(to top, rgba(255,255,255,0.95), rgba(255,255,255,0.5));
+                padding: 8px 12px; background: linear-gradient(to top, var(--card), rgba(255,255,255,0));
                 z-index: 999; display: flex; justify-content: center;
             }
         }
@@ -249,205 +325,267 @@
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>Digimap Assessment Dashboard</h1>
-        <div class="subtitle">Sistem Penilaian Bulanan (Monthly) & Dashboard Nasional</div>
-    </header>
-    
-    <!-- Meta Input Bar UTAMA -->
-    <div class="meta-box" id="globalMetaBox">
-        <div class="form-group">
-            <label>Pilih Toko / Store</label>
-            <input type="text" id="storeInput" list="storeListOptions" placeholder="Ketik atau pilih toko..." oninput="onStoreChange()" onchange="onStoreChange()" onblur="onStoreChange()">
-            <datalist id="storeListOptions"></datalist>
-        </div>
-        <div class="form-group">
-            <label>Nama Staff / Sales Assistant</label>
-            <input type="text" id="staffInput" list="staffListOptions" placeholder="Pilih toko terlebih dahulu..." oninput="checkStaffProgress()" onchange="checkStaffProgress()" onblur="checkStaffProgress()">
-            <datalist id="staffListOptions"></datalist>
-        </div>
-        <div class="form-group">
-            <label>Tanggal Coaching</label>
-            <input type="date" id="coachingDate" onchange="checkStaffProgress()">
-        </div>
+<div class="app-layout">
+
+    <!-- MOBILE HEADER BAR -->
+    <div class="mobile-header">
+        <h2>Digimap Dashboard</h2>
+        <button type="button" class="theme-toggle-btn" onclick="toggleTheme()">🌙 <span id="themeTextMobile">Dark</span></button>
     </div>
 
-    <!-- NAVIGASI MENU TAB UTAMA -->
-    <div class="nav-tabs">
-        <button type="button" class="tab-btn active" onclick="switchTab('assessmentTab', this)">
-            <span class="icon">📝</span>
-            <span>Lembar Penilaian</span>
-        </button>
-        <button type="button" class="tab-btn" onclick="switchTab('summaryTab', this)">
-            <span class="icon">📊</span>
-            <span>Summary & Grafik</span>
-        </button>
-        <button type="button" class="tab-btn" onclick="switchTab('allStoresTab', this)">
-            <span class="icon">🌐</span>
-            <span>Dashboard Semua Toko</span>
-        </button>
-    </div>
+    <!-- SIDEBAR DESKTOP -->
+    <nav class="sidebar">
+        <div class="sidebar-top">
+            <h2>Digimap Dashboard</h2>
+            <p>Assessment & Performance System</p>
 
-    <!-- TAB 1: LEMBAR PENILAIAN -->
-    <div id="assessmentTab" class="tab-content active">
-        <div id="dashboardView">
-            <h3 style="margin-bottom: 12px; font-size: 14px;">Pilih Fase Asesmen yang Ingin Dinilai:</h3>
-            <div class="phase-grid" id="phaseGridContainer"></div>
-        </div>
+            <div class="widget-box">
+                <span id="weatherWidgetText">📍 Surabaya: Memuat...</span>
+            </div>
 
-        <div id="phaseFormView" class="assessment-view">
-            <button type="button" class="back-btn" onclick="backToDashboard()">← Kembali ke Menu Fase</button>
-            <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0; font-size: 18px;"></h2>
-            <div id="phaseQuestionsContainer"></div>
-            
-            <div id="floatingSubmitWrapper" style="display: none;">
-                <div class="floating-submit-container">
-                    <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Kirim ke Google Sheets</button>
-                </div>
+            <div class="nav-tabs">
+                <button type="button" class="tab-btn active" onclick="switchTab('assessmentTab', this)">
+                    <span class="icon">📝</span>
+                    <span>Lembar Penilaian</span>
+                </button>
+                <button type="button" class="tab-btn" onclick="switchTab('summaryTab', this)">
+                    <span class="icon">📊</span>
+                    <span>Summary & Grafik</span>
+                </button>
+                <button type="button" class="tab-btn" onclick="switchTab('allStoresTab', this)">
+                    <span class="icon">🌐</span>
+                    <span>Dashboard Semua Toko</span>
+                </button>
             </div>
         </div>
-    </div>
 
-    <!-- TAB 2: SUMMARY & CHART ANALITIK -->
-    <div id="summaryTab" class="tab-content">
-        <div class="summary-container">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
-                <div style="background: #e8f2fd; border: 1px solid #b3d7ff; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">TOTAL SKOR AKHIR</div>
-                    <div id="summaryTotalScore" style="font-size: 20px; font-weight: 700; color: var(--primary); margin-top: 4px;">0 / 100</div>
-                </div>
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 11px; color: #166534; font-weight: 600;">FASE SELESAI</div>
-                    <div id="summaryCompletedPhases" style="font-size: 20px; font-weight: 700; color: #16a34a; margin-top: 4px;">0 / 10</div>
-                </div>
+        <div class="sidebar-footer">
+            <div style="margin-bottom: 8px;">
+                <button type="button" class="theme-toggle-btn" style="width:100%; justify-content:center;" onclick="toggleTheme()">🌙 <span id="themeTextDesktop">Mode Dark / Bright</span></button>
             </div>
+            <div>Created by <span>Novi Riyanto</span></div>
+        </div>
+    </nav>
 
-            <div class="summary-card">
-                <h3>📈 Grafik Performa Per Fase Asesmen</h3>
-                <div class="chart-wrapper">
-                    <canvas id="performanceChart"></canvas>
-                </div>
+    <!-- KONTEN UTAMA -->
+    <main class="main-content">
+        <header>
+            <h1>Digimap Assessment Dashboard</h1>
+            <div class="subtitle">Sistem Penilaian Bulanan (Monthly) & Dashboard Nasional</div>
+        </header>
+
+        <!-- Widget Cuaca Khusus Mobile di bawah meta box atau header -->
+        <div class="widget-box" style="display: flex; @media(min-width: 768px) { display: none; }">
+            <span id="weatherWidgetTextMobile">📍 Surabaya: Memuat cuaca...</span>
+        </div>
+        
+        <!-- Meta Input Bar UTAMA -->
+        <div class="meta-box" id="globalMetaBox">
+            <div class="form-group">
+                <label>Pilih Toko / Store</label>
+                <input type="text" id="storeInput" list="storeListOptions" placeholder="Ketik atau pilih toko..." oninput="onStoreChange()" onchange="onStoreChange()" onblur="onStoreChange()">
+                <datalist id="storeListOptions"></datalist>
             </div>
-
-            <div class="summary-card">
-                <h3>📋 Tabel Rekapitulasi Poin & Catatan Staff (Per Fase)</h3>
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Fase Asesmen</th>
-                                <th>Status</th>
-                                <th>Poin</th>
-                                <th>Catatan</th>
-                            </tr>
-                        </thead>
-                        <tbody id="summaryTableBody">
-                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff di atas untuk memuat data rekap.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="form-group">
+                <label>Nama Staff / Sales Assistant</label>
+                <input type="text" id="staffInput" list="staffListOptions" placeholder="Pilih toko terlebih dahulu..." oninput="checkStaffProgress()" onchange="checkStaffProgress()" onblur="checkStaffProgress()">
+                <datalist id="staffListOptions"></datalist>
             </div>
-
-            <div class="summary-card">
-                <h3>👥 Tabel Progress Keseluruhan Staff di Toko Ini</h3>
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nama Staff</th>
-                                <th>Fase Selesai</th>
-                                <th>Total Skor</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="storeProgressTableBody">
-                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko di atas untuk melihat progress staff.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="form-group">
+                <label>Tanggal Coaching</label>
+                <input type="date" id="coachingDate" onchange="checkStaffProgress()">
             </div>
         </div>
-    </div>
 
-    <!-- TAB 3: DASHBOARD SEMUA TOKO -->
-    <div id="allStoresTab" class="tab-content">
-        <div class="summary-container">
-            <!-- Kartu Ringkasan -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
-                <div style="background: #e8f2fd; border: 1px solid #b3d7ff; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOTAL TOKO</div>
-                    <div id="statTotalStores" style="font-size: 18px; font-weight: 700; color: var(--primary); margin-top: 4px;">0</div>
-                </div>
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: #166534; font-weight: 600;">SELESAI (100%)</div>
-                    <div id="statCompletedStores" style="font-size: 18px; font-weight: 700; color: #16a34a; margin-top: 4px;">0</div>
-                </div>
-                <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: #991b1b; font-weight: 600;">BELUM SUBMIT</div>
-                    <div id="statUnstartedStores" style="font-size: 18px; font-weight: 700; color: #dc2626; margin-top: 4px;">0</div>
-                </div>
-                <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: #b45309; font-weight: 600;">TOKO AKTIF SUBMIT</div>
-                    <div id="statActiveStores" style="font-size: 18px; font-weight: 700; color: #d97706; margin-top: 4px;">0 Toko</div>
-                </div>
-                <div style="background: #fdf4ff; border: 1px solid #f5d0fe; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: #86198f; font-weight: 600;">RATA-RATA SKOR</div>
-                    <div id="statAvgScore" style="font-size: 18px; font-weight: 700; color: #a21caf; margin-top: 4px;">0 Poin</div>
-                </div>
+        <!-- MOBILE BOTTOM NAV -->
+        <div class="nav-tabs mobile-bottom-nav">
+            <button type="button" class="tab-btn active" onclick="switchTab('assessmentTab', this)">
+                <span class="icon">📝</span>
+                <span>Penilaian</span>
+            </button>
+            <button type="button" class="tab-btn" onclick="switchTab('summaryTab', this)">
+                <span class="icon">📊</span>
+                <span>Summary</span>
+            </button>
+            <button type="button" class="tab-btn" onclick="switchTab('allStoresTab', this)">
+                <span class="icon">🌐</span>
+                <span>Nasional</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: LEMBAR PENILAIAN -->
+        <div id="assessmentTab" class="tab-content active">
+            <div id="dashboardView">
+                <h3 style="margin-bottom: 12px; font-size: 14px;">Pilih Fase Asesmen yang Ingin Dinilai:</h3>
+                <div class="phase-grid" id="phaseGridContainer"></div>
             </div>
 
-            <div class="summary-card">
-                <h3>📊 Grafik Persebaran Status Pengerjaan Toko Nasional</h3>
-                <div class="chart-wrapper">
-                    <canvas id="allStoresChart"></canvas>
-                </div>
-            </div>
-
-            <div style="background: #eef2f6; border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
-                    <div style="min-width: 180px;">
-                        <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">🔍 Cari Toko:</label>
-                        <input type="text" id="allStoresSearchInput" placeholder="Ketik nama toko..." oninput="renderAllStoresDashboard()" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
-                    </div>
-                    <div>
-                        <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Status Filter:</label>
-                        <select id="allStoresStatusFilter" onchange="renderAllStoresDashboard()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: #fff;">
-                            <option value="all">Semua Toko</option>
-                            <option value="completed">Selesai 100%</option>
-                            <option value="inprogress">Dalam Proses</option>
-                            <option value="notstarted">⚠️ Belum Ada Submit</option>
-                        </select>
+            <div id="phaseFormView" class="assessment-view">
+                <button type="button" class="back-btn" onclick="backToDashboard()">← Kembali ke Menu Fase</button>
+                <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0; font-size: 18px;"></h2>
+                <div id="phaseQuestionsContainer"></div>
+                
+                <div id="floatingSubmitWrapper" style="display: none;">
+                    <div class="floating-submit-container">
+                        <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Kirim ke Google Sheets</button>
                     </div>
                 </div>
-                <div style="display: flex; gap: 8px; align-items: flex-end;">
-                    <button type="button" onclick="exportToCSV()" style="background: #34c759; color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📥 Export Excel (CSV)</button>
-                    <button type="button" onclick="copyReportForWhatsApp()" style="background: #0071e3; color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA</button>
-                </div>
             </div>
+        </div>
 
-            <div class="summary-card">
-                <h3>🏢 Rekapitulasi Performa & Progress Seluruh Toko Nasional</h3>
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nama Toko</th>
-                                <th>Jumlah Staff Terdaftar</th>
-                                <th>Staff Selesai Asesmen</th>
-                                <th>Rata-Rata Skor Toko</th>
-                                <th>Status Toko</th>
-                            </tr>
-                        </thead>
-                        <tbody id="allStoresTableBody">
-                            <tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data global seluruh toko...</td></tr>
-                        </tbody>
-                    </table>
+        <!-- TAB 2: SUMMARY & CHART ANALITIK -->
+        <div id="summaryTab" class="tab-content">
+            <div class="summary-container">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">SKOR AKHIR STAFF</div>
+                        <div id="summaryTotalScore" style="font-size: 18px; font-weight: 700; color: var(--primary); margin-top: 4px;">0 / 100</div>
+                    </div>
+                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">FASE SELESAI STAFF</div>
+                        <div id="summaryCompletedPhases" style="font-size: 18px; font-weight: 700; color: var(--success); margin-top: 4px;">0 / 10</div>
+                    </div>
+                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">RATA-RATA SKOR TOKO</div>
+                        <div id="summaryStoreAvgScore" style="font-size: 18px; font-weight: 700; color: #f59e0b; margin-top: 4px;">0 Poin</div>
+                    </div>
+                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">KELULUSAN TOKO</div>
+                        <div id="summaryStoreCompletion" style="font-size: 18px; font-weight: 700; color: #a21caf; margin-top: 4px;">0%</div>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <h3>📈 Grafik Performa Per Fase Asesmen (Staff Terpilih)</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
+                        <h3 style="margin: 0; font-size: 14px;">📋 Rekapitulasi Poin & Catatan: <span id="activeStaffLabel" style="color: var(--primary); font-weight: 700;">(Belum dipilih)</span></h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Fase Asesmen</th>
+                                    <th>Status</th>
+                                    <th>Poin</th>
+                                    <th>Catatan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summaryTableBody">
+                                <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff di atas untuk memuat data rekap.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
+                        <h3 style="margin: 0; font-size: 14px;">👥 Tabel Progress Keseluruhan Staff di Toko Ini</h3>
+                        <button type="button" onclick="copyStoreReportForWhatsApp()" style="background: var(--primary); color: white; border: none; padding: 6px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA Toko Ini</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nama Staff</th>
+                                    <th>Fase Selesai</th>
+                                    <th>Total Skor</th>
+                                    <th>Tanggal Coaching</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="storeProgressTableBody">
+                                <tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko di atas untuk melihat progress staff.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
+        <!-- TAB 3: DASHBOARD SEMUA TOKO -->
+        <div id="allStoresTab" class="tab-content">
+            <div class="summary-container">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOTAL TOKO</div>
+                        <div id="statTotalStores" style="font-size: 18px; font-weight: 700; color: var(--primary); margin-top: 4px;">0</div>
+                    </div>
+                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">SELESAI (100%)</div>
+                        <div id="statCompletedStores" style="font-size: 18px; font-weight: 700; color: var(--success); margin-top: 4px;">0</div>
+                    </div>
+                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">BELUM SUBMIT</div>
+                        <div id="statUnstartedStores" style="font-size: 18px; font-weight: 700; color: #dc2626; margin-top: 4px;">0</div>
+                    </div>
+                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOKO AKTIF SUBMIT</div>
+                        <div id="statActiveStores" style="font-size: 18px; font-weight: 700; color: #f59e0b; margin-top: 4px;">0 Toko</div>
+                    </div>
+                    <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">RATA-RATA SKOR</div>
+                        <div id="statAvgScore" style="font-size: 18px; font-weight: 700; color: #a21caf; margin-top: 4px;">0 Poin</div>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <h3>📊 Grafik Persebaran Status Pengerjaan Toko Nasional</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="allStoresChart"></canvas>
+                    </div>
+                </div>
+
+                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+                        <div style="min-width: 180px;">
+                            <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">🔍 Cari Toko:</label>
+                            <input type="text" id="allStoresSearchInput" placeholder="Ketik nama toko..." oninput="renderAllStoresDashboard()" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">Status Filter:</label>
+                            <select id="allStoresStatusFilter" onchange="renderAllStoresDashboard()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
+                                <option value="all">Semua Toko</option>
+                                <option value="completed">Selesai 100%</option>
+                                <option value="inprogress">Dalam Proses</option>
+                                <option value="notstarted">⚠️ Belum Ada Submit</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: flex-end;">
+                        <button type="button" onclick="exportToCSV()" style="background: var(--success); color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📥 Export Excel (CSV)</button>
+                        <button type="button" onclick="copyReportForWhatsApp()" style="background: var(--primary); color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA Nasional</button>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <h3>🏢 Rekapitulasi Performa & Progress Seluruh Toko Nasional</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nama Toko</th>
+                                    <th>Jumlah Staff Terdaftar</th>
+                                    <th>Staff Selesai Asesmen</th>
+                                    <th>Rata-Rata Skor Toko</th>
+                                    <th>Status Toko</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allStoresTableBody">
+                                <tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data global seluruh toko...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
 </div>
 
 <script>
@@ -458,7 +596,6 @@
     let performanceChart = null;
     let allStoresChart = null;
     
-    // Data Fase dengan bobot disesuaikan (Total Murni = 100 Poin + 8 Poin Bonus)
     const phasesData = {
         "Fase 1a: Foundation (Professional & Retail)": [
             { id: 1, sub: "Professional Image", detail: "Make up / Penampilan Wajah", criteria: "(1 Point) Penampilan wajah baik dan rapi", max: 1 },
@@ -551,8 +688,8 @@
     let activePhaseKey = "";
 
     window.onload = function() {
-        // Otomatis set tanggal coaching ke hari ini agar status langsung terdeteksi
         document.getElementById('coachingDate').value = new Date().toISOString().slice(0, 10);
+        fetchWeather();
 
         fetch(WEB_APP_URL)
         .then(res => res.json())
@@ -571,6 +708,39 @@
         initChart();
         initAllStoresChart();
     };
+
+    // Fungsi Fetch Cuaca Surabaya
+    function fetchWeather() {
+        fetch('https://api.open-meteo.com/v1/forecast?latitude=-7.2575&longitude=112.7521&current_weather=true')
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.current_weather) {
+                let temp = data.current_weather.temperature;
+                let text = `📍 Surabaya: ${temp}°C 🌤️`;
+                document.getElementById('weatherWidgetText').innerText = text;
+                document.getElementById('weatherWidgetTextMobile').innerText = text;
+            }
+        })
+        .catch(err => {
+            document.getElementById('weatherWidgetText').innerText = "📍 Surabaya: Cuaca offline";
+            document.getElementById('weatherWidgetTextMobile').innerText = "📍 Surabaya: Cuaca offline";
+        });
+    }
+
+    // Fungsi Toggle Dark / Bright Mode (Default Bright)
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+            html.setAttribute('data-theme', 'light');
+            document.getElementById('themeTextMobile').innerText = 'Dark';
+            document.getElementById('themeTextDesktop').innerText = 'Mode Dark / Bright';
+        } else {
+            html.setAttribute('data-theme', 'dark');
+            document.getElementById('themeTextMobile').innerText = 'Bright';
+            document.getElementById('themeTextDesktop').innerText = 'Mode Dark / Bright';
+        }
+    }
 
     function resetAssessmentState() {
         for (let key in scores) delete scores[key];
@@ -616,7 +786,7 @@
         const selectedDate = document.getElementById('coachingDate').value;
 
         if (store && staffName && selectedDate) {
-            let selectedMonthYear = selectedDate.slice(0, 7); // Format "YYYY-MM"
+            let selectedMonthYear = selectedDate.slice(0, 7);
 
             let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}&staffName=${encodeURIComponent(staffName)}`;
             fetch(url)
@@ -625,7 +795,6 @@
                 historyData.forEach(item => {
                     if (item.staffName && item.staffName.trim().toLowerCase() === staffName.toLowerCase()) {
                         let itemMonthYear = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
-                        // Kunci jika fase sudah diselesaikan di bulan dan tahun yang sama
                         if (item.phaseName && itemMonthYear === selectedMonthYear) {
                             completedPhases[item.phaseName] = true;
                         }
@@ -655,7 +824,7 @@
             
             let cardClass = isDone ? "phase-card completed" : "phase-card";
             let iconIndicator = isDone 
-                ? '<span style="color: #16a34a; font-weight: bold; font-size: 12px;">✓ Selesai Bulan Ini</span>' 
+                ? '<span style="color: var(--success); font-weight: bold; font-size: 12px;">✓ Selesai Bulan Ini</span>' 
                 : '<span style="color: #dc2626; font-weight: bold; font-size: 12px;">✗ Belum</span>';
 
             gridContainer.innerHTML += `
@@ -673,8 +842,13 @@
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
 
+        document.querySelectorAll(`.tab-btn`).forEach(btn => {
+            if (btn.getAttribute('onclick').includes(tabId)) {
+                btn.classList.add('active');
+            }
+        });
+
         document.getElementById(tabId).classList.add('active');
-        btnElement.classList.add('active');
 
         const metaBox = document.getElementById('globalMetaBox');
         if (tabId === 'allStoresTab') {
@@ -705,7 +879,6 @@
     function openPhase(phaseName) {
         if (!validateMetaForCoaching()) return;
 
-        // Peringatan langsung saat kartu hijau (selesai bulan ini) diklik
         if (completedPhases[phaseName]) {
             alert(`⚠️ PERHATIAN:\nFase "${phaseName}" sudah diselesaikan pada bulan ini.\n\nAssessor wajib menghubungi Trainer Region terlebih dahulu untuk konfirmasi jika ingin membuka atau mengubah penilaian fase ini!`);
             return;
@@ -730,7 +903,7 @@
 
             let html = `
                 <div class="${cardClass}">
-                    <div style="font-size: 10px; font-weight: 700; color: ${isBonus ? '#b45309' : '#6e6e73'}; margin-bottom: 2px; display: flex; align-items: center;">
+                    <div style="font-size: 10px; font-weight: 700; color: ${isBonus ? '#b45309' : 'var(--text-secondary)'}; margin-bottom: 2px; display: flex; align-items: center;">
                         <span>${item.sub.toUpperCase()} (Maks: ${item.max})</span>
                         ${bonusBadge}
                     </div>
@@ -859,18 +1032,12 @@
                     datalabels: {
                         anchor: 'end',
                         align: 'top',
-                        font: {
-                            weight: 'bold',
-                            size: 11
-                        },
+                        font: { weight: 'bold', size: 11 },
                         color: '#1d1d1f'
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        grace: '15%'
-                    }
+                    y: { beginAtZero: true, grace: '15%' }
                 }
             },
             plugins: [ChartDataLabels]
@@ -883,15 +1050,22 @@
         const selectedDate = document.getElementById('coachingDate').value;
         const tableBody = document.getElementById('summaryTableBody');
         const storeProgressTableBody = document.getElementById('storeProgressTableBody');
+        const staffLabelEl = document.getElementById('activeStaffLabel');
+
+        if (staffLabelEl) {
+            staffLabelEl.innerText = staffName ? staffName : "(Belum dipilih)";
+        }
 
         if (!store) {
             tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas untuk melihat rekap nilai.</td></tr>`;
-            storeProgressTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas.</td></tr>`;
+            storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas.</td></tr>`;
+            document.getElementById('summaryStoreAvgScore').innerText = `0 Poin`;
+            document.getElementById('summaryStoreCompletion').innerText = `0%`;
             return;
         }
 
         tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Sedang memuat rekap data dari Google Sheets...</td></tr>`;
-        storeProgressTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Sedang memuat progress staff toko...</td></tr>`;
+        storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Sedang memuat progress staff toko...</td></tr>`;
 
         let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}`;
 
@@ -924,13 +1098,11 @@
                     let isDone = phaseScoresMap[phaseName] !== undefined;
                     let notesText = phaseNotesMap[phaseName] ? phaseNotesMap[phaseName] : '-';
 
-                    if (isDone) {
-                        completedCount++;
-                    }
+                    if (isDone) completedCount++;
                     totalOverallScore += phaseScore;
                     chartScores[index] = phaseScore;
 
-                    let statusBadge = isDone ? '<span style="color:#16a34a; font-weight:600;">Selesai ✓</span>' : '<span style="color:#6e6e73;">Belum</span>';
+                    let statusBadge = isDone ? '<span style="color:var(--success); font-weight:600;">Selesai ✓</span>' : '<span style="color:var(--text-secondary);">Belum</span>';
 
                     tableBody.innerHTML += `
                         <tr>
@@ -964,33 +1136,45 @@
             let storeStaffList = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
 
             if (storeStaffList.length === 0) {
-                storeProgressTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Tidak ada data staff terdaftar untuk toko ini di Master.</td></tr>`;
+                storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Tidak ada data staff terdaftar untuk toko ini di Master.</td></tr>`;
+                document.getElementById('summaryStoreAvgScore').innerText = `0 Poin`;
+                document.getElementById('summaryStoreCompletion').innerText = `0%`;
                 return;
             }
+
+            let sumStoreScores = 0;
+            let storeCompletedStaffCount = 0;
 
             storeStaffList.forEach(emp => {
                 let empName = emp.name.trim();
                 let empHistory = historyData.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
                 
                 let empPhaseMap = {};
+                let empDatesSet = new Set();
                 empHistory.forEach(item => {
                     let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
                     if (item.phaseName && itemMonth === selectedMonthYear) {
                         empPhaseMap[item.phaseName] = Number(item.totalScore || 0);
+                        if (item.coachingDate) empDatesSet.add(item.coachingDate);
                     }
                 });
 
                 let uniqueCompletedPhases = Object.keys(empPhaseMap).length;
                 let totalScoreUnik = Object.values(empPhaseMap).reduce((sum, score) => sum + score, 0);
                 let finalCappedKumulatif = totalScoreUnik > 108 ? 108 : totalScoreUnik;
+                sumStoreScores += finalCappedKumulatif;
+
+                if (uniqueCompletedPhases >= phaseKeys.length) storeCompletedStaffCount++;
+
+                let coachingDatesStr = empDatesSet.size > 0 ? Array.from(empDatesSet).sort().join(', ') : '-';
                 
                 let progressBadge = '';
                 if (uniqueCompletedPhases >= phaseKeys.length) {
-                    progressBadge = '<span style="color:#16a34a; font-weight:600;">Selesai (100%)</span>';
+                    progressBadge = '<span style="color:var(--success); font-weight:600;">Selesai (100%)</span>';
                 } else if (uniqueCompletedPhases > 0) {
-                    progressBadge = '<span style="color:#0071e3; font-weight:600;">Proses (' + uniqueCompletedPhases + '/' + phaseKeys.length + ')</span>';
+                    progressBadge = '<span style="color:var(--primary); font-weight:600;">Proses (' + uniqueCompletedPhases + '/' + phaseKeys.length + ')</span>';
                 } else {
-                    progressBadge = '<span style="color:#6e6e73;">Belum</span>';
+                    progressBadge = '<span style="color:var(--text-secondary);">Belum</span>';
                 }
 
                 storeProgressTableBody.innerHTML += `
@@ -998,15 +1182,91 @@
                         <td style="font-weight: 600;">${empName}</td>
                         <td style="text-align: center;">${uniqueCompletedPhases} / ${phaseKeys.length}</td>
                         <td style="text-align: center; font-weight: 600;">${finalCappedKumulatif} Poin</td>
+                        <td style="text-align: center; font-size: 11px; color: var(--text-secondary);">${coachingDatesStr}</td>
                         <td>${progressBadge}</td>
                     </tr>
                 `;
             });
+
+            let avgStoreScoreVal = storeStaffList.length > 0 ? Math.round(sumStoreScores / storeStaffList.length) : 0;
+            let storeCompletionPct = storeStaffList.length > 0 ? Math.round((storeCompletedStaffCount / storeStaffList.length) * 100) : 0;
+
+            document.getElementById('summaryStoreAvgScore').innerText = `${avgStoreScoreVal} Poin`;
+            document.getElementById('summaryStoreCompletion').innerText = `${storeCompletionPct}%`;
         })
         .catch(err => {
             console.log("Gagal memuat riwayat:", err);
             tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #dc2626;">Gagal mengambil data riwayat dari Google Sheets.</td></tr>`;
-            storeProgressTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #dc2626;">Gagal mengambil data progress staff.</td></tr>`;
+            storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Gagal mengambil data progress staff.</td></tr>`;
+        });
+    }
+
+    function copyStoreReportForWhatsApp() {
+        const store = document.getElementById('storeInput').value.trim();
+        const selectedDate = document.getElementById('coachingDate').value;
+        let selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
+
+        if (!store) {
+            alert("⚠️ Silakan pilih Toko terlebih dahulu di bagian atas!");
+            return;
+        }
+
+        let storeStaffList = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
+        let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}`;
+
+        fetch(url)
+        .then(res => res.json())
+        .then(historyData => {
+            let totalPhasesCount = Object.keys(phasesData).length;
+            let staffReportText = "";
+            let sumScores = 0;
+            let completedCount = 0;
+
+            storeStaffList.forEach((emp, index) => {
+                let empName = emp.name.trim();
+                let empHist = historyData.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
+                let empPhaseMap = {};
+                empHist.forEach(item => {
+                    let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                    if (item.phaseName && itemMonth === selectedMonthYear) {
+                        empPhaseMap[item.phaseName] = Number(item.totalScore || 0);
+                    }
+                });
+
+                let uniquePhases = Object.keys(empPhaseMap).length;
+                let empScore = Object.values(empPhaseMap).reduce((a, b) => a + b, 0);
+                let finalScore = Math.min(empScore, 108);
+                sumScores += finalScore;
+
+                let statusStr = "Proses 🔄";
+                if (uniquePhases >= totalPhasesCount) {
+                    statusStr = "Selesai 100% ✅";
+                    completedCount++;
+                }
+
+                staffReportText += `${index + 1}. *${empName}* — ${finalScore} Poin (${uniquePhases}/${totalPhasesCount} Fase) - ${statusStr}\n`;
+            });
+
+            let avgStore = storeStaffList.length > 0 ? Math.round(sumScores / storeStaffList.length) : 0;
+            let completionPct = storeStaffList.length > 0 ? Math.round((completedCount / storeStaffList.length) * 100) : 0;
+
+            let reportText = `📊 *LAPORAN ASESMEN TOKO: ${store.toUpperCase()}*\n` +
+                             `📅 Periode Bulan: ${selectedMonthYear}\n\n` +
+                             `👥 Total Staff: ${storeStaffList.length} Orang\n` +
+                             `⭐ Rata-Rata Skor Toko: ${avgStore} Poin\n` +
+                             `📈 Persentase Kelulusan: ${completionPct}%\n\n` +
+                             `📋 *Detail Staff:*\n` +
+                             staffReportText + `\n` +
+                             `_Disimpan otomatis dari Digimap Assessment Dashboard_`;
+
+            navigator.clipboard.writeText(reportText).then(() => {
+                alert("✅ Laporan WhatsApp toko ini berhasil disalin!");
+            }).catch(err => {
+                alert("Gagal menyalin teks: " + err);
+            });
+        })
+        .catch(err => {
+            alert("Gagal mengambil data toko: " + err);
         });
     }
 
@@ -1071,9 +1331,7 @@
                 let empPhases = {};
                 empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = true; });
                 let uniquePhases = Object.keys(empPhases).length;
-                if (uniquePhases >= totalPhasesCount) {
-                    completedStaffCount++;
-                }
+                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
             });
 
             let avgStoreScore = 0;
@@ -1095,7 +1353,7 @@
             }
             
             let storeStatus = "inprogress";
-            let statusBadge = '<span style="color:#0071e3; font-weight:600;">Dalam Proses</span>';
+            let statusBadge = '<span style="color:var(--primary); font-weight:600;">Dalam Proses</span>';
 
             if (storeHistory.length === 0) {
                 storeStatus = "notstarted";
@@ -1103,7 +1361,7 @@
                 unstartedStoresCount++;
             } else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) {
                 storeStatus = "completed";
-                statusBadge = '<span style="color:#16a34a; font-weight:600;">Selesai (100%)</span>';
+                statusBadge = '<span style="color:var(--success); font-weight:600;">Selesai (100%)</span>';
                 completedStoresCount++;
             } else {
                 inProgressStoresCount++;
@@ -1168,18 +1426,13 @@
                 let empScore = Object.values(empPhaseScores).reduce((a, b) => a + b, 0);
 
                 totalAccumulatedPerStaff += Math.min(empScore, 108);
-                if (uniquePhases >= totalPhasesCount) {
-                    completedStaffCount++;
-                }
+                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
             });
 
             let avgStoreScore = totalStaffCount > 0 && storeHistory.length > 0 ? Math.round(totalAccumulatedPerStaff / totalStaffCount) : 0;
             let storeStatus = "Dalam Proses";
-            if (storeHistory.length === 0) {
-                storeStatus = "Belum Ada Submit";
-            } else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) {
-                storeStatus = "Selesai 100%";
-            }
+            if (storeHistory.length === 0) storeStatus = "Belum Ada Submit";
+            else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) storeStatus = "Selesai 100%";
 
             csvContent += `"${storeName}",${totalStaffCount},"${completedStaffCount} / ${totalStaffCount}",${avgStoreScore},"${storeStatus}"\n`;
         });
@@ -1203,7 +1456,6 @@
         let totalStoresCount = allStores.length;
         let completedStoresCount = 0;
         let unstartedStoresCount = 0;
-
         let storeDetailsText = "";
 
         allStores.forEach((storeName, index) => {
@@ -1235,7 +1487,7 @@
             storeDetailsText += `${index + 1}. *${storeName}* — ${completedStaffCount}/${totalStaffCount} Selesai (${statusText})\n`;
         });
 
-        let reportText = `📊 *RINGKASAN LAPORAN ASESMEN DIGIMAP*\n` +
+        let reportText = `📊 *RINGKASAN LAPORAN ASESMEN NASIONAL DIGIMAP*\n` +
                          `📅 Periode Bulan: ${selectedMonthYear}\n\n` +
                          `🏢 Total Toko: ${totalStoresCount}\n` +
                          `✅ Toko Selesai: ${completedStoresCount}\n` +
@@ -1245,9 +1497,9 @@
                          `_Disimpan otomatis dari Digimap Assessment Dashboard_`;
 
         navigator.clipboard.writeText(reportText).then(() => {
-            alert("✅ Laporan berhasil disalin! Anda tinggal *Paste (Tempel)* langsung ke chat WhatsApp atasan.");
+            alert("✅ Laporan nasional berhasil disalin!");
         }).catch(err => {
-            alert("Gagal menyalin teks: " + err);
+            alert("Gagal menyalin: " + err);
         });
     }
 </script>
