@@ -551,6 +551,9 @@
     let activePhaseKey = "";
 
     window.onload = function() {
+        // Otomatis set tanggal coaching ke hari ini agar status langsung terdeteksi
+        document.getElementById('coachingDate').value = new Date().toISOString().slice(0, 10);
+
         fetch(WEB_APP_URL)
         .then(res => res.json())
         .then(data => {
@@ -702,6 +705,12 @@
     function openPhase(phaseName) {
         if (!validateMetaForCoaching()) return;
 
+        // Peringatan langsung saat kartu hijau (selesai bulan ini) diklik
+        if (completedPhases[phaseName]) {
+            alert(`⚠️ PERHATIAN:\nFase "${phaseName}" sudah diselesaikan pada bulan ini.\n\nAssessor wajib menghubungi Trainer Region terlebih dahulu untuk konfirmasi jika ingin membuka atau mengubah penilaian fase ini!`);
+            return;
+        }
+
         activePhaseKey = phaseName;
         document.getElementById('dashboardView').style.display = 'none';
         document.getElementById('phaseFormView').style.display = 'block';
@@ -762,7 +771,6 @@
             return;
         }
 
-        // Proteksi Double Submit Bulanan (Wajib Hubungi Trainer Region)
         if (completedPhases[activePhaseKey]) {
             alert(`⚠️ PERHATIAN:\nFase "${activePhaseKey}" untuk staff "${staffName}" sudah pernah diselesaikan pada bulan ini.\n\nAssessor wajib menghubungi Trainer Region terlebih dahulu untuk konfirmasi jika ingin melakukan perubahan data di bulan yang sama!`);
             return;
@@ -904,7 +912,6 @@
                 historyData.forEach(item => {
                     if (item.staffName && item.staffName.toLowerCase() === staffName.toLowerCase() && item.phaseName) {
                         let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
-                        // Ambil rekap khusus bulan yang sedang dipilih
                         if (itemMonth === selectedMonthYear) {
                             phaseScoresMap[item.phaseName] = Number(item.totalScore || 0);
                             if (item.notes) phaseNotesMap[item.phaseName] = item.notes;
@@ -1003,7 +1010,6 @@
         });
     }
 
-    // Fungsi Dashboard Semua Toko
     function loadAllStoresDashboard() {
         const tableBody = document.getElementById('allStoresTableBody');
         tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data global seluruh toko...</td></tr>`;
@@ -1134,7 +1140,6 @@
         tableBody.innerHTML = htmlRows || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Tidak ada data toko yang sesuai dengan filter status tersebut.</td></tr>`;
     }
 
-    // Fungsi Export ke CSV
     function exportToCSV() {
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
@@ -1189,7 +1194,6 @@
         document.body.removeChild(link);
     }
 
-    // Fungsi Salin Laporan WhatsApp
     function copyReportForWhatsApp() {
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
