@@ -564,7 +564,7 @@
 
     <!-- FOOTER & CREDIT -->
     <footer class="app-footer">
-        <div>Framework by Alia | Developed by <span>Novi Riyanto</span></div>
+        <div>Framework by Bu Alia | Developed by <span>Novi Riyanto</span></div>
         <div style="margin-top: 4px; font-size: 10px;">Digimap Assessment & Performance Dashboard System</div>
     </footer>
 
@@ -774,7 +774,8 @@
             .then(historyData => {
                 historyData.forEach(item => {
                     if (item.staffName && item.staffName.trim().toLowerCase() === staffName.toLowerCase()) {
-                        let itemMonthYear = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                        let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                        let itemMonthYear = cleanDate ? cleanDate.slice(0, 7) : "";
                         if (item.phaseName && itemMonthYear === selectedMonthYear) {
                             completedPhases[item.phaseName] = true;
                         }
@@ -1065,7 +1066,8 @@
                 let phaseNotesMap = {};
                 historyData.forEach(item => {
                     if (item.staffName && item.staffName.toLowerCase() === staffName.toLowerCase() && item.phaseName) {
-                        let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                        let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                        let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
                         if (itemMonth === selectedMonthYear) {
                             phaseScoresMap[item.phaseName] = Number(item.totalScore || 0);
                             if (item.notes) phaseNotesMap[item.phaseName] = item.notes;
@@ -1132,10 +1134,11 @@
                 let empPhaseMap = {};
                 let empDatesSet = new Set();
                 empHistory.forEach(item => {
-                    let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                    let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                    let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
                     if (item.phaseName && itemMonth === selectedMonthYear) {
                         empPhaseMap[item.phaseName] = Number(item.totalScore || 0);
-                        if (item.coachingDate) empDatesSet.add(item.coachingDate);
+                        if (cleanDate) empDatesSet.add(cleanDate);
                     }
                 });
 
@@ -1207,7 +1210,8 @@
                 let empHist = historyData.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
                 let empPhaseMap = {};
                 empHist.forEach(item => {
-                    let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                    let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                    let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
                     if (item.phaseName && itemMonth === selectedMonthYear) {
                         empPhaseMap[item.phaseName] = Number(item.totalScore || 0);
                     }
@@ -1299,7 +1303,8 @@
             let totalStaffCount = storeStaff.length;
 
             let storeHistory = globalHistoryData.filter(item => {
-                let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
                 return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
             });
 
@@ -1390,7 +1395,8 @@
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
             let totalStaffCount = storeStaff.length;
             let storeHistory = globalHistoryData.filter(item => {
-                let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
                 return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
             });
 
@@ -1442,7 +1448,8 @@
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
             let totalStaffCount = storeStaff.length;
             let storeHistory = globalHistoryData.filter(item => {
-                let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
                 return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
             });
 
