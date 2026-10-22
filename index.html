@@ -24,7 +24,7 @@
             color: var(--text);
             margin: 0;
             padding: 15px;
-            padding-bottom: 30px; /* Default untuk desktop */
+            padding-bottom: 30px;
             line-height: 1.4;
         }
         .container {
@@ -68,7 +68,7 @@
             box-sizing: border-box;
         }
 
-        /* --- NAVIGASI TAB MENU (DEFAULT DESKTOP: DI ATAS) --- */
+        /* Navigasi Tab Menu */
         .nav-tabs {
             display: flex;
             gap: 8px;
@@ -91,7 +91,7 @@
             align-items: center;
             gap: 6px;
         }
-        .tab-btn span.icon { display: none; /* Icon disembunyikan di desktop agar rapi */ }
+        .tab-btn span.icon { display: none; }
         .tab-btn.active {
             background: var(--primary);
             color: #fff;
@@ -161,13 +161,11 @@
         .pill-btn.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
         .note-input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; box-sizing: border-box; }
 
-        /* Tombol Simpan Desktop (Posisi Normal di Bawah Form) */
         .submit-phase-btn {
             background: var(--success); color: white; border: none; padding: 10px 16px;
             font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; margin-top: 15px;
         }
 
-        /* Styling Menu Summary & Chart */
         .summary-container {
             display: flex;
             flex-direction: column;
@@ -209,65 +207,31 @@
             font-weight: 600;
         }
 
-        /* --- KHUSUS UNTUK HP / LAYAR KECIL (MOBILE RESPONSIVE) --- */
+        /* Responsive HP */
         @media (max-width: 767px) {
-            body {
-                padding: 10px;
-                padding-bottom: 80px; /* Beri ruang agar tidak tertutup dock bawah */
-            }
-            .container {
-                padding: 12px;
-            }
-            /* Ubah nav-tabs menjadi Bottom Dock di HP */
+            body { padding: 10px; padding-bottom: 75px; }
+            .container { padding: 12px; }
             .nav-tabs {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
+                position: fixed; bottom: 0; left: 0; right: 0;
                 background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 border-top: 1px solid var(--border);
                 border-bottom: none;
-                display: flex;
-                justify-content: space-around;
-                padding: 6px 4px;
-                margin-bottom: 0;
-                z-index: 1000;
+                display: flex; justify-content: space-around;
+                padding: 6px 4px; margin-bottom: 0; z-index: 1000;
                 box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
             }
             .tab-btn {
-                background: transparent;
-                border: none;
-                padding: 4px 6px;
-                font-size: 10px;
-                border-radius: 6px;
-                flex-direction: column;
-                align-items: center;
-                gap: 2px;
-                flex: 1;
-                color: var(--text-secondary);
+                background: transparent; border: none; padding: 4px 6px;
+                font-size: 10px; border-radius: 6px; flex-direction: column;
+                align-items: center; gap: 2px; flex: 1; color: var(--text-secondary);
             }
             .tab-btn span.icon { display: block; font-size: 16px; }
-            .tab-btn.active {
-                background: transparent;
-                color: var(--primary);
-                font-weight: 700;
-            }
-            /* Tombol Simpan jadi Melayang di HP */
+            .tab-btn.active { background: transparent; color: var(--primary); font-weight: 700; }
             .floating-submit-container {
-                position: fixed;
-                bottom: 58px;
-                left: 0;
-                right: 0;
-                padding: 8px 12px;
-                background: linear-gradient(to top, rgba(255,255,255,0.95), rgba(255,255,255,0.5));
-                z-index: 999;
-                display: flex;
-                justify-content: center;
-            }
-            .submit-phase-btn {
-                margin-top: 0;
-                box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+                position: fixed; bottom: 58px; left: 0; right: 0;
+                padding: 8px 12px; background: linear-gradient(to top, rgba(255,255,255,0.95), rgba(255,255,255,0.5));
+                z-index: 999; display: flex; justify-content: center;
             }
         }
     </style>
@@ -280,8 +244,8 @@
         <div class="subtitle">Sistem Penilaian Bertahap & Dashboard Nasional</div>
     </header>
     
-    <!-- Meta Input Bar UTAMA -->
-    <div class="meta-box">
+    <!-- Meta Input Bar UTAMA (Hanya tampil di Tab 1 & Tab 2) -->
+    <div class="meta-box" id="globalMetaBox">
         <div class="form-group">
             <label>Pilih Toko / Store</label>
             <input type="text" id="storeInput" list="storeListOptions" placeholder="Ketik atau pilih toko..." oninput="onStoreChange()" onchange="onStoreChange()" onblur="onStoreChange()">
@@ -298,7 +262,7 @@
         </div>
     </div>
 
-    <!-- NAVIGASI MENU TAB UTAMA (Otomatis di atas untuk Desktop, di bawah untuk HP) -->
+    <!-- NAVIGASI MENU TAB UTAMA -->
     <div class="nav-tabs">
         <button type="button" class="tab-btn active" onclick="switchTab('assessmentTab', this)">
             <span class="icon">📝</span>
@@ -326,7 +290,6 @@
             <h2 id="activePhaseTitle" style="color: var(--primary); margin-top: 0; font-size: 18px;"></h2>
             <div id="phaseQuestionsContainer"></div>
             
-            <!-- Tombol Simpan (Normal di Desktop, Melayang di HP) -->
             <div id="floatingSubmitWrapper" style="display: none;">
                 <div class="floating-submit-container">
                     <button type="button" class="submit-phase-btn" onclick="submitCurrentPhase()">✓ Simpan & Kirim ke Google Sheets</button>
@@ -396,7 +359,7 @@
         </div>
     </div>
 
-    <!-- TAB 3: DASHBOARD SEMUA TOKO -->
+    <!-- TAB 3: DASHBOARD SEMUA TOKO (Kotak input meta disembunyikan di sini) -->
     <div id="allStoresTab" class="tab-content">
         <div class="summary-container">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
@@ -687,6 +650,14 @@
 
         document.getElementById(tabId).classList.add('active');
         btnElement.classList.add('active');
+
+        // Otomatis Sembunyikan/Tampilkan Kotak Meta Input Utama Berdasarkan Tab
+        const metaBox = document.getElementById('globalMetaBox');
+        if (tabId === 'allStoresTab') {
+            metaBox.style.display = 'none';
+        } else {
+            metaBox.style.display = 'grid';
+        }
 
         if (tabId === 'summaryTab') {
             updateSummaryView();
