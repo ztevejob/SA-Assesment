@@ -244,7 +244,7 @@
         <div class="subtitle">Sistem Penilaian Bertahap & Dashboard Nasional</div>
     </header>
     
-    <!-- Meta Input Bar UTAMA (Hanya tampil di Tab 1 & Tab 2) -->
+    <!-- Meta Input Bar UTAMA -->
     <div class="meta-box" id="globalMetaBox">
         <div class="form-group">
             <label>Pilih Toko / Store</label>
@@ -359,7 +359,7 @@
         </div>
     </div>
 
-    <!-- TAB 3: DASHBOARD SEMUA TOKO (Kotak input meta disembunyikan di sini) -->
+    <!-- TAB 3: DASHBOARD SEMUA TOKO -->
     <div id="allStoresTab" class="tab-content">
         <div class="summary-container">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
@@ -651,7 +651,6 @@
         document.getElementById(tabId).classList.add('active');
         btnElement.classList.add('active');
 
-        // Otomatis Sembunyikan/Tampilkan Kotak Meta Input Utama Berdasarkan Tab
         const metaBox = document.getElementById('globalMetaBox');
         if (tabId === 'allStoresTab') {
             metaBox.style.display = 'none';
@@ -972,8 +971,8 @@
         let completedStoresCount = 0;
         let inProgressStoresCount = 0;
         let unstartedStoresCount = 0;
-        let sumNationalScores = 0;
-        let validScoresCount = 0;
+        let sumActiveScores = 0;
+        let activeStoresCount = 0;
 
         allStores.forEach(storeName => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
@@ -996,10 +995,21 @@
                 }
             });
 
-            let avgStoreScore = totalStaffCount > 0 ? Math.round(accumulatedStoreScore / totalStaffCount) : 0;
-            if (totalStaffCount > 0) {
-                sumNationalScores += avgStoreScore;
-                validScoresCount++;
+            // PERBAIKAN: Hitung Rata-Rata Skor per Staff di toko tersebut (skala 0-100)
+            let avgStoreScore = 0;
+            if (totalStaffCount > 0 && storeHistory.length > 0) {
+                let totalAccumulatedPerStaff = 0;
+                storeStaff.forEach(emp => {
+                    let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
+                    let empTotalScore = empHist.reduce((sum, h) => sum + Number(h.totalScore || 0), 0);
+                    totalAccumulatedPerStaff += Math.min(empTotalScore, 100); // Batasi maksimal 100 per staff
+                });
+                avgStoreScore = Math.round(totalAccumulatedPerStaff / totalStaffCount);
+            }
+
+            if (storeHistory.length > 0) {
+                sumActiveScores += avgStoreScore;
+                activeStoresCount++;
             }
             
             let storeStatus = "inprogress";
@@ -1035,7 +1045,9 @@
         document.getElementById('statTotalStores').innerText = totalStoresCount;
         document.getElementById('statCompletedStores').innerText = completedStoresCount;
         document.getElementById('statUnstartedStores').innerText = unstartedStoresCount;
-        let avgNationalScore = validScoresCount > 0 ? Math.round(sumNationalScores / validScoresCount) : 0;
+        
+        // PERBAIKAN: Rata-rata nasional hanya merata-rata toko yang sudah aktif/submit saja
+        let avgNationalScore = activeStoresCount > 0 ? Math.round(sumActiveScores / activeStoresCount) : 0;
         document.getElementById('statAvgScore').innerText = `${avgNationalScore} Poin`;
 
         if (allStoresChart) {
@@ -1059,7 +1071,7 @@
             let storeHistory = globalHistoryData.filter(item => item.store && item.store.trim().toLowerCase() === storeName.toLowerCase());
 
             let completedStaffCount = 0;
-            let accumulatedStoreScore = 0;
+            let totalAccumulatedPerStaff = 0;
 
             storeStaff.forEach(emp => {
                 let empName = emp.name.trim();
@@ -1067,13 +1079,13 @@
                 let uniquePhases = [...new Set(empHist.map(item => item.phaseName))].length;
                 let empScore = empHist.reduce((sum, h) => sum + Number(h.totalScore || 0), 0);
 
-                accumulatedStoreScore += empScore;
+                totalAccumulatedPerStaff += Math.min(empScore, 100);
                 if (uniquePhases >= totalPhasesCount) {
                     completedStaffCount++;
                 }
             });
 
-            let avgStoreScore = totalStaffCount > 0 ? Math.round(accumulatedStoreScore / totalStaffCount) : 0;
+            let avgStoreScore = totalStaffCount > 0 && storeHistory.length > 0 ? Math.round(totalAccumulatedPerStaff / totalStaffCount) : 0;
             let storeStatus = "Dalam Proses";
             if (storeHistory.length === 0) {
                 storeStatus = "Belum Ada Submit";
