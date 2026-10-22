@@ -861,7 +861,7 @@
         if (!validateMetaForCoaching()) return;
 
         if (completedPhases[phaseName]) {
-            alert(`⚠️ PERHATIAN:\nFase "${phaseName}" sudah diselesaikan pada bulan ini.\n\nAssessor wajib menghubungi Trainer Region terlebih dahulu untuk konfirmasi jika ingin membuka atau mengubah penilaian fase ini!`);
+            alert(`⚠️ BATAS PENILAIAN BULAN INI\n\nFase "${phaseName}" untuk staff ini sudah diselesaikan dan hanya dapat dilakukan 1 kali dalam bulan ini.\n\nSilakan hubungi Regional Trainer apabila memerlukan penyesuaian data.`);
             return;
         }
 
@@ -926,7 +926,7 @@
         }
 
         if (completedPhases[activePhaseKey]) {
-            alert(`⚠️ PERHATIAN:\nFase "${activePhaseKey}" untuk staff "${staffName}" sudah pernah diselesaikan pada bulan ini.\n\nAssessor wajib menghubungi Trainer Region terlebih dahulu untuk konfirmasi jika ingin melakukan perubahan data di bulan yang sama!`);
+            alert(`⚠️ BATAS PENILAIAN BULAN INI\n\nFase "${activePhaseKey}" untuk staff ini sudah diselesaikan dan hanya dapat dilakukan 1 kali dalam bulan ini.\n\nSilakan hubungi Regional Trainer apabila memerlukan penyesuaian data.`);
             return;
         }
 
