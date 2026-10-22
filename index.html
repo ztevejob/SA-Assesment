@@ -6,6 +6,8 @@
     <title>Digimap Assessment Dashboard</title>
     <!-- Memuat Chart.js untuk grafik visualisasi summary -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Memuat Plugin Chart.js Datalabels untuk menampilkan angka di atas batang grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
         :root {
             --primary: #0071e3;
@@ -185,7 +187,7 @@
         }
         .chart-wrapper {
             position: relative;
-            height: 220px;
+            height: 240px;
             width: 100%;
         }
         .table-responsive {
@@ -362,7 +364,7 @@
     <!-- TAB 3: DASHBOARD SEMUA TOKO -->
     <div id="allStoresTab" class="tab-content">
         <div class="summary-container">
-            <!-- Ditambahkan 1 Kartu: TOKO AKTIF SUBMIT -->
+            <!-- Kartu Ringkasan (Urutan Disempurnakan) -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                 <div style="background: #e8f2fd; border: 1px solid #b3d7ff; padding: 12px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOTAL TOKO</div>
@@ -811,16 +813,27 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    // Menampilkan angka persis di atas batang grafik
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        font: {
+                            weight: 'bold',
+                            size: 11
+                        },
+                        color: '#1d1d1f'
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1 }
+                        grace: '15%' // Memberikan ruang kosong di atas batang tertinggi agar label angka tidak terpotong
                     }
-                },
-                plugins: {
-                    legend: { display: false }
                 }
-            }
+            },
+            plugins: [ChartDataLabels]
         });
     }
 
