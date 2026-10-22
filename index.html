@@ -252,7 +252,7 @@
 <div class="container">
     <header>
         <h1>Digimap Assessment Dashboard</h1>
-        <div class="subtitle">Sistem Penilaian Bertahap & Dashboard Nasional</div>
+        <div class="subtitle">Sistem Penilaian Bulanan (Monthly) & Dashboard Nasional</div>
     </header>
     
     <!-- Meta Input Bar UTAMA -->
@@ -269,7 +269,7 @@
         </div>
         <div class="form-group">
             <label>Tanggal Coaching</label>
-            <input type="date" id="coachingDate">
+            <input type="date" id="coachingDate" onchange="checkStaffProgress()">
         </div>
     </div>
 
@@ -458,6 +458,7 @@
     let performanceChart = null;
     let allStoresChart = null;
     
+    // Data Fase dengan bobot disesuaikan (Total Murni = 100 Poin + 8 Poin Bonus)
     const phasesData = {
         "Fase 1a: Foundation (Professional & Retail)": [
             { id: 1, sub: "Professional Image", detail: "Make up / Penampilan Wajah", criteria: "(1 Point) Penampilan wajah baik dan rapi", max: 1 },
@@ -469,7 +470,7 @@
             { id: 7, sub: "Connect", detail: "Perkenalan Diri", criteria: "(1 Point) Menyebutkan nama saat menyapa", max: 1 },
             { id: 8, sub: "Connect", detail: "Title (Bonus Point)", criteria: "(Bonus Point) Menyebutkan peran Store Trainer (Saya seorang Store Trainer)", max: 1 },
             { id: 9, sub: "Connect", detail: "Sambutan Standar", criteria: "(1 Point) Mengucapkan sambutan standar Digimap/Digiplus", max: 1 },
-            { id: 10, sub: "Connect", detail: "Engaging Customer", criteria: "(Range Scoring - 2 Points) Kontak mata dan interaksi positif", max: 2 }
+            { id: 10, sub: "Connect", detail: "Engaging Customer", criteria: "(Range Scoring - 1 Point) Kontak mata dan interaksi positif", max: 1 }
         ],
         "Fase 1b: Foundation (Retail Excellence Skills)": [
             { id: 11, sub: "Retail Excellence", detail: "Teroganisir - Pengaturan Demo Produk", criteria: "Planogram & demo unit menyala dengan baik", max: 1 },
@@ -488,7 +489,7 @@
             { id: 22, sub: "Postur Badan", detail: "Gerakan Tubuh & Kepercayaan Diri", criteria: "Gestur mengekspresikan antusiasme wajar", max: 2 },
             { id: 23, sub: "Ekspresi Wajah", detail: "Ekspresi Wajah yang Nyaman", criteria: "Wajah ramah dan ekspresi nyaman", max: 1 },
             { id: 24, sub: "Ekspresi Wajah", detail: "Kontak Mata", criteria: "Kontak mata terjaga natural sepanjang percakapan", max: 1 },
-            { id: 25, sub: "Fleksible dan Adaptif (EQ)", detail: "Adaptasi Tipe Customer", criteria: "Menyesuaikan gaya komunikasi dengan tipe customer", max: 3 },
+            { id: 25, sub: "Fleksible dan Adaptif (EQ)", detail: "Adaptasi Tipe Customer", criteria: "Menyesuaikan gaya komunikasi dengan tipe customer", max: 2 },
             { id: 26, sub: "Ekspresi Suara", detail: "Volume dan Nada Suara", criteria: "Volume jelas dan ada variasi nada vokal", max: 1 },
             { id: 27, sub: "Ekspresi Suara", detail: "Variasi Ekspresi Vokal", criteria: "Profesional, autentik, dan sopan", max: 1 }
         ],
@@ -507,13 +508,13 @@
             { id: 35, sub: "Keterampilan Demonstrasi", detail: "Product Demo 1", criteria: "Demonstrasi produk utama secara interaktif", max: 5 },
             { id: 36, sub: "Keterampilan Demonstrasi", detail: "Product Demo 2", criteria: "Demonstrasi produk pendukung/kedua", max: 5 },
             { id: 37, sub: "Keterampilan Demonstrasi", detail: "Demo Tambahan (Bonus Point)", criteria: "Demonstrasi fitur ekstra/bonus", max: 5 },
-            { id: 38, sub: "Keterampilan Demonstrasi", detail: "Creative Demo", criteria: "Inovasi penggunaan alat bantu demo kreatif", max: 2 }
+            { id: 38, sub: "Keterampilan Demonstrasi", detail: "Creative Demo", criteria: "Inovasi penggunaan alat bantu demo kreatif", max: 1 }
         ],
         "Fase 4a: Storytelling Skills": [
             { id: 39, sub: "Storytelling Skills", detail: "Narrative & Hook", criteria: "Penyampaian cerita ringkas, jelas, dan memikat", max: 3 },
             { id: 40, sub: "Storytelling Skills", detail: "Relatability", criteria: "Membagikan pengalaman nyata / saran relevan", max: 2 },
             { id: 41, sub: "Storytelling Skills", detail: "Get Personal", criteria: "Autentik dan personal dalam bercerita", max: 1 },
-            { id: 42, sub: "Storytelling Skills", detail: "Rediscovery", criteria: "Penggunaan istilah teknologi & penjelasan mudah", max: 6 },
+            { id: 42, sub: "Storytelling Skills", detail: "Rediscovery", criteria: "Penggunaan istilah teknologi & penjelasan mudah", max: 5 },
             { id: 43, sub: "Storytelling Skills", detail: "Antusias", criteria: "Menyesuaikan energi antusiasme shopper", max: 1 }
         ],
         "Fase 4b: Active Listening Skills": [
@@ -524,14 +525,14 @@
         ],
         "Fase 5: Easy Deal (Negotiation Skills)": [
             { id: 48, sub: "Negotiation Skills", detail: "Counter Objection", criteria: "Percaya diri menjawab keraguan customer", max: 1 },
-            { id: 49, sub: "Negotiation Skills", detail: "Solusi Alternatif Keberatan", criteria: "Menyediakan solusi dan nilai investasi produk", max: 3 },
+            { id: 49, sub: "Negotiation Skills", detail: "Solusi Alternatif Keberatan", criteria: "Menyediakan solusi dan nilai investasi produk", max: 2 },
             { id: 50, sub: "Negotiation Skills", detail: "Positivity", criteria: "Sikap positif dan empati menghadapi keberatan", max: 3 },
             { id: 51, sub: "Negotiation Skills", detail: "Kata-Kata Positif", criteria: "Penggunaan diksi positif (membantu, menghemat)", max: 1 },
             { id: 52, sub: "Negotiation Skills", detail: "Convincing", criteria: "Menghubungkan teknologi dengan kebutuhan hidup", max: 3 },
             { id: 53, sub: "Negotiation Skills", detail: "Sales Initiation", criteria: "Inisiasi closing penjualan secara kreatif", max: 3 },
             { id: 54, sub: "Negotiation Skills", detail: "Upselling", criteria: "Upaya upselling produk", max: 1 },
             { id: 55, sub: "Negotiation Skills", detail: "Lintas Kategori", criteria: "Percakapan lintas kategori produk", max: 1 },
-            { id: 56, sub: "Negotiation Skills", detail: "Maintenance", criteria: "Penjelasan garansi & tips perawatan awal", max: 2 },
+            { id: 56, sub: "Negotiation Skills", detail: "Maintenance", criteria: "Penjelasan garansi & tips perawatan awal", max: 1 },
             { id: 57, sub: "Negotiation Skills", detail: "Apple Care", criteria: "Pengenalan layanan Apple Care", max: 1 },
             { id: 58, sub: "Negotiation Skills", detail: "Apple Care Account (Bonus)", criteria: "Pembuatan akun & unduh aplikasi", max: 1 }
         ],
@@ -609,15 +610,20 @@
         
         const store = document.getElementById('storeInput').value.trim();
         const staffName = document.getElementById('staffInput').value.trim();
+        const selectedDate = document.getElementById('coachingDate').value;
 
-        if (store && staffName) {
+        if (store && staffName && selectedDate) {
+            let selectedMonthYear = selectedDate.slice(0, 7); // Format "YYYY-MM"
+
             let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}&staffName=${encodeURIComponent(staffName)}`;
             fetch(url)
             .then(res => res.json())
             .then(historyData => {
                 historyData.forEach(item => {
                     if (item.staffName && item.staffName.trim().toLowerCase() === staffName.toLowerCase()) {
-                        if (item.phaseName && Number(item.totalScore) > 0) {
+                        let itemMonthYear = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                        // Kunci jika fase sudah diselesaikan di bulan dan tahun yang sama
+                        if (item.phaseName && itemMonthYear === selectedMonthYear) {
                             completedPhases[item.phaseName] = true;
                         }
                     }
@@ -646,7 +652,7 @@
             
             let cardClass = isDone ? "phase-card completed" : "phase-card";
             let iconIndicator = isDone 
-                ? '<span style="color: #16a34a; font-weight: bold; font-size: 12px;">✓ Selesai</span>' 
+                ? '<span style="color: #16a34a; font-weight: bold; font-size: 12px;">✓ Selesai Bulan Ini</span>' 
                 : '<span style="color: #dc2626; font-weight: bold; font-size: 12px;">✗ Belum</span>';
 
             gridContainer.innerHTML += `
@@ -709,7 +715,6 @@
             if (scores[item.id] === undefined) scores[item.id] = 0;
             if (notes[item.id] === undefined) notes[item.id] = '';
 
-            // Deteksi otomatis apakah pertanyaan ini adalah bonus
             let isBonus = item.detail.toLowerCase().includes('bonus') || item.criteria.toLowerCase().includes('bonus');
             let cardClass = isBonus ? 'item-card bonus-card' : 'item-card';
             let bonusBadge = isBonus ? '<span style="background: #f59e0b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-left: 6px;">⭐ BONUS POINT</span>' : '';
@@ -752,12 +757,23 @@
         const coachingDate = document.getElementById('coachingDate').value;
         let total = Object.values(scores).reduce((a, b) => a + b, 0);
 
+        if (!coachingDate) {
+            alert('⚠️ Mohon tentukan Tanggal Coaching terlebih dahulu!');
+            return;
+        }
+
+        // Proteksi Double Submit Bulanan (Wajib Hubungi Trainer Region)
+        if (completedPhases[activePhaseKey]) {
+            alert(`⚠️ PERHATIAN:\nFase "${activePhaseKey}" untuk staff "${staffName}" sudah pernah diselesaikan pada bulan ini.\n\nAssessor wajib menghubungi Trainer Region terlebih dahulu untuk konfirmasi jika ingin melakukan perubahan data di bulan yang sama!`);
+            return;
+        }
+
         const payload = {
             store: store,
             staffName: staffName,
             coachingDate: coachingDate,
             phaseName: activePhaseKey,
-            totalScore: total > 100 ? 100 : total,
+            totalScore: total,
             scores: scores,
             notes: notes
         };
@@ -856,6 +872,7 @@
     function updateSummaryView() {
         const store = document.getElementById('storeInput').value.trim();
         const staffName = document.getElementById('staffInput').value.trim();
+        const selectedDate = document.getElementById('coachingDate').value;
         const tableBody = document.getElementById('summaryTableBody');
         const storeProgressTableBody = document.getElementById('storeProgressTableBody');
 
@@ -879,19 +896,31 @@
             let chartScores = new Array(phaseKeys.length).fill(0);
             let totalOverallScore = 0;
             let completedCount = 0;
+            let selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
 
             if (staffName) {
+                let phaseScoresMap = {};
+                let phaseNotesMap = {};
+                historyData.forEach(item => {
+                    if (item.staffName && item.staffName.toLowerCase() === staffName.toLowerCase() && item.phaseName) {
+                        let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                        // Ambil rekap khusus bulan yang sedang dipilih
+                        if (itemMonth === selectedMonthYear) {
+                            phaseScoresMap[item.phaseName] = Number(item.totalScore || 0);
+                            if (item.notes) phaseNotesMap[item.phaseName] = item.notes;
+                        }
+                    }
+                });
+
                 phaseKeys.forEach((phaseName, index) => {
-                    let found = historyData.find(item => item.phaseName === phaseName && item.staffName && item.staffName.toLowerCase() === staffName.toLowerCase());
-                    
-                    let phaseScore = found ? Number(found.totalScore) : 0;
-                    let isDone = phaseScore > 0;
-                    let notesText = found && found.notes ? found.notes : '-';
+                    let phaseScore = phaseScoresMap[phaseName] !== undefined ? phaseScoresMap[phaseName] : 0;
+                    let isDone = phaseScoresMap[phaseName] !== undefined;
+                    let notesText = phaseNotesMap[phaseName] ? phaseNotesMap[phaseName] : '-';
 
                     if (isDone) {
                         completedCount++;
-                        totalOverallScore += phaseScore;
                     }
+                    totalOverallScore += phaseScore;
                     chartScores[index] = phaseScore;
 
                     let statusBadge = isDone ? '<span style="color:#16a34a; font-weight:600;">Selesai ✓</span>' : '<span style="color:#6e6e73;">Belum</span>';
@@ -906,7 +935,7 @@
                     `;
                 });
 
-                let finalCappedScore = totalOverallScore > 100 ? 100 : totalOverallScore;
+                let finalCappedScore = totalOverallScore > 108 ? 108 : totalOverallScore;
                 document.getElementById('summaryTotalScore').innerText = `${finalCappedScore} / 100`;
                 document.getElementById('summaryCompletedPhases').innerText = `${completedCount} / ${phaseKeys.length}`;
 
@@ -936,8 +965,17 @@
                 let empName = emp.name.trim();
                 let empHistory = historyData.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
                 
-                let uniqueCompletedPhases = [...new Set(empHistory.map(item => item.phaseName))].length;
-                let totalScoreKumulatif = empHistory.reduce((sum, item) => sum + Number(item.totalScore || 0), 0);
+                let empPhaseMap = {};
+                empHistory.forEach(item => {
+                    let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                    if (item.phaseName && itemMonth === selectedMonthYear) {
+                        empPhaseMap[item.phaseName] = Number(item.totalScore || 0);
+                    }
+                });
+
+                let uniqueCompletedPhases = Object.keys(empPhaseMap).length;
+                let totalScoreUnik = Object.values(empPhaseMap).reduce((sum, score) => sum + score, 0);
+                let finalCappedKumulatif = totalScoreUnik > 108 ? 108 : totalScoreUnik;
                 
                 let progressBadge = '';
                 if (uniqueCompletedPhases >= phaseKeys.length) {
@@ -952,7 +990,7 @@
                     <tr>
                         <td style="font-weight: 600;">${empName}</td>
                         <td style="text-align: center;">${uniqueCompletedPhases} / ${phaseKeys.length}</td>
-                        <td style="text-align: center; font-weight: 600;">${totalScoreKumulatif} Poin</td>
+                        <td style="text-align: center; font-weight: 600;">${finalCappedKumulatif} Poin</td>
                         <td>${progressBadge}</td>
                     </tr>
                 `;
@@ -986,6 +1024,8 @@
         const tableBody = document.getElementById('allStoresTableBody');
         const searchVal = document.getElementById('allStoresSearchInput').value.trim().toLowerCase();
         const statusFilter = document.getElementById('allStoresStatusFilter').value;
+        const selectedDate = document.getElementById('coachingDate').value;
+        let selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
 
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         
@@ -1012,18 +1052,19 @@
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
             let totalStaffCount = storeStaff.length;
 
-            let storeHistory = globalHistoryData.filter(item => item.store && item.store.trim().toLowerCase() === storeName.toLowerCase());
+            let storeHistory = globalHistoryData.filter(item => {
+                let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
+            });
 
             let completedStaffCount = 0;
-            let accumulatedStoreScore = 0;
 
             storeStaff.forEach(emp => {
                 let empName = emp.name.trim();
                 let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
-                let uniquePhases = [...new Set(empHist.map(item => item.phaseName))].length;
-                let empScore = empHist.reduce((sum, h) => sum + Number(h.totalScore || 0), 0);
-
-                accumulatedStoreScore += empScore;
+                let empPhases = {};
+                empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = true; });
+                let uniquePhases = Object.keys(empPhases).length;
                 if (uniquePhases >= totalPhasesCount) {
                     completedStaffCount++;
                 }
@@ -1034,8 +1075,10 @@
                 let totalAccumulatedPerStaff = 0;
                 storeStaff.forEach(emp => {
                     let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
-                    let empTotalScore = empHist.reduce((sum, h) => sum + Number(h.totalScore || 0), 0);
-                    totalAccumulatedPerStaff += Math.min(empTotalScore, 100);
+                    let empPhaseScores = {};
+                    empHist.forEach(h => { if (h.phaseName) empPhaseScores[h.phaseName] = Number(h.totalScore || 0); });
+                    let empTotalScore = Object.values(empPhaseScores).reduce((a, b) => a + b, 0);
+                    totalAccumulatedPerStaff += Math.min(empTotalScore, 108);
                 });
                 avgStoreScore = Math.round(totalAccumulatedPerStaff / totalStaffCount);
             }
@@ -1095,13 +1138,18 @@
     function exportToCSV() {
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
+        let selectedDate = document.getElementById('coachingDate').value;
+        let selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
 
         let csvContent = "Nama Toko,Jumlah Staff,Staff Selesai,Rata-Rata Skor,Status\n";
 
         allStores.forEach(storeName => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
             let totalStaffCount = storeStaff.length;
-            let storeHistory = globalHistoryData.filter(item => item.store && item.store.trim().toLowerCase() === storeName.toLowerCase());
+            let storeHistory = globalHistoryData.filter(item => {
+                let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
+            });
 
             let completedStaffCount = 0;
             let totalAccumulatedPerStaff = 0;
@@ -1109,10 +1157,12 @@
             storeStaff.forEach(emp => {
                 let empName = emp.name.trim();
                 let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
-                let uniquePhases = [...new Set(empHist.map(item => item.phaseName))].length;
-                let empScore = empHist.reduce((sum, h) => sum + Number(h.totalScore || 0), 0);
+                let empPhaseScores = {};
+                empHist.forEach(h => { if (h.phaseName) empPhaseScores[h.phaseName] = Number(h.totalScore || 0); });
+                let uniquePhases = Object.keys(empPhaseScores).length;
+                let empScore = Object.values(empPhaseScores).reduce((a, b) => a + b, 0);
 
-                totalAccumulatedPerStaff += Math.min(empScore, 100);
+                totalAccumulatedPerStaff += Math.min(empScore, 108);
                 if (uniquePhases >= totalPhasesCount) {
                     completedStaffCount++;
                 }
@@ -1133,7 +1183,7 @@
         let url = URL.createObjectURL(blob);
         let link = document.createElement("a");
         link.setAttribute("href", url);
-        link.setAttribute("download", `Rekap_Assessment_Digimap_${new Date().toISOString().slice(0,10)}.csv`);
+        link.setAttribute("download", `Rekap_Assessment_Digimap_${selectedMonthYear}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1143,6 +1193,8 @@
     function copyReportForWhatsApp() {
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
+        let selectedDate = document.getElementById('coachingDate').value;
+        let selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
         
         let totalStoresCount = allStores.length;
         let completedStoresCount = 0;
@@ -1153,14 +1205,18 @@
         allStores.forEach((storeName, index) => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
             let totalStaffCount = storeStaff.length;
-            let storeHistory = globalHistoryData.filter(item => item.store && item.store.trim().toLowerCase() === storeName.toLowerCase());
+            let storeHistory = globalHistoryData.filter(item => {
+                let itemMonth = item.coachingDate ? item.coachingDate.slice(0, 7) : "";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
+            });
 
             let completedStaffCount = 0;
             storeStaff.forEach(emp => {
                 let empName = emp.name.trim();
                 let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
-                let uniquePhases = [...new Set(empHist.map(item => item.phaseName))].length;
-                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
+                let empPhases = {};
+                empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = true; });
+                if (Object.keys(empPhases).length >= totalPhasesCount) completedStaffCount++;
             });
 
             let statusText = "Sedang Proses 🔄";
@@ -1176,7 +1232,7 @@
         });
 
         let reportText = `📊 *RINGKASAN LAPORAN ASESMEN DIGIMAP*\n` +
-                         `📅 Tanggal: ${new Date().toLocaleDateString('id-ID')}\n\n` +
+                         `📅 Periode Bulan: ${selectedMonthYear}\n\n` +
                          `🏢 Total Toko: ${totalStoresCount}\n` +
                          `✅ Toko Selesai: ${completedStoresCount}\n` +
                          `❌ Belum Submit: ${unstartedStoresCount}\n\n` +
