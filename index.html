@@ -129,7 +129,6 @@
             align-items: center;
         }
         .phase-card.completed .phase-title { color: #166534; }
-        .phase-badge { display: none; } /* Disembunyikan agar lebih ringkas */
 
         .assessment-view { display: none; }
         .assessment-view.active { display: block; }
@@ -408,9 +407,9 @@
         ]
     };
 
-    const scores = {};
-    const notes = {};
-    const completedPhases = {};
+    let scores = {};
+    let notes = {};
+    let completedPhases = {};
     let activePhaseKey = "";
     let performanceChart = null;
 
@@ -480,8 +479,10 @@
             .then(res => res.json())
             .then(historyData => {
                 historyData.forEach(item => {
-                    if (item.phaseName && Number(item.totalScore) > 0) {
-                        completedPhases[item.phaseName] = true;
+                    if (item.staffName && item.staffName.trim().toLowerCase() === staffName.toLowerCase()) {
+                        if (item.phaseName && Number(item.totalScore) > 0) {
+                            completedPhases[item.phaseName] = true;
+                        }
                     }
                 });
                 initDashboard();
