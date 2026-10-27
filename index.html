@@ -379,12 +379,12 @@
     <div class="meta-box" id="globalMetaBox">
         <div class="form-group">
             <label>Pilih Toko / Store</label>
-            <input type="text" id="storeInput" list="storeListOptions" placeholder="Ketik atau pilih toko..." oninput="onStoreChange()" onchange="onStoreChange()" onblur="onStoreChange()">
+            <input type="text" id="storeInput" list="storeListOptions" placeholder="Ketik atau pilih toko..." oninput="onStoreChange()" onchange="validateStoreInput()" onblur="validateStoreInput()">
             <datalist id="storeListOptions"></datalist>
         </div>
         <div class="form-group">
             <label>Nama Staff / Sales Assistant</label>
-            <input type="text" id="staffInput" list="staffListOptions" placeholder="Pilih toko terlebih dahulu..." oninput="checkStaffProgress()" onchange="checkStaffProgress()" onblur="checkStaffProgress()">
+            <input type="text" id="staffInput" list="staffListOptions" placeholder="Pilih toko terlebih dahulu..." oninput="checkStaffProgress()" onchange="validateStaffInput()" onblur="validateStaffInput()">
             <datalist id="staffListOptions"></datalist>
         </div>
         <div class="form-group">
@@ -481,9 +481,10 @@
                 </div>
             </div>
 
+            <!-- TABEL 1: REKAPITULASI COACHING RUTIN -->
             <div class="summary-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
-                    <h3 style="margin: 0; font-size: 14px;">📋 Rekapitulasi Poin & Catatan: <span id="activeStaffLabel" style="color: var(--primary); font-weight: 700;">(Belum dipilih)</span></h3>
+                    <h3 style="margin: 0; font-size: 14px;">📋 Rekapitulasi Coaching Bulanan: <span id="activeStaffLabel" style="color: var(--primary); font-weight: 700;">(Belum dipilih)</span></h3>
                     <div style="display: flex; gap: 8px;">
                         <button type="button" onclick="exportToPPT()" style="background: #ea580c; color: white; border: none; padding: 6px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📊 Export Staff ke PPT</button>
                         <button type="button" onclick="copyStoreReportForWhatsApp()" style="background: var(--primary); color: white; border: none; padding: 6px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA</button>
@@ -494,14 +495,34 @@
                         <thead>
                             <tr>
                                 <th>Fase Asesmen</th>
-                                <th>Jenis Sesi</th>
                                 <th>Status</th>
                                 <th>Poin</th>
-                                <th>Catatan / Auditor</th>
+                                <th>Catatan Trainer</th>
                             </tr>
                         </thead>
                         <tbody id="summaryTableBody">
-                            <tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff di atas untuk memuat data rekap.</td></tr>
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff di atas untuk memuat data rekap.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TABEL 2: RIWAYAT AUDIT / MYSTERY SHOPPER TERPISAH -->
+            <div class="summary-card" style="border: 1.5px dashed #7c3aed;">
+                <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #7c3aed;">🕵️‍♂️ Riwayat Temuan Audit & Mystery Shopper</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tanggal Audit</th>
+                                <th>Fase Dinilai</th>
+                                <th>Nama Auditor</th>
+                                <th>Poin</th>
+                                <th>Catatan Temuan / Penilaian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTableBody">
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Belum ada riwayat audit Mystery Shopper untuk staff ini pada bulan ini.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -650,7 +671,7 @@
 </main>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwq8487l1pkpZWMGUk4zVH9tOsQ-K64iE1My7usZY3kvvsZPO59nNHHFss7pPY0p1Iv/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxLZ6G2b9EGCbSAXhCCrvwXFlCUUMWMXGi7Tbua9RwIWKZVMt0AtV3RVWuU1-We9uHy/exec";
 
     let masterEmployees = [];
     let globalHistoryData = [];
@@ -830,6 +851,43 @@
         for (let key in completedPhases) delete completedPhases[key];
     }
 
+    function validateStoreInput() {
+        const storeInput = document.getElementById('storeInput');
+        const val = storeInput.value.trim();
+        if (!val) return;
+
+        let stores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
+        let matched = stores.find(s => s.toLowerCase() === val.toLowerCase());
+
+        if (!matched) {
+            alert(`⚠️ Toko "${val}" tidak valid atau tidak ditemukan dalam database Master!\nSilakan pilih nama toko yang lengkap.`);
+            storeInput.value = '';
+            onStoreChange();
+        } else {
+            storeInput.value = matched;
+            onStoreChange();
+        }
+    }
+
+    function validateStaffInput() {
+        const store = document.getElementById('storeInput').value.trim();
+        const staffInput = document.getElementById('staffInput');
+        const val = staffInput.value.trim();
+        if (!store || !val) return;
+
+        let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
+        let matched = storeStaff.find(emp => emp.name.trim().toLowerCase() === val.toLowerCase());
+
+        if (!matched) {
+            alert(`⚠️ Nama staff "${val}" tidak terdaftar pada toko ${store}!`);
+            staffInput.value = '';
+            checkStaffProgress();
+        } else {
+            staffInput.value = matched.name.trim();
+            checkStaffProgress();
+        }
+    }
+
     function onStoreChange() {
         const storeInputVal = document.getElementById('storeInput').value.trim().toLowerCase();
         const staffDatalist = document.getElementById('staffListOptions');
@@ -879,7 +937,8 @@
                     if (item.staffName && item.staffName.trim().toLowerCase() === staffName.toLowerCase()) {
                         let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                         let itemMonthYear = cleanDate ? cleanDate.slice(0, 7) : "";
-                        if (item.phaseName && itemMonthYear === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching")) {
+                        let jenisSesi = item.jenisSesi || "Coaching";
+                        if (item.phaseName && itemMonthYear === selectedMonthYear && jenisSesi === "Coaching") {
                             completedPhases[item.phaseName] = true;
                         }
                     }
@@ -1147,6 +1206,7 @@
         const staffName = document.getElementById('staffInput').value.trim();
         const selectedDate = document.getElementById('coachingDate').value;
         const tableBody = document.getElementById('summaryTableBody');
+        const auditTableBody = document.getElementById('auditTableBody');
         const storeProgressTableBody = document.getElementById('storeProgressTableBody');
         const staffLabelEl = document.getElementById('activeStaffLabel');
 
@@ -1155,14 +1215,16 @@
         }
 
         if (!store) {
-            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas untuk melihat rekap nilai.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas untuk melihat rekap nilai.</td></tr>`;
+            auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff terlebih dahulu.</td></tr>`;
             storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas.</td></tr>`;
             document.getElementById('summaryStoreAvgScore').innerText = `0 Poin`;
             document.getElementById('summaryStoreCompletion').innerText = `0%`;
             return;
         }
 
-        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Sedang memuat rekap data dari Google Sheets...</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Sedang memuat rekap data dari Google Sheets...</td></tr>`;
+        auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data audit...</td></tr>`;
         storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Sedang memuat progress staff toko...</td></tr>`;
 
         let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}`;
@@ -1172,6 +1234,7 @@
         .then(historyData => {
             currentStaffHistoryCache = historyData;
             tableBody.innerHTML = '';
+            auditTableBody.innerHTML = '';
 
             let phaseKeys = Object.keys(phasesData);
             let chartScores = new Array(phaseKeys.length).fill(0);
@@ -1180,51 +1243,71 @@
             let selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
 
             if (staffName) {
-                let phaseScoresMap = {};
-                let phaseNotesMap = {};
-                let phaseSessionMap = {};
-                let phaseAuditorMap = {};
+                let coachingPhaseScoresMap = {};
+                let coachingPhaseNotesMap = {};
+                let auditList = [];
 
                 historyData.forEach(item => {
                     if (item.staffName && item.staffName.toLowerCase() === staffName.toLowerCase() && item.phaseName) {
                         let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                         let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
+                        let jenisSesi = item.jenisSesi || "Coaching";
+
                         if (itemMonth === selectedMonthYear) {
-                            phaseScoresMap[item.phaseName] = Number(item.totalScore || 0);
-                            if (item.notes) phaseNotesMap[item.phaseName] = item.notes;
-                            phaseSessionMap[item.phaseName] = item.jenisSesi || "Coaching";
-                            phaseAuditorMap[item.phaseName] = item.auditor || "-";
+                            if (jenisSesi === "Mystery Shopper") {
+                                auditList.push({
+                                    date: cleanDate,
+                                    phase: item.phaseName,
+                                    auditor: item.auditor || "Auditor",
+                                    score: Number(item.totalScore || 0),
+                                    notes: item.notes || "-"
+                                });
+                            } else {
+                                coachingPhaseScoresMap[item.phaseName] = Number(item.totalScore || 0);
+                                if (item.notes) coachingPhaseNotesMap[item.phaseName] = item.notes;
+                            }
                         }
                     }
                 });
 
+                // Render Tabel Coaching Rutin (10 Fase)
                 phaseKeys.forEach((phaseName, index) => {
-                    let phaseScore = phaseScoresMap[phaseName] !== undefined ? phaseScoresMap[phaseName] : 0;
-                    let isDone = phaseScoresMap[phaseName] !== undefined;
-                    let notesText = phaseNotesMap[phaseName] ? phaseNotesMap[phaseName] : '-';
-                    let sessionType = phaseSessionMap[phaseName] || "Coaching";
-                    let auditorName = phaseAuditorMap[phaseName] || "-";
+                    let phaseScore = coachingPhaseScoresMap[phaseName] !== undefined ? coachingPhaseScoresMap[phaseName] : 0;
+                    let isDone = coachingPhaseScoresMap[phaseName] !== undefined;
+                    let notesText = coachingPhaseNotesMap[phaseName] ? coachingPhaseNotesMap[phaseName] : '-';
 
-                    if (isDone && sessionType === "Coaching") completedCount++;
+                    if (isDone) completedCount++;
                     totalOverallScore += phaseScore;
                     chartScores[index] = phaseScore;
-
-                    let sessionBadge = sessionType === "Mystery Shopper" 
-                        ? '<span style="background: #7c3aed; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">🕵️‍♂️ Mystery Shopper</span>' 
-                        : '<span style="color: var(--primary); font-weight: 600;">Coaching</span>';
 
                     let statusBadge = isDone ? '<span style="color:var(--success); font-weight:600;">Selesai ✓</span>' : '<span style="color:var(--text-secondary);">Belum</span>';
 
                     tableBody.innerHTML += `
                         <tr>
                             <td style="font-weight: 600;">${phaseName}</td>
-                            <td>${sessionBadge}</td>
                             <td>${statusBadge}</td>
                             <td style="text-align: center; font-weight: 600;">${phaseScore} Poin</td>
-                            <td style="font-size: 11px; color: var(--text-secondary);">${notesText} <br><i>(Auditor: ${auditorName})</i></td>
+                            <td style="font-size: 11px; color: var(--text-secondary);">${notesText}</td>
                         </tr>
                     `;
                 });
+
+                // Render Tabel Audit / Mystery Shopper Terpisah
+                if (auditList.length === 0) {
+                    auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Belum ada riwayat audit Mystery Shopper untuk staff ini pada bulan ${selectedMonthYear}.</td></tr>`;
+                } else {
+                    auditList.forEach(audit => {
+                        auditTableBody.innerHTML += `
+                            <tr>
+                                <td style="font-size: 11px; font-weight: 600;">${audit.date}</td>
+                                <td style="font-weight: 600;">${audit.phase}</td>
+                                <td><span style="background: #7c3aed; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">🕵️‍♂️ ${audit.auditor}</span></td>
+                                <td style="text-align: center; font-weight: 600; color: #7c3aed;">${audit.score} Poin</td>
+                                <td style="font-size: 11px; color: var(--text-secondary);">${audit.notes}</td>
+                            </tr>
+                        `;
+                    });
+                }
 
                 let finalCappedScore = totalOverallScore > 108 ? 108 : totalOverallScore;
                 document.getElementById('summaryTotalScore').innerText = `${finalCappedScore} / 100`;
@@ -1235,7 +1318,8 @@
                     performanceChart.update();
                 }
             } else {
-                tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Pilih <b>Nama Staff</b> di atas untuk melihat detail per fase dan grafik perorangan.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Pilih <b>Nama Staff</b> di atas untuk melihat detail per fase.</td></tr>`;
+                auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Pilih Nama Staff terlebih dahulu.</td></tr>`;
                 document.getElementById('summaryTotalScore').innerText = `0 / 100`;
                 document.getElementById('summaryCompletedPhases').innerText = `0 / ${phaseKeys.length}`;
                 if (performanceChart) {
@@ -1266,7 +1350,8 @@
                 empHistory.forEach(item => {
                     let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                     let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                    if (item.phaseName && itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching")) {
+                    let jenisSesi = item.jenisSesi || "Coaching";
+                    if (item.phaseName && itemMonth === selectedMonthYear && jenisSesi === "Coaching") {
                         empPhaseMap[item.phaseName] = Number(item.totalScore || 0);
                         if (cleanDate) empDatesSet.add(cleanDate);
                     }
@@ -1309,7 +1394,8 @@
         })
         .catch(err => {
             console.log("Gagal memuat riwayat:", err);
-            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Gagal mengambil data riwayat dari Google Sheets.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #dc2626;">Gagal mengambil data riwayat.</td></tr>`;
+            auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Gagal mengambil data audit.</td></tr>`;
             storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Gagal mengambil data progress staff.</td></tr>`;
         });
     }
@@ -1337,16 +1423,15 @@
         let phaseKeys = Object.keys(phasesData);
         let phaseScoresMap = {};
         let phaseNotesMap = {};
-        let phaseSessionMap = {};
 
         currentStaffHistoryCache.forEach(item => {
             if (item.staffName && item.staffName.toLowerCase() === staffName.toLowerCase() && item.phaseName) {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                if (itemMonth === selectedMonthYear) {
+                let jenisSesi = item.jenisSesi || "Coaching";
+                if (itemMonth === selectedMonthYear && jenisSesi === "Coaching") {
                     phaseScoresMap[item.phaseName] = Number(item.totalScore || 0);
                     if (item.notes) phaseNotesMap[item.phaseName] = item.notes;
-                    phaseSessionMap[item.phaseName] = item.jenisSesi || "Coaching";
                 }
             }
         });
@@ -1356,7 +1441,7 @@
         phaseKeys.forEach(pName => {
             if (phaseScoresMap[pName] !== undefined) {
                 totalScoreAccumulated += phaseScoresMap[pName];
-                if (phaseSessionMap[pName] === "Coaching") completedPhasesCount++;
+                completedPhasesCount++;
             }
         });
         let finalCappedScore = Math.min(totalScoreAccumulated, 108);
@@ -1386,20 +1471,17 @@
         let tableRows = [
             [
                 { text: "Fase Asesmen", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF" } },
-                { text: "Jenis Sesi", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
                 { text: "Poin", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
-                { text: "Catatan Trainer / Auditor", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF" } }
+                { text: "Catatan Trainer", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF" } }
             ]
         ];
 
         phaseKeys.forEach(pName => {
             let pScore = phaseScoresMap[pName] !== undefined ? phaseScoresMap[pName] : 0;
-            let session = phaseSessionMap[pName] || "Coaching";
             let note = phaseNotesMap[pName] ? phaseNotesMap[pName] : "-";
 
             tableRows.push([
                 { text: pName, options: { fontSize: 10 } },
-                { text: session, options: { fontSize: 10, align: "center", color: session === "Mystery Shopper" ? "7C3AED" : "0071E3" } },
                 { text: `${pScore} Poin`, options: { fontSize: 10, align: "center", bold: true } },
                 { text: note, options: { fontSize: 9, color: "64748B" } }
             ]);
@@ -1407,7 +1489,7 @@
 
         slideTable.addTable(tableRows, {
             x: 0.8, y: 1.4, w: 11.5,
-            colW: [3.2, 1.8, 1.3, 5.2],
+            colW: [4.5, 1.8, 5.2],
             border: { pt: 0.5, color: "CBD5E1" },
             autoPage: true,
             paraSpaceAfter: 4
@@ -1458,7 +1540,8 @@
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching");
+                let jenisSesi = item.jenisSesi || "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
             });
 
             let completedStaffCount = 0;
@@ -1523,7 +1606,8 @@
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching");
+                let jenisSesi = item.jenisSesi || "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
             });
 
             let completedStaffCount = 0;
@@ -1637,7 +1721,8 @@
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching");
+                let jenisSesi = item.jenisSesi || "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
             });
 
             let completedStaffCount = 0;
@@ -1695,7 +1780,7 @@
             `;
         });
 
-        // HITUNG RATA-RATA NASIONAL PER FASE
+        // HITUNG RATA-RATA NASIONAL PER FASE (Hanya dari sesi Coaching)
         let phaseMaxMap = {};
         Object.keys(phasesData).forEach(pName => {
             phaseMaxMap[pName] = phasesData[pName].reduce((sum, item) => sum + item.max, 0);
@@ -1706,7 +1791,8 @@
         let filteredHistory = globalHistoryData.filter(item => {
             let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
             let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-            return itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching");
+            let jenisSesi = item.jenisSesi || "Coaching";
+            return itemMonth === selectedMonthYear && jenisSesi === "Coaching";
         });
 
         filteredHistory.forEach(item => {
@@ -1793,7 +1879,8 @@
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching");
+                let jenisSesi = item.jenisSesi || "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
             });
 
             let completedStaffCount = 0;
@@ -1846,7 +1933,8 @@
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching");
+                let jenisSesi = item.jenisSesi || "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
             });
 
             let completedStaffCount = 0;
