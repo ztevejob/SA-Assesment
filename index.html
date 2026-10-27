@@ -576,6 +576,26 @@
                 </div>
             </div>
 
+            <!-- TABEL RATA-RATA SKOR NASIONAL PER FASE -->
+            <div class="summary-card">
+                <h3>📈 Rata-Rata Skor Nasional per Fase Asesmen</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Fase Asesmen</th>
+                                <th>Bobot Maksimal</th>
+                                <th>Rata-Rata Nasional</th>
+                                <th>Persentase Capaian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="phaseAverageTableBody">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Memuat data rata-rata fase...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
                     <div style="min-width: 180px;">
@@ -1674,6 +1694,51 @@
                 </tr>
             `;
         });
+
+        // HITUNG RATA-RATA NASIONAL PER FASE
+        let phaseMaxMap = {};
+        Object.keys(phasesData).forEach(pName => {
+            phaseMaxMap[pName] = phasesData[pName].reduce((sum, item) => sum + item.max, 0);
+        });
+
+        let phaseScoresSum = {};
+        let phaseCounts = {};
+        let filteredHistory = globalHistoryData.filter(item => {
+            let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+            let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
+            return itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching");
+        });
+
+        filteredHistory.forEach(item => {
+            if (item.phaseName) {
+                if (!phaseScoresSum[item.phaseName]) {
+                    phaseScoresSum[item.phaseName] = 0;
+                    phaseCounts[item.phaseName] = 0;
+                }
+                phaseScoresSum[item.phaseName] += Number(item.totalScore || 0);
+                phaseCounts[item.phaseName]++;
+            }
+        });
+
+        let phaseAvgHTML = "";
+        Object.keys(phasesData).forEach(pName => {
+            let totalS = phaseScoresSum[pName] || 0;
+            let count = phaseCounts[pName] || 0;
+            let avg = count > 0 ? (totalS / count).toFixed(1) : 0;
+            let maxP = phaseMaxMap[pName] || 0;
+            let pct = maxP > 0 ? Math.round((avg / maxP) * 100) : 0;
+            let colorStyle = pct >= 80 ? "color: var(--success);" : (pct >= 60 ? "color: var(--primary);" : "color: #dc2626;");
+
+            phaseAvgHTML += `
+                <tr>
+                    <td style="font-weight: 600;">${pName}</td>
+                    <td style="text-align: center;">${maxP} Poin</td>
+                    <td style="text-align: center; font-weight: 600;">${avg} Poin <span style="font-size: 10px; color: var(--text-secondary);">(${count} Sesi)</span></td>
+                    <td style="text-align: center; font-weight: bold; ${colorStyle}">${pct}%</td>
+                </tr>
+            `;
+        });
+        document.getElementById('phaseAverageTableBody').innerHTML = phaseAvgHTML;
 
         storeScoreArray.sort((a, b) => b.score - a.score);
         let top3HTML = "";
