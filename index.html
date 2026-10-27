@@ -998,33 +998,48 @@
 
     function setNote(itemId, val) { notes[itemId] = val; }
 
+    // ==========================================
+    // PERBAIKAN UTAMA: SUBMIT HANYA UNTUK FASE AKTIF
+    // ==========================================
     function submitCurrentPhase() {
         const store = document.getElementById('storeInput').value.trim();
         const staffName = document.getElementById('staffInput').value.trim();
         const coachingDate = document.getElementById('coachingDate').value;
-        let total = Object.values(scores).reduce((a, b) => a + b, 0);
-
-        let jenisSesi = isAuditorMode ? document.getElementById('sessionTypeSelect').value : "Coaching";
-        let auditor = isAuditorMode ? document.getElementById('auditorNameInput').value.trim() : "-";
 
         if (!coachingDate) {
             alert('⚠️ Mohon tentukan Tanggal terlebih dahulu!');
             return;
         }
 
+        // Ambil dan hitung HANYA untuk item soal di fase aktif ini saja
+        let currentPhaseItems = phasesData[activePhaseKey];
+        let phaseScores = {};
+        let phaseNotes = {};
+        let total = 0;
+
+        currentPhaseItems.forEach(item => {
+            let sc = scores[item.id] || 0;
+            phaseScores[item.id] = sc;
+            phaseNotes[item.id] = notes[item.id] || "";
+            total += sc;
+        });
+
+        let jenisSesi = isAuditorMode ? document.getElementById('sessionTypeSelect').value : "Coaching";
+        let auditor = isAuditorMode ? document.getElementById('auditorNameInput').value.trim() : "-";
+
         const payload = {
             store: store,
             staffName: staffName,
             coachingDate: coachingDate,
             phaseName: activePhaseKey,
-            totalScore: total,
-            scores: scores,
-            notes: notes,
+            totalScore: total,         // Total skor murni hanya untuk fase ini
+            scores: phaseScores,       // Detail skor murni hanya untuk fase ini
+            notes: phaseNotes,
             jenisSesi: jenisSesi,
             auditor: auditor
         };
 
-        alert('Mengirim data fase beserta catatan & jenis sesi ke Google Sheets...');
+        alert(`Mengirim data ${activePhaseKey} (Skor: ${total}) ke Google Sheets...`);
 
         fetch(WEB_APP_URL, {
             method: 'POST',
@@ -1036,7 +1051,7 @@
             if (jenisSesi === "Coaching") {
                 completedPhases[activePhaseKey] = true;
             }
-            alert(`✅ Sukses! Fase "${activePhaseKey}" (${jenisSesi}) tersimpan.`);
+            alert(`✅ Sukses! Fase "${activePhaseKey}" tersimpan dengan skor ${total}.`);
             backToDashboard();
         })
         .catch(error => { alert('Gagal mengirim data: ' + error); });
@@ -1283,9 +1298,7 @@
         });
     }
 
-    // ==========================================
     // FUNGSI EXPORT KE PPT (DENGAN EXECUTIVE SUMMARY & ACTION PLAN)
-    // ==========================================
     function exportToPPT() {
         const store = document.getElementById('storeInput').value.trim();
         const staffName = document.getElementById('staffInput').value.trim();
@@ -1300,7 +1313,6 @@
         let pptx = new PptxGenJS();
         pptx.layout = 'LAYOUT_16x9';
 
-        // Slide 1: Cover
         let slideCover = pptx.addSlide();
         slideCover.background = { color: "0071e3" };
         slideCover.addText("DIGIMAP ASSESSMENT & PERFORMANCE REPORT", { x: 0.8, y: 1.5, w: 11.5, h: 1.0, fontSize: 26, bold: true, color: "FFFFFF" });
@@ -1334,7 +1346,6 @@
         });
         let finalCappedScore = Math.min(totalScoreAccumulated, 108);
 
-        // Slide 2: Executive Summary
         let slideExec = pptx.addSlide();
         slideExec.addText("Executive Summary (Ringkasan Eksekutif)", { x: 0.8, y: 0.6, w: 11.5, h: 0.6, fontSize: 20, bold: true, color: "0071e3" });
 
@@ -1354,7 +1365,6 @@
         slideExec.addText("💡 Poin Sorotan Manajemen:", { x: 1.1, y: 3.5, w: 10.5, h: 0.3, fontSize: 13, bold: true, color: "1E293B" });
         slideExec.addText(`• Staff ${staffName} menunjukkan progres asesmen yang konsisten pada periode ${selectedMonthYear}.\n• Penilaian mencakup standar pelayanan Retail Excellence dan penguasaan Ecosystem Mastery.\n• Pastikan penguatan pada area yang masih memerlukan bimbingan lanjutan.`, { x: 1.1, y: 3.9, w: 10.5, h: 1.4, fontSize: 12, color: "475569", lineSpacing: 16 });
 
-        // Slide 3: Tabel Detail Rekap Per Fase
         let slideTable = pptx.addSlide();
         slideTable.addText("Detail Penilaian Per Fase Asesmen", { x: 0.8, y: 0.6, w: 11.5, h: 0.6, fontSize: 20, bold: true, color: "0071e3" });
 
@@ -1388,7 +1398,6 @@
             paraSpaceAfter: 4
         });
 
-        // Slide 4: Action Plan & Management Recommendation
         let slideAction = pptx.addSlide();
         slideAction.addText("Action Plan & Rekomendasi Manajemen", { x: 0.8, y: 0.6, w: 11.5, h: 0.6, fontSize: 20, bold: true, color: "0071e3" });
         slideAction.addShape(pptx.shapes.RECTANGLE, { x: 0.8, y: 1.5, w: 11.5, h: 4.2, fill: { color: "F8FAFC" }, line: { color: "CBD5E1", width: 1 } });
@@ -1409,9 +1418,7 @@
         });
     }
 
-    // ==========================================
-    // FUNGSI EXPORT KE PPT NASIONAL (EKSEKUTIF SEMUA TOKO)
-    // ==========================================
+    // FUNGSI EXPORT KE PPT NASIONAL
     function exportNationalPPT() {
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
@@ -1421,14 +1428,12 @@
         let pptx = new PptxGenJS();
         pptx.layout = 'LAYOUT_16x9';
 
-        // Slide 1: Cover Nasional
         let slideCover = pptx.addSlide();
         slideCover.background = { color: "0071e3" };
         slideCover.addText("LAPORAN EKSEKUTIF ASESMEN NASIONAL", { x: 0.8, y: 1.5, w: 11.5, h: 1.0, fontSize: 26, bold: true, color: "FFFFFF" });
         slideCover.addText("Rekapitulasi Performa & Progress Seluruh Toko Digimap", { x: 0.8, y: 2.5, w: 11.5, h: 0.6, fontSize: 16, color: "E2E8F0" });
         slideCover.addText(`Periode Bulan: ${selectedMonthYear}   |   Total Toko Terdaftar: ${allStores.length}`, { x: 0.8, y: 4.2, w: 11.5, h: 0.6, fontSize: 12, color: "F8FAFC", italic: true });
 
-        // Hitung ringkasan nasional
         let completedStores = 0;
         let unstartedStores = 0;
         let sumScores = 0;
@@ -1466,7 +1471,6 @@
 
         let natAvg = activeStoresCount > 0 ? Math.round(sumScores / activeStoresCount) : 0;
 
-        // Slide 2: Executive Summary Nasional
         let slideExecNat = pptx.addSlide();
         slideExecNat.addText("Ringkasan Eksekutif Nasional", { x: 0.8, y: 0.6, w: 11.5, h: 0.6, fontSize: 20, bold: true, color: "0071e3" });
 
@@ -1486,7 +1490,6 @@
         slideExecNat.addText("📈 Sorotan Utama Nasional:", { x: 1.1, y: 3.5, w: 10.5, h: 0.3, fontSize: 13, bold: true, color: "1E293B" });
         slideExecNat.addText(`• Sebanyak ${completedStores} dari ${allStores.length} toko telah menyelesaikan seluruh fase asesmen bulan ini.\n• Terdapat ${unstartedStores} toko yang memerlukan perhatian khusus karena belum memulai submit asesmen.\n• Pimpinan pusat dapat menggunakan data ini untuk memotivasi kompetisi positif antar toko.`, { x: 1.1, y: 3.9, w: 10.5, h: 1.4, fontSize: 12, color: "475569", lineSpacing: 16 });
 
-        // Slide 3: Tabel Detail Per Toko
         let slideTable = pptx.addSlide();
         slideTable.addText("Rekapitulasi Performa Toko Secara Nasional", { x: 0.8, y: 0.6, w: 11.5, h: 0.6, fontSize: 20, bold: true, color: "0071e3" });
 
@@ -1546,7 +1549,6 @@
             paraSpaceAfter: 4
         });
 
-        // Slide 4: Action Plan Strategis Nasional
         let slideActionNat = pptx.addSlide();
         slideActionNat.addText("Rencana Tindak Lanjut & Fokus Strategis", { x: 0.8, y: 0.6, w: 11.5, h: 0.6, fontSize: 20, bold: true, color: "0071e3" });
         slideActionNat.addShape(pptx.shapes.RECTANGLE, { x: 0.8, y: 1.5, w: 11.5, h: 4.2, fill: { color: "F8FAFC" }, line: { color: "CBD5E1", width: 1 } });
@@ -1679,7 +1681,6 @@
             `;
         });
 
-        // RENDER LEADERBOARD (Top 3)
         storeScoreArray.sort((a, b) => b.score - a.score);
         let top3HTML = "";
         if (storeScoreArray.length === 0) {
@@ -1694,7 +1695,6 @@
         }
         document.getElementById('nationalLeaderboardContent').innerHTML = top3HTML;
 
-        // RENDER ALERT BOX (Belum Submit)
         let alertHTML = "";
         if (unstartedStoresList.length === 0) {
             alertHTML = `<div style="color: var(--success); font-weight: 600;">🎉 Luar biasa! Seluruh toko telah aktif melakukan submit asesmen.</div>`;
