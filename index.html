@@ -971,7 +971,7 @@
                 : '<span style="color: #dc2626; font-weight: bold; font-size: 12px;">✗ Belum</span>';
 
             gridContainer.innerHTML += `
-                <div class="${cardClass}" onclick="openPhase('${phaseName}')">
+                <div class="${cardClass}" onclick="openPhase('${phaseName}', false)">
                     <div class="phase-title">
                         <span>${phaseName}</span>
                         <span>${iconIndicator}</span>
@@ -1019,18 +1019,20 @@
         return true;
     }
 
-    function openPhase(phaseName) {
+    function openPhase(phaseName, preserveScores = false) {
         if (!validateMetaForCoaching()) return;
 
-        if (completedPhases[phaseName] && !isAuditorMode) {
+        if (completedPhases[phaseName] && !isAuditorMode && !preserveScores) {
             alert(`⚠️ BATAS PENILAIAN BULAN INI\n\nFase "${phaseName}" untuk staff ini sudah diselesaikan dan hanya dapat dilakukan 1 kali dalam bulan ini.`);
             return;
         }
 
         activePhaseKey = phaseName;
         
-        for (let key in scores) delete scores[key];
-        for (let key in notes) delete notes[key];
+        if (!preserveScores) {
+            for (let key in scores) delete scores[key];
+            for (let key in notes) delete notes[key];
+        }
 
         document.getElementById('dashboardView').style.display = 'none';
         document.getElementById('phaseFormView').style.display = 'block';
@@ -1075,7 +1077,7 @@
 
     function setScore(itemId, score, phaseName) {
         scores[itemId] = score;
-        openPhase(phaseName);
+        openPhase(phaseName, true);
     }
 
     function setNote(itemId, val) { notes[itemId] = val; }
