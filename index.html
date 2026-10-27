@@ -1101,7 +1101,6 @@
             let sc = scores[item.id] || 0;
             phaseScores[item.id] = sc;
             
-            // HANYA SIMPAN CATATAN YANG TIDAK KOSONG
             let noteVal = notes[item.id] ? notes[item.id].trim() : "";
             if (noteVal !== "") {
                 phaseNotes[item.id] = noteVal;
@@ -1124,7 +1123,7 @@
             phaseName: activePhaseKey,
             totalScore: total,
             scores: phaseScores,
-            notes: phaseNotes, // Hanya berisi nomor soal yang dikomentari
+            notes: phaseNotes,
             jenisSesi: jenisSesi,
             auditor: auditor
         };
@@ -1173,13 +1172,21 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 20
+                        max: 20,
+                        grace: '15%'
                     }
                 },
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        font: { weight: 'bold', size: 10 },
+                        color: '#1d1d1f'
+                    }
                 }
-            }
+            },
+            plugins: [ChartDataLabels]
         });
     }
 
@@ -1240,6 +1247,13 @@
                         position: 'right',
                         labels: { boxWidth: 10, font: { size: 9 } }
                     },
+                    datalabels: {
+                        formatter: (value, ctx) => {
+                            return value > 0 ? value + '%' : '';
+                        },
+                        color: '#ffffff',
+                        font: { weight: 'bold', size: 9 }
+                    },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -1249,7 +1263,8 @@
                     }
                 },
                 cutout: '60%'
-            }
+            },
+            plugins: [ChartDataLabels]
         });
     }
 
