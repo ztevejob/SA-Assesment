@@ -1029,6 +1029,11 @@
         }
 
         activePhaseKey = phaseName;
+        
+        // RESET SCORES & NOTES AGAR TIDAK TERCAMPUR DARI FASE LAIN
+        for (let key in scores) delete scores[key];
+        for (let key in notes) delete notes[key];
+
         document.getElementById('dashboardView').style.display = 'none';
         document.getElementById('phaseFormView').style.display = 'block';
         document.getElementById('activePhaseTitle').innerText = phaseName;
@@ -1092,12 +1097,20 @@
         let phaseNotes = {};
         let total = 0;
 
+        // 1. HITUNG BOBOT MAKSIMAL SAH UNTUK FASE INI SECARA OTOMATIS
+        let maxAllowedScore = currentPhaseItems.reduce((sum, item) => sum + item.max, 0);
+
         currentPhaseItems.forEach(item => {
             let sc = scores[item.id] || 0;
             phaseScores[item.id] = sc;
             phaseNotes[item.id] = notes[item.id] || "";
             total += sc;
         });
+
+        // 2. SAFEGUARD: Kunci agar total poin tidak bisa melebihi batas maksimal fase
+        if (total > maxAllowedScore) {
+            total = maxAllowedScore;
+        }
 
         let jenisSesi = isAuditorMode ? document.getElementById('sessionTypeSelect').value : "Coaching";
         let auditor = isAuditorMode ? document.getElementById('auditorNameInput').value.trim() : "-";
@@ -1114,7 +1127,7 @@
             auditor: auditor
         };
 
-        alert(`Mengirim data ${activePhaseKey} (Skor: ${total}) ke Google Sheets...`);
+        alert(`Mengirim data ${activePhaseKey} (Skor: ${total} / Max: ${maxAllowedScore}) ke Google Sheets...`);
 
         fetch(WEB_APP_URL, {
             method: 'POST',
