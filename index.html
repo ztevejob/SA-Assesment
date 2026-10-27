@@ -445,7 +445,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
                     <h3 style="margin: 0; font-size: 14px;">📋 Rekapitulasi Poin & Catatan: <span id="activeStaffLabel" style="color: var(--primary); font-weight: 700;">(Belum dipilih)</span></h3>
                     <div style="display: flex; gap: 8px;">
-                        <button type="button" onclick="exportToPPT()" style="background: #ea580c; color: white; border: none; padding: 6px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📊 Export ke PPT</button>
+                        <button type="button" onclick="exportToPPT()" style="background: #ea580c; color: white; border: none; padding: 6px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📊 Export Staff ke PPT</button>
                         <button type="button" onclick="copyStoreReportForWhatsApp()" style="background: var(--primary); color: white; border: none; padding: 6px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA</button>
                     </div>
                 </div>
@@ -516,6 +516,18 @@
                 </div>
             </div>
 
+            <!-- LEADERBOARD & ALERT BOX SECTION -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                <div class="summary-card" style="margin: 0;">
+                    <h3 style="color: var(--success); margin-bottom: 8px;">🏆 Leaderboard Top 3 Toko (Nasional)</h3>
+                    <div id="nationalLeaderboardContent" style="font-size: 12px; color: var(--text);">Memuat leaderboard...</div>
+                </div>
+                <div class="summary-card" style="margin: 0;">
+                    <h3 style="color: #dc2626; margin-bottom: 8px;">⚠️ Toko Perhatian Khusus (Belum Submit)</h3>
+                    <div id="nationalAlertContent" style="font-size: 12px; color: var(--text);">Memuat daftar atensi...</div>
+                </div>
+            </div>
+
             <div class="summary-card">
                 <h3>📊 Grafik Persebaran Status Pengerjaan Toko Nasional</h3>
                 <div class="chart-wrapper">
@@ -539,9 +551,10 @@
                         </select>
                     </div>
                 </div>
-                <div style="display: flex; gap: 8px; align-items: flex-end;">
+                <div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;">
+                    <button type="button" onclick="exportNationalPPT()" style="background: #ea580c; color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📊 Export PPT Nasional</button>
                     <button type="button" onclick="exportToCSV()" style="background: var(--success); color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📥 Export Excel (CSV)</button>
-                    <button type="button" onclick="copyReportForWhatsApp()" style="background: var(--primary); color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA Nasional</button>
+                    <button type="button" onclick="copyReportForWhatsApp()" style="background: var(--primary); color: white; border: none; padding: 7px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">📋 Salin Laporan WA</button>
                 </div>
             </div>
 
@@ -1193,7 +1206,7 @@
         });
     }
 
-    // FUNGSI EXPORT KE PRESENTASI POWERPOINT (.PPTX)
+    // FUNGSI EXPORT KE PRESENTASI POWERPOINT (.PPTX) - PER STAFF
     function exportToPPT() {
         const store = document.getElementById('storeInput').value.trim();
         const staffName = document.getElementById('staffInput').value.trim();
@@ -1208,23 +1221,12 @@
         let pptx = new PptxGenJS();
         pptx.layout = 'LAYOUT_16x9';
 
-        // 1. SLIDE 1: TITLE SLIDE (Cover)
         let slideCover = pptx.addSlide();
         slideCover.background = { color: "0071e3" };
-        slideCover.addText("DIGIMAP ASSESSMENT & PERFORMANCE REPORT", {
-            x: 0.8, y: 1.5, w: 11.5, h: 1.0,
-            fontSize: 26, bold: true, color: "FFFFFF"
-        });
-        slideCover.addText(`Laporan Hasil Coaching & Evaluasi Retail Sales Assistant`, {
-            x: 0.8, y: 2.5, w: 11.5, h: 0.6,
-            fontSize: 16, color: "E2E8F0"
-        });
-        slideCover.addText(`Toko: ${store.toUpperCase()}   |   Staff: ${staffName.toUpperCase()}   |   Periode: ${selectedMonthYear}`, {
-            x: 0.8, y: 4.2, w: 11.5, h: 0.6,
-            fontSize: 12, color: "F8FAFC", italic: true
-        });
+        slideCover.addText("DIGIMAP ASSESSMENT & PERFORMANCE REPORT", { x: 0.8, y: 1.5, w: 11.5, h: 1.0, fontSize: 26, bold: true, color: "FFFFFF" });
+        slideCover.addText(`Laporan Hasil Coaching & Evaluasi Retail Sales Assistant`, { x: 0.8, y: 2.5, w: 11.5, h: 0.6, fontSize: 16, color: "E2E8F0" });
+        slideCover.addText(`Toko: ${store.toUpperCase()}   |   Staff: ${staffName.toUpperCase()}   |   Periode: ${selectedMonthYear}`, { x: 0.8, y: 4.2, w: 11.5, h: 0.6, fontSize: 12, color: "F8FAFC", italic: true });
 
-        // 2. SLIDE 2: RINGKASAN SKOR & STATUS
         let phaseKeys = Object.keys(phasesData);
         let phaseScoresMap = {};
         let phaseNotesMap = {};
@@ -1253,22 +1255,18 @@
         let slideSummary = pptx.addSlide();
         slideSummary.addText("Ringkasan Hasil Asesmen", { x: 0.8, y: 0.6, w: 11.5, h: 0.6, fontSize: 20, bold: true, color: "0071e3" });
 
-        // Kotak metrik 1
         slideSummary.addShape(pptx.shapes.RECTANGLE, { x: 0.8, y: 1.5, w: 3.5, h: 1.5, fill: { color: "F1F5F9" }, line: { color: "CBD5E1", width: 1 } });
         slideSummary.addText("SKOR AKHIR STAFF", { x: 1.0, y: 1.7, w: 3.1, h: 0.3, fontSize: 11, bold: true, color: "64748B" });
         slideSummary.addText(`${finalCappedScore} / 100`, { x: 1.0, y: 2.1, w: 3.1, h: 0.6, fontSize: 24, bold: true, color: "0071e3" });
 
-        // Kotak metrik 2
         slideSummary.addShape(pptx.shapes.RECTANGLE, { x: 4.8, y: 1.5, w: 3.5, h: 1.5, fill: { color: "F1F5F9" }, line: { color: "CBD5E1", width: 1 } });
         slideSummary.addText("FASE SELESAI", { x: 5.0, y: 1.7, w: 3.1, h: 0.3, fontSize: 11, bold: true, color: "64748B" });
         slideSummary.addText(`${completedPhasesCount} / ${phaseKeys.length}`, { x: 5.0, y: 2.1, w: 3.1, h: 0.6, fontSize: 24, bold: true, color: "34C759" });
 
-        // Kotak metrik 3
         slideSummary.addShape(pptx.shapes.RECTANGLE, { x: 8.8, y: 1.5, w: 3.5, h: 1.5, fill: { color: "F1F5F9" }, line: { color: "CBD5E1", width: 1 } });
         slideSummary.addText("STATUS KELULUSAN", { x: 9.0, y: 1.7, w: 3.1, h: 0.3, fontSize: 11, bold: true, color: "64748B" });
         slideSummary.addText(completedPhasesCount >= phaseKeys.length ? "SELESAI 100%" : "DALAM PROSES", { x: 9.0, y: 2.1, w: 3.1, h: 0.6, fontSize: 18, bold: true, color: completedPhasesCount >= phaseKeys.length ? "34C759" : "D97706" });
 
-        // 3. SLIDE 3: TABEL DETAIL REKAP FASE
         let slideTable = pptx.addSlide();
         slideTable.addText("Detail Penilaian Per Fase Asesmen", { x: 0.8, y: 0.6, w: 11.5, h: 0.6, fontSize: 20, bold: true, color: "0071e3" });
 
@@ -1302,22 +1300,6 @@
             paraSpaceAfter: 4
         });
 
-        // 4. SLIDE 4: KESIMPULAN & REKOMENDASI MANAJEMEN
-        let slideNotes = pptx.addSlide();
-        slideNotes.addText("Catatan & Rekomendasi Pengembangan", { x: 0.8, y: 0.6, w: 11.5, h: 0.6, fontSize: 20, bold: true, color: "0071e3" });
-        slideNotes.addShape(pptx.shapes.RECTANGLE, { x: 0.8, y: 1.5, w: 11.5, h: 4.2, fill: { color: "F8FAFC" }, line: { color: "CBD5E1", width: 1 } });
-        
-        let notesListText = "• Evaluasi Kinerja Retail Sales Assistant:\n" +
-                            `  Staff atas nama ${staffName} di toko ${store} telah menyelesaikan ${completedPhasesCount} dari ${phaseKeys.length} fase asesmen.\n\n` +
-                            "• Area Fokus Peningkatan:\n" +
-                            "  - Memperkuat penguasaan Product Knowledge & Ecosystem Mastery pada kategori produk Apple.\n" +
-                            "  - Konsistensi penerapan Retail Excellence standar Digimap dalam operasional harian toko.\n\n" +
-                            "• Tindak Lanjut Manajemen:\n" +
-                            "  - Direkomendasikan untuk mengikuti sesi coaching lanjutan dan mentoring mingguan guna memastikan pencapaian target layanan optimal.";
-
-        slideNotes.addText(notesListText, { x: 1.2, y: 1.9, w: 10.7, h: 3.4, fontSize: 13, color: "334155", lineSpacing: 18 });
-
-        // Simpan File PPTX
         pptx.writeFile({ fileName: `Laporan_Assessment_${store}_${staffName}.pptx` }).then(() => {
             alert("✅ File presentasi PowerPoint (.pptx) berhasil di-generate dan diunduh!");
         }).catch(err => {
@@ -1325,73 +1307,85 @@
         });
     }
 
-    function copyStoreReportForWhatsApp() {
-        const store = document.getElementById('storeInput').value.trim();
-        const selectedDate = document.getElementById('coachingDate').value;
+    // FUNGSI EXPORT KE PPT NASIONAL (EKSEKUTIF SEMUA TOKO)
+    function exportNationalPPT() {
+        let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
+        let totalPhasesCount = Object.keys(phasesData).length;
+        let selectedDate = document.getElementById('coachingDate').value;
         let selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
 
-        if (!store) {
-            alert("⚠️ Silakan pilih Toko terlebih dahulu di bagian atas!");
-            return;
-        }
+        let pptx = new PptxGenJS();
+        pptx.layout = 'LAYOUT_16x9';
 
-        let storeStaffList = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
-        let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}`;
+        let slideCover = pptx.addSlide();
+        slideCover.background = { color: "0071e3" };
+        slideCover.addText("LAPORAN EKSEKUTIF ASESMEN NASIONAL", { x: 0.8, y: 1.5, w: 11.5, h: 1.0, fontSize: 26, bold: true, color: "FFFFFF" });
+        slideCover.addText("Rekapitulasi Performa & Progress Seluruh Toko Digimap", { x: 0.8, y: 2.5, w: 11.5, h: 0.6, fontSize: 16, color: "E2E8F0" });
+        slideCover.addText(`Periode Bulan: ${selectedMonthYear}   |   Total Toko Terdaftar: ${allStores.length}`, { x: 0.8, y: 4.2, w: 11.5, h: 0.6, fontSize: 12, color: "F8FAFC", italic: true });
 
-        fetch(url)
-        .then(res => res.json())
-        .then(historyData => {
-            let totalPhasesCount = Object.keys(phasesData).length;
-            let staffReportText = "";
-            let sumScores = 0;
-            let completedCount = 0;
+        let slideTable = pptx.addSlide();
+        slideTable.addText("Rekapitulasi Performa Toko Secara Nasional", { x: 0.8, y: 0.6, w: 11.5, h: 0.6, fontSize: 20, bold: true, color: "0071e3" });
 
-            storeStaffList.forEach((emp, index) => {
+        let tableRows = [
+            [
+                { text: "Nama Toko", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF" } },
+                { text: "Total Staff", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
+                { text: "Staff Selesai", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
+                { text: "Rata-Rata Skor", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
+                { text: "Status", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } }
+            ]
+        ];
+
+        allStores.forEach(storeName => {
+            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let totalStaffCount = storeStaff.length;
+            let storeHistory = globalHistoryData.filter(item => {
+                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
+            });
+
+            let completedStaffCount = 0;
+            let totalAccumulatedPerStaff = 0;
+
+            storeStaff.forEach(emp => {
                 let empName = emp.name.trim();
-                let empHist = historyData.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
-                let empPhaseMap = {};
-                empHist.forEach(item => {
-                    let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
-                    let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                    if (item.phaseName && itemMonth === selectedMonthYear) {
-                        empPhaseMap[item.phaseName] = Number(item.totalScore || 0);
-                    }
-                });
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
+                let empPhaseScores = {};
+                empHist.forEach(h => { if (h.phaseName) empPhaseScores[h.phaseName] = Number(h.totalScore || 0); });
+                let uniquePhases = Object.keys(empPhaseScores).length;
+                let empScore = Object.values(empPhaseScores).reduce((a, b) => a + b, 0);
 
-                let uniquePhases = Object.keys(empPhaseMap).length;
-                let empScore = Object.values(empPhaseMap).reduce((a, b) => a + b, 0);
-                let finalScore = Math.min(empScore, 108);
-                sumScores += finalScore;
-
-                let statusStr = "Proses 🔄";
-                if (uniquePhases >= totalPhasesCount) {
-                    statusStr = "Selesai 100% ✅";
-                    completedCount++;
-                }
-
-                staffReportText += `${index + 1}. *${empName}* — ${finalScore} Poin (${uniquePhases}/${totalPhasesCount} Fase) - ${statusStr}\n`;
+                totalAccumulatedPerStaff += Math.min(empScore, 108);
+                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
             });
 
-            let avgStore = storeStaffList.length > 0 ? Math.round(sumScores / storeStaffList.length) : 0;
-            let completionPct = storeStaffList.length > 0 ? Math.round((completedCount / storeStaffList.length) * 100) : 0;
+            let avgStoreScore = totalStaffCount > 0 && storeHistory.length > 0 ? Math.round(totalAccumulatedPerStaff / totalStaffCount) : 0;
+            let storeStatus = "Dalam Proses";
+            if (storeHistory.length === 0) storeStatus = "Belum Submit";
+            else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) storeStatus = "Selesai 100%";
 
-            let reportText = `📊 *LAPORAN ASESMEN TOKO: ${store.toUpperCase()}*\n` +
-                             `📅 Periode Bulan: ${selectedMonthYear}\n\n` +
-                             `👥 Total Staff: ${storeStaffList.length} Orang\n` +
-                             `⭐ Rata-Rata Skor Toko: ${avgStore} Poin\n` +
-                             `📈 Persentase Kelulusan: ${completionPct}%\n\n` +
-                             `📋 *Detail Staff:*\n` +
-                             staffReportText + `\n` +
-                             `_Disimpan otomatis dari Digimap Assessment Dashboard_`;
+            tableRows.push([
+                { text: storeName, options: { fontSize: 10 } },
+                { text: `${totalStaffCount}`, options: { fontSize: 10, align: "center" } },
+                { text: `${completedStaffCount}/${totalStaffCount}`, options: { fontSize: 10, align: "center" } },
+                { text: `${avgStoreScore} Poin`, options: { fontSize: 10, align: "center", bold: true } },
+                { text: storeStatus, options: { fontSize: 10, align: "center", color: storeStatus === "Selesai 100%" ? "34C759" : (storeStatus === "Belum Submit" ? "DC2626" : "0071e3") } }
+            ]);
+        });
 
-            navigator.clipboard.writeText(reportText).then(() => {
-                alert("✅ Laporan WhatsApp toko ini berhasil disalin!");
-            }).catch(err => {
-                alert("Gagal menyalin teks: " + err);
-            });
-        })
-        .catch(err => {
-            alert("Gagal mengambil data toko: " + err);
+        slideTable.addTable(tableRows, {
+            x: 0.8, y: 1.4, w: 11.5,
+            colW: [3.2, 1.8, 2.0, 2.3, 2.2],
+            border: { pt: 0.5, color: "CBD5E1" },
+            autoPage: true,
+            paraSpaceAfter: 4
+        });
+
+        pptx.writeFile({ fileName: `Laporan_Nasional_Digimap_${selectedMonthYear}.pptx` }).then(() => {
+            alert("✅ File presentasi PowerPoint Nasional (.pptx) berhasil di-generate!");
+        }).catch(err => {
+            alert("Gagal mengunduh PPT Nasional: " + err);
         });
     }
 
@@ -1439,6 +1433,9 @@
         let sumActiveScores = 0;
         let activeStoresCount = 0;
 
+        let storeScoreArray = [];
+        let unstartedStoresList = [];
+
         allStores.forEach(storeName => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
             let totalStaffCount = storeStaff.length;
@@ -1450,32 +1447,28 @@
             });
 
             let completedStaffCount = 0;
+            let totalAccumulatedPerStaff = 0;
 
             storeStaff.forEach(emp => {
                 let empName = emp.name.trim();
                 let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
-                let empPhases = {};
-                empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = true; });
-                let uniquePhases = Object.keys(empPhases).length;
+                let empPhaseScores = {};
+                empHist.forEach(h => { if (h.phaseName) empPhaseScores[h.phaseName] = Number(h.totalScore || 0); });
+                let uniquePhases = Object.keys(empPhaseScores).length;
+                let empScore = Object.values(empPhaseScores).reduce((a, b) => a + b, 0);
+
+                totalAccumulatedPerStaff += Math.min(empScore, 108);
                 if (uniquePhases >= totalPhasesCount) completedStaffCount++;
             });
 
-            let avgStoreScore = 0;
-            if (totalStaffCount > 0 && storeHistory.length > 0) {
-                let totalAccumulatedPerStaff = 0;
-                storeStaff.forEach(emp => {
-                    let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
-                    let empPhaseScores = {};
-                    empHist.forEach(h => { if (h.phaseName) empPhaseScores[h.phaseName] = Number(h.totalScore || 0); });
-                    let empTotalScore = Object.values(empPhaseScores).reduce((a, b) => a + b, 0);
-                    totalAccumulatedPerStaff += Math.min(empTotalScore, 108);
-                });
-                avgStoreScore = Math.round(totalAccumulatedPerStaff / totalStaffCount);
-            }
+            let avgStoreScore = totalStaffCount > 0 && storeHistory.length > 0 ? Math.round(totalAccumulatedPerStaff / totalStaffCount) : 0;
 
             if (storeHistory.length > 0) {
                 sumActiveScores += avgStoreScore;
                 activeStoresCount++;
+                storeScoreArray.push({ store: storeName, score: avgStoreScore });
+            } else {
+                unstartedStoresList.push(storeName);
             }
             
             let storeStatus = "inprogress";
@@ -1507,6 +1500,31 @@
                 </tr>
             `;
         });
+
+        // RENDER LEADERBOARD (Top 3)
+        storeScoreArray.sort((a, b) => b.score - a.score);
+        let top3HTML = "";
+        if (storeScoreArray.length === 0) {
+            top3HTML = `<div style="color: var(--text-secondary);">Belum ada toko yang memiliki nilai submit pada bulan ini.</div>`;
+        } else {
+            top3HTML = `<ol style="margin: 0; padding-left: 18px;">`;
+            storeScoreArray.slice(0, 3).forEach((item, idx) => {
+                let medal = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : "🥉");
+                top3HTML += `<li style="margin-bottom: 4px;"><b>${medal} ${item.store}</b> — <span style="color: var(--primary); font-weight: bold;">${item.score} Poin</span></li>`;
+            });
+            top3HTML += `</ol>`;
+        }
+        document.getElementById('nationalLeaderboardContent').innerHTML = top3HTML;
+
+        // RENDER ALERT BOX (Belum Submit)
+        let alertHTML = "";
+        if (unstartedStoresList.length === 0) {
+            alertHTML = `<div style="color: var(--success); font-weight: 600;">🎉 Luar biasa! Seluruh toko telah aktif melakukan submit asesmen.</div>`;
+        } else {
+            alertHTML = `<div style="color: #dc2626; margin-bottom: 4px; font-weight: 600;">Terdapat ${unstartedStoresList.length} toko belum memulai asesmen:</div>`;
+            alertHTML += `<div style="max-height: 80px; overflow-y: auto; font-size: 11px; color: var(--text-secondary);">${unstartedStoresList.join(', ')}</div>`;
+        }
+        document.getElementById('nationalAlertContent').innerHTML = alertHTML;
 
         document.getElementById('statTotalStores').innerText = totalStoresCount;
         document.getElementById('statCompletedStores').innerText = completedStoresCount;
