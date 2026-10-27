@@ -106,6 +106,20 @@
             gap: 5px;
         }
 
+        .auditor-badge-btn {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .nav-tabs {
             display: flex;
             gap: 8px;
@@ -318,7 +332,7 @@
 
 <!-- TOP NAVIGATION BAR (Desktop Full-Width) -->
 <nav class="top-navbar">
-    <div class="nav-brand">
+    <div class="nav-brand" style="cursor: pointer;" onclick="promptAuditorLogin()">
         <h2>Digimap Assessment Dashboard</h2>
         <p>Monthly Assessment & National System</p>
     </div>
@@ -339,6 +353,9 @@
     </div>
 
     <div class="top-nav-right">
+        <div id="auditorIndicator" style="display: none;">
+            <button type="button" class="auditor-badge-btn" onclick="logoutAuditor()">🕵️‍♂️ Mode Auditor (Aktif)</button>
+        </div>
         <div class="widget-box">
             <span id="weatherWidgetText">📍 Surabaya: Memuat...</span>
         </div>
@@ -348,7 +365,7 @@
 
 <!-- MOBILE HEADER BAR -->
 <div class="mobile-header">
-    <h2>Digimap Dashboard</h2>
+    <h2 onclick="promptAuditorLogin()">Digimap Dashboard</h2>
     <div style="display: flex; gap: 8px; align-items: center;">
         <span id="weatherWidgetTextMobile" style="font-size: 10px; color: var(--text-secondary);">Surabaya...</span>
         <button type="button" class="theme-toggle-btn" onclick="toggleTheme()">🌙 <span id="themeTextMobile">Dark</span></button>
@@ -373,6 +390,29 @@
         <div class="form-group">
             <label>Tanggal Coaching</label>
             <input type="date" id="coachingDate" onchange="checkStaffProgress()">
+        </div>
+    </div>
+
+    <!-- PANEL KHUSUS AUDITOR / MYSTERY SHOPPER (Tampil otomatis saat PIN benar) -->
+    <div id="auditorControlPanel" style="display: none; background: rgba(124, 58, 237, 0.08); border: 2px dashed #7c3aed; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h4 style="margin: 0; color: #7c3aed; font-size: 14px;">🕵️‍♂️ Panel Kontrol Mode Auditor & Mystery Shopper</h4>
+                <p style="margin: 4px 0 0 0; font-size: 11px; color: var(--text-secondary);">Anda sedang mengakses mode khusus audit. Batasan 1x sebulan dilepas.</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <div>
+                    <label style="font-size: 10px; font-weight: 600; display: block;">Jenis Sesi:</label>
+                    <select id="sessionTypeSelect" style="padding: 6px; border: 1px solid #7c3aed; border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
+                        <option value="Coaching">Coaching Rutin</option>
+                        <option value="Mystery Shopper">🕵️‍♂️ Mystery Shopper / Audit</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 10px; font-weight: 600; display: block;">Nama Auditor:</label>
+                    <input type="text" id="auditorNameInput" value="Pak Arry" placeholder="Nama Penilai..." style="padding: 6px; border: 1px solid #7c3aed; border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -454,13 +494,14 @@
                         <thead>
                             <tr>
                                 <th>Fase Asesmen</th>
+                                <th>Jenis Sesi</th>
                                 <th>Status</th>
                                 <th>Poin</th>
-                                <th>Catatan</th>
+                                <th>Catatan / Auditor</th>
                             </tr>
                         </thead>
                         <tbody id="summaryTableBody">
-                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff di atas untuk memuat data rekap.</td></tr>
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff di atas untuk memuat data rekap.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -596,6 +637,7 @@
     let performanceChart = null;
     let allStoresChart = null;
     let currentStaffHistoryCache = [];
+    let isAuditorMode = false;
     
     const phasesData = {
         "Fase 1a: Foundation (Professional & Retail)": [
@@ -710,6 +752,27 @@
         initAllStoresChart();
     };
 
+    function promptAuditorLogin() {
+        let pin = prompt("🔐 Masukkan PIN Akses Auditor / Mystery Shopper:");
+        if (pin === "2026") {
+            isAuditorMode = true;
+            document.getElementById('auditorIndicator').style.display = 'block';
+            document.getElementById('auditorControlPanel').style.display = 'block';
+            alert("✅ Mode Auditor Berhasil Diaktifkan!\n- Batasan 1x sebulan diabaikan.\n- Sesi dapat dicatat sebagai Mystery Shopper.");
+            initDashboard();
+        } else if (pin !== null) {
+            alert("❌ PIN Salah!");
+        }
+    }
+
+    function logoutAuditor() {
+        isAuditorMode = false;
+        document.getElementById('auditorIndicator').style.display = 'none';
+        document.getElementById('auditorControlPanel').style.display = 'none';
+        alert("🔒 Mode Auditor Dinonaktifkan.");
+        initDashboard();
+    }
+
     function fetchWeather() {
         fetch('https://api.open-meteo.com/v1/forecast?latitude=-7.2575&longitude=112.7521&current_weather=true')
         .then(res => res.json())
@@ -796,7 +859,8 @@
                     if (item.staffName && item.staffName.trim().toLowerCase() === staffName.toLowerCase()) {
                         let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                         let itemMonthYear = cleanDate ? cleanDate.slice(0, 7) : "";
-                        if (item.phaseName && itemMonthYear === selectedMonthYear) {
+                        // Jika sesi adalah Coaching reguler, kunci bulanan aktif. Jika Mystery Shopper, biarkan terbuka.
+                        if (item.phaseName && itemMonthYear === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching")) {
                             completedPhases[item.phaseName] = true;
                         }
                     }
@@ -872,7 +936,7 @@
         const date = document.getElementById('coachingDate').value;
 
         if (!store || !staff || !date) {
-            alert('⚠️ Untuk mulai coaching, mohon isi Toko, Nama Staff, dan Tanggal Coaching terlebih dahulu!');
+            alert('⚠️ Untuk mulai asesmen, mohon isi Toko, Nama Staff, dan Tanggal terlebih dahulu!');
             return false;
         }
         return true;
@@ -881,8 +945,8 @@
     function openPhase(phaseName) {
         if (!validateMetaForCoaching()) return;
 
-        if (completedPhases[phaseName]) {
-            alert(`⚠️ BATAS PENILAIAN BULAN INI\n\nFase "${phaseName}" untuk staff ini sudah diselesaikan dan hanya dapat dilakukan 1 kali dalam bulan ini.\n\nSilakan hubungi Regional Trainer apabila memerlukan penyesuaian data.`);
+        if (completedPhases[phaseName] && !isAuditorMode) {
+            alert(`⚠️ BATAS PENILAIAN BULAN INI\n\nFase "${phaseName}" untuk staff ini sudah diselesaikan dan hanya dapat dilakukan 1 kali dalam bulan ini.\n\n(Gunakan Mode Auditor PIN 2026 jika ingin melakukan sidak / Mystery Shopper).`);
             return;
         }
 
@@ -941,13 +1005,11 @@
         const coachingDate = document.getElementById('coachingDate').value;
         let total = Object.values(scores).reduce((a, b) => a + b, 0);
 
-        if (!coachingDate) {
-            alert('⚠️ Mohon tentukan Tanggal Coaching terlebih dahulu!');
-            return;
-        }
+        let jenisSesi = isAuditorMode ? document.getElementById('sessionTypeSelect').value : "Coaching";
+        let auditor = isAuditorMode ? document.getElementById('auditorNameInput').value.trim() : "-";
 
-        if (completedPhases[activePhaseKey]) {
-            alert(`⚠️ BATAS PENILAIAN BULAN INI\n\nFase "${activePhaseKey}" untuk staff ini sudah diselesaikan dan hanya dapat dilakukan 1 kali dalam bulan ini.\n\nSilakan hubungi Regional Trainer apabila memerlukan penyesuaian data.`);
+        if (!coachingDate) {
+            alert('⚠️ Mohon tentukan Tanggal terlebih dahulu!');
             return;
         }
 
@@ -958,10 +1020,12 @@
             phaseName: activePhaseKey,
             totalScore: total,
             scores: scores,
-            notes: notes
+            notes: notes,
+            jenisSesi: jenisSesi,
+            auditor: auditor
         };
 
-        alert('Mengirim data fase beserta catatan ke Google Sheets...');
+        alert('Mengirim data fase beserta catatan & jenis sesi ke Google Sheets...');
 
         fetch(WEB_APP_URL, {
             method: 'POST',
@@ -970,8 +1034,10 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            completedPhases[activePhaseKey] = true;
-            alert(`✅ Sukses! Fase "${activePhaseKey}" beserta catatannya tersimpan.`);
+            if (jenisSesi === "Coaching") {
+                completedPhases[activePhaseKey] = true;
+            }
+            alert(`✅ Sukses! Fase "${activePhaseKey}" (${jenisSesi}) tersimpan.`);
             backToDashboard();
         })
         .catch(error => { alert('Gagal mengirim data: ' + error); });
@@ -1059,14 +1125,14 @@
         }
 
         if (!store) {
-            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas untuk melihat rekap nilai.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas untuk melihat rekap nilai.</td></tr>`;
             storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas.</td></tr>`;
             document.getElementById('summaryStoreAvgScore').innerText = `0 Poin`;
             document.getElementById('summaryStoreCompletion').innerText = `0%`;
             return;
         }
 
-        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Sedang memuat rekap data dari Google Sheets...</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Sedang memuat rekap data dari Google Sheets...</td></tr>`;
         storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Sedang memuat progress staff toko...</td></tr>`;
 
         let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}`;
@@ -1086,13 +1152,19 @@
             if (staffName) {
                 let phaseScoresMap = {};
                 let phaseNotesMap = {};
+                let phaseSessionMap = {};
+                let phaseAuditorMap = {};
+
                 historyData.forEach(item => {
                     if (item.staffName && item.staffName.toLowerCase() === staffName.toLowerCase() && item.phaseName) {
                         let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                         let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
                         if (itemMonth === selectedMonthYear) {
+                            // Ambil yang terbaru atau prioritaskan jika ada Mystery Shopper
                             phaseScoresMap[item.phaseName] = Number(item.totalScore || 0);
                             if (item.notes) phaseNotesMap[item.phaseName] = item.notes;
+                            phaseSessionMap[item.phaseName] = item.jenisSesi || "Coaching";
+                            phaseAuditorMap[item.phaseName] = item.auditor || "-";
                         }
                     }
                 });
@@ -1101,19 +1173,26 @@
                     let phaseScore = phaseScoresMap[phaseName] !== undefined ? phaseScoresMap[phaseName] : 0;
                     let isDone = phaseScoresMap[phaseName] !== undefined;
                     let notesText = phaseNotesMap[phaseName] ? phaseNotesMap[phaseName] : '-';
+                    let sessionType = phaseSessionMap[phaseName] || "Coaching";
+                    let auditorName = phaseAuditorMap[phaseName] || "-";
 
-                    if (isDone) completedCount++;
+                    if (isDone && sessionType === "Coaching") completedCount++;
                     totalOverallScore += phaseScore;
                     chartScores[index] = phaseScore;
+
+                    let sessionBadge = sessionType === "Mystery Shopper" 
+                        ? '<span style="background: #7c3aed; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">🕵️‍♂️ Mystery Shopper</span>' 
+                        : '<span style="color: var(--primary); font-weight: 600;">Coaching</span>';
 
                     let statusBadge = isDone ? '<span style="color:var(--success); font-weight:600;">Selesai ✓</span>' : '<span style="color:var(--text-secondary);">Belum</span>';
 
                     tableBody.innerHTML += `
                         <tr>
                             <td style="font-weight: 600;">${phaseName}</td>
+                            <td>${sessionBadge}</td>
                             <td>${statusBadge}</td>
                             <td style="text-align: center; font-weight: 600;">${phaseScore} Poin</td>
-                            <td style="font-size: 11px; color: var(--text-secondary);">${notesText}</td>
+                            <td style="font-size: 11px; color: var(--text-secondary);">${notesText} <br><i>(Auditor: ${auditorName})</i></td>
                         </tr>
                     `;
                 });
@@ -1127,7 +1206,7 @@
                     performanceChart.update();
                 }
             } else {
-                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Pilih <b>Nama Staff</b> di atas untuk melihat detail per fase dan grafik perorangan.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Pilih <b>Nama Staff</b> di atas untuk melihat detail per fase dan grafik perorangan.</td></tr>`;
                 document.getElementById('summaryTotalScore').innerText = `0 / 100`;
                 document.getElementById('summaryCompletedPhases').innerText = `0 / ${phaseKeys.length}`;
                 if (performanceChart) {
@@ -1158,7 +1237,7 @@
                 empHistory.forEach(item => {
                     let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                     let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                    if (item.phaseName && itemMonth === selectedMonthYear) {
+                    if (item.phaseName && itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching")) {
                         empPhaseMap[item.phaseName] = Number(item.totalScore || 0);
                         if (cleanDate) empDatesSet.add(cleanDate);
                     }
@@ -1201,7 +1280,7 @@
         })
         .catch(err => {
             console.log("Gagal memuat riwayat:", err);
-            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #dc2626;">Gagal mengambil data riwayat dari Google Sheets.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Gagal mengambil data riwayat dari Google Sheets.</td></tr>`;
             storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Gagal mengambil data progress staff.</td></tr>`;
         });
     }
@@ -1342,7 +1421,7 @@
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching");
             });
 
             let completedStaffCount = 0;
@@ -1443,7 +1522,7 @@
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching");
             });
 
             let completedStaffCount = 0;
@@ -1556,7 +1635,7 @@
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching");
             });
 
             let completedStaffCount = 0;
@@ -1609,7 +1688,7 @@
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && (!item.jenisSesi || item.jenisSesi === "Coaching");
             });
 
             let completedStaffCount = 0;
