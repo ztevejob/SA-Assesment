@@ -555,7 +555,7 @@
     <!-- TAB 3: DASHBOARD SEMUA TOKO -->
     <div id="allStoresTab" class="tab-content">
         <div class="summary-container">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
                 <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOTAL TOKO</div>
                     <div id="statTotalStores" style="font-size: 18px; font-weight: 700; color: var(--primary); margin-top: 4px;">0</div>
@@ -572,28 +572,25 @@
                     <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">TOKO AKTIF SUBMIT</div>
                     <div id="statActiveStores" style="font-size: 18px; font-weight: 700; color: #f59e0b; margin-top: 4px;">0 Toko</div>
                 </div>
-                <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">RATA-RATA SKOR</div>
-                    <div id="statAvgScore" style="font-size: 18px; font-weight: 700; color: #a21caf; margin-top: 4px;">0 Poin</div>
-                </div>
             </div>
 
-            <!-- LEADERBOARD & ALERT BOX SECTION -->
+            <div class="summary-card" style="margin: 0;">
+                <h3 style="color: var(--success); margin-bottom: 8px;">🏆 Leaderboard Top 3 Toko (Nasional)</h3>
+                <div id="nationalLeaderboardContent" style="font-size: 12px; color: var(--text);">Memuat leaderboard...</div>
+            </div>
+
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
                 <div class="summary-card" style="margin: 0;">
-                    <h3 style="color: var(--success); margin-bottom: 8px;">🏆 Leaderboard Top 3 Toko (Nasional)</h3>
-                    <div id="nationalLeaderboardContent" style="font-size: 12px; color: var(--text);">Memuat leaderboard...</div>
+                    <h3>📊 Status Pengerjaan Toko Nasional</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="allStoresChart"></canvas>
+                    </div>
                 </div>
                 <div class="summary-card" style="margin: 0;">
-                    <h3 style="color: #dc2626; margin-bottom: 8px;">⚠️ Toko Perhatian Khusus (Belum Submit)</h3>
-                    <div id="nationalAlertContent" style="font-size: 12px; color: var(--text);">Memuat daftar atensi...</div>
-                </div>
-            </div>
-
-            <div class="summary-card">
-                <h3>📊 Grafik Persebaran Status Pengerjaan Toko Nasional</h3>
-                <div class="chart-wrapper">
-                    <canvas id="allStoresChart"></canvas>
+                    <h3>📈 Capaian Rata-Rata Nasional per Fase</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="phaseDoughnutChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -671,12 +668,13 @@
 </main>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwq8487l1pkpZWMGUk4zVH9tOsQ-K64iE1My7usZY3kvvsZPO59nNHHFss7pPY0p1Iv/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxLZ6G2b9EGCbSAXhCCrvwXFlCUUMWMXGi7Tbua9RwIWKZVMt0AtV3RVWuU1-We9uHy/exec";
 
     let masterEmployees = [];
     let globalHistoryData = [];
     let performanceChart = null;
     let allStoresChart = null;
+    let phaseDoughnutChart = null;
     let currentStaffHistoryCache = [];
     let isAuditorMode = false;
     
@@ -791,6 +789,7 @@
         initDashboard();
         initChart();
         initAllStoresChart();
+        initPhaseDoughnutChart();
     };
 
     function promptAuditorLogin() {
@@ -1030,7 +1029,6 @@
 
         activePhaseKey = phaseName;
         
-        // RESET SCORES & NOTES AGAR TIDAK TERCAMPUR DARI FASE LAIN
         for (let key in scores) delete scores[key];
         for (let key in notes) delete notes[key];
 
@@ -1097,17 +1095,21 @@
         let phaseNotes = {};
         let total = 0;
 
-        // 1. HITUNG BOBOT MAKSIMAL SAH UNTUK FASE INI SECARA OTOMATIS
         let maxAllowedScore = currentPhaseItems.reduce((sum, item) => sum + item.max, 0);
 
         currentPhaseItems.forEach(item => {
             let sc = scores[item.id] || 0;
             phaseScores[item.id] = sc;
-            phaseNotes[item.id] = notes[item.id] || "";
+            
+            // HANYA SIMPAN CATATAN YANG TIDAK KOSONG
+            let noteVal = notes[item.id] ? notes[item.id].trim() : "";
+            if (noteVal !== "") {
+                phaseNotes[item.id] = noteVal;
+            }
+
             total += sc;
         });
 
-        // 2. SAFEGUARD: Kunci agar total poin tidak bisa melebihi batas maksimal fase
         if (total > maxAllowedScore) {
             total = maxAllowedScore;
         }
@@ -1122,7 +1124,7 @@
             phaseName: activePhaseKey,
             totalScore: total,
             scores: phaseScores,
-            notes: phaseNotes,
+            notes: phaseNotes, // Hanya berisi nomor soal yang dikomentari
             jenisSesi: jenisSesi,
             auditor: auditor
         };
@@ -1214,6 +1216,43 @@
         });
     }
 
+    function initPhaseDoughnutChart() {
+        const ctx = document.getElementById('phaseDoughnutChart').getContext('2d');
+        phaseDoughnutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(phasesData).map(name => name.split(':')[0]),
+                datasets: [{
+                    data: new Array(Object.keys(phasesData).length).fill(0),
+                    backgroundColor: [
+                        '#0071e3', '#34c759', '#f59e0b', '#7c3aed', '#ea580c', 
+                        '#06b6d4', '#ec4899', '#84cc16', '#6366f1', '#14b8a6'
+                    ],
+                    borderWidth: 2,
+                    borderColor: 'var(--card)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { boxWidth: 10, font: { size: 9 } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.label}: ${context.raw}% Capaian`;
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+
     function updateSummaryView() {
         const store = document.getElementById('storeInput').value.trim();
         const staffName = document.getElementById('staffInput').value.trim();
@@ -1283,7 +1322,6 @@
                     }
                 });
 
-                // Render Tabel Coaching Rutin (10 Fase)
                 phaseKeys.forEach((phaseName, index) => {
                     let phaseScore = coachingPhaseScoresMap[phaseName] !== undefined ? coachingPhaseScoresMap[phaseName] : 0;
                     let isDone = coachingPhaseScoresMap[phaseName] !== undefined;
@@ -1305,7 +1343,6 @@
                     `;
                 });
 
-                // Render Tabel Audit / Mystery Shopper Terpisah
                 if (auditList.length === 0) {
                     auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Belum ada riwayat audit Mystery Shopper untuk staff ini pada bulan ${selectedMonthYear}.</td></tr>`;
                 } else {
@@ -1721,7 +1758,6 @@
         let completedStoresCount = 0;
         let inProgressStoresCount = 0;
         let unstartedStoresCount = 0;
-        let sumActiveScores = 0;
         let activeStoresCount = 0;
 
         let storeScoreArray = [];
@@ -1756,7 +1792,6 @@
             let avgStoreScore = totalStaffCount > 0 && storeHistory.length > 0 ? Math.round(totalAccumulatedPerStaff / totalStaffCount) : 0;
 
             if (storeHistory.length > 0) {
-                sumActiveScores += avgStoreScore;
                 activeStoresCount++;
                 storeScoreArray.push({ store: storeName, score: avgStoreScore });
             } else {
@@ -1793,7 +1828,7 @@
             `;
         });
 
-        // HITUNG RATA-RATA NASIONAL PER FASE (Hanya dari sesi Coaching)
+        // HITUNG RATA-RATA NASIONAL PER FASE
         let phaseMaxMap = {};
         Object.keys(phasesData).forEach(pName => {
             phaseMaxMap[pName] = phasesData[pName].reduce((sum, item) => sum + item.max, 0);
@@ -1820,12 +1855,14 @@
         });
 
         let phaseAvgHTML = "";
+        let phasePercentages = [];
         Object.keys(phasesData).forEach(pName => {
             let totalS = phaseScoresSum[pName] || 0;
             let count = phaseCounts[pName] || 0;
             let avg = count > 0 ? (totalS / count).toFixed(1) : 0;
             let maxP = phaseMaxMap[pName] || 0;
             let pct = maxP > 0 ? Math.round((avg / maxP) * 100) : 0;
+            phasePercentages.push(pct);
             let colorStyle = pct >= 80 ? "color: var(--success);" : (pct >= 60 ? "color: var(--primary);" : "color: #dc2626;");
 
             phaseAvgHTML += `
@@ -1853,26 +1890,19 @@
         }
         document.getElementById('nationalLeaderboardContent').innerHTML = top3HTML;
 
-        let alertHTML = "";
-        if (unstartedStoresList.length === 0) {
-            alertHTML = `<div style="color: var(--success); font-weight: 600;">🎉 Luar biasa! Seluruh toko telah aktif melakukan submit asesmen.</div>`;
-        } else {
-            alertHTML = `<div style="color: #dc2626; margin-bottom: 4px; font-weight: 600;">Terdapat ${unstartedStoresList.length} toko belum memulai asesmen:</div>`;
-            alertHTML += `<div style="max-height: 80px; overflow-y: auto; font-size: 11px; color: var(--text-secondary);">${unstartedStoresList.join(', ')}</div>`;
-        }
-        document.getElementById('nationalAlertContent').innerHTML = alertHTML;
-
         document.getElementById('statTotalStores').innerText = totalStoresCount;
         document.getElementById('statCompletedStores').innerText = completedStoresCount;
         document.getElementById('statUnstartedStores').innerText = unstartedStoresCount;
         document.getElementById('statActiveStores').innerText = `${activeStoresCount} Toko`;
-        
-        let avgNationalScore = activeStoresCount > 0 ? Math.round(sumActiveScores / activeStoresCount) : 0;
-        document.getElementById('statAvgScore').innerText = `${avgNationalScore} Poin`;
 
         if (allStoresChart) {
             allStoresChart.data.datasets[0].data = [completedStoresCount, inProgressStoresCount, unstartedStoresCount];
             allStoresChart.update();
+        }
+
+        if (phaseDoughnutChart) {
+            phaseDoughnutChart.data.datasets[0].data = phasePercentages;
+            phaseDoughnutChart.update();
         }
 
         tableBody.innerHTML = htmlRows || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Tidak ada data toko yang sesuai dengan filter status tersebut.</td></tr>`;
