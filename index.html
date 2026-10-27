@@ -754,7 +754,7 @@
 
     function promptAuditorLogin() {
         let pin = prompt("🔐 Masukkan PIN Akses Auditor / Mystery Shopper:");
-        if (pin === "2026") {
+        if (pin === "3333") {
             isAuditorMode = true;
             document.getElementById('auditorIndicator').style.display = 'block';
             document.getElementById('auditorControlPanel').style.display = 'block';
@@ -945,7 +945,7 @@
         if (!validateMetaForCoaching()) return;
 
         if (completedPhases[phaseName] && !isAuditorMode) {
-            alert(`⚠️ BATAS PENILAIAN BULAN INI\n\nFase "${phaseName}" untuk staff ini sudah diselesaikan dan hanya dapat dilakukan 1 kali dalam bulan ini.\n\n(Gunakan Mode Auditor PIN 2026 jika ingin melakukan sidak / Mystery Shopper).`);
+            alert(`⚠️ BATAS PENILAIAN BULAN INI\n\nFase "${phaseName}" untuk staff ini sudah diselesaikan dan hanya dapat dilakukan 1 kali dalam bulan ini.`);
             return;
         }
 
@@ -998,9 +998,6 @@
 
     function setNote(itemId, val) { notes[itemId] = val; }
 
-    // ==========================================
-    // PERBAIKAN UTAMA: SUBMIT HANYA UNTUK FASE AKTIF
-    // ==========================================
     function submitCurrentPhase() {
         const store = document.getElementById('storeInput').value.trim();
         const staffName = document.getElementById('staffInput').value.trim();
@@ -1011,7 +1008,6 @@
             return;
         }
 
-        // Ambil dan hitung HANYA untuk item soal di fase aktif ini saja
         let currentPhaseItems = phasesData[activePhaseKey];
         let phaseScores = {};
         let phaseNotes = {};
@@ -1032,8 +1028,8 @@
             staffName: staffName,
             coachingDate: coachingDate,
             phaseName: activePhaseKey,
-            totalScore: total,         // Total skor murni hanya untuk fase ini
-            scores: phaseScores,       // Detail skor murni hanya untuk fase ini
+            totalScore: total,
+            scores: phaseScores,
             notes: phaseNotes,
             jenisSesi: jenisSesi,
             auditor: auditor
@@ -1298,7 +1294,6 @@
         });
     }
 
-    // FUNGSI EXPORT KE PPT (DENGAN EXECUTIVE SUMMARY & ACTION PLAN)
     function exportToPPT() {
         const store = document.getElementById('storeInput').value.trim();
         const staffName = document.getElementById('staffInput').value.trim();
@@ -1418,7 +1413,6 @@
         });
     }
 
-    // FUNGSI EXPORT KE PPT NASIONAL
     function exportNationalPPT() {
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
