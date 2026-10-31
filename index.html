@@ -1097,6 +1097,7 @@
         let phaseNotes = {};
         let total = 0;
 
+        // KUNCI PENGAMAN: Hitung otomatis batas maksimal bobot fase dari master data
         let maxAllowedScore = currentPhaseItems.reduce((sum, item) => sum + item.max, 0);
 
         currentPhaseItems.forEach(item => {
@@ -1111,6 +1112,7 @@
             total += sc;
         });
 
+        // VALIDASI KETAT (CLAMP): Jika total akumulasi melebihi bobot fase, kunci pas otomatis!
         if (total > maxAllowedScore) {
             total = maxAllowedScore;
         }
@@ -1130,7 +1132,7 @@
             auditor: auditor
         };
 
-        alert(`Mengirim data ${activePhaseKey} (Skor: ${total} / Max: ${maxAllowedScore}) ke Google Sheets...`);
+        alert(`Mengirim data ${activePhaseKey} (Skor Terkunci: ${total} / Max: ${maxAllowedScore}) ke Google Sheets...`);
 
         fetch(WEB_APP_URL, {
             method: 'POST',
