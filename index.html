@@ -574,9 +574,24 @@
                 </div>
             </div>
 
+            <!-- LEADERBOARD TOP 10 TOKO NASIONAL (DALAM BENTUK TABEL) -->
             <div class="summary-card" style="margin: 0;">
-                <h3 style="color: var(--success); margin-bottom: 8px;">🏆 Leaderboard Top 3 Toko (Nasional)</h3>
-                <div id="nationalLeaderboardContent" style="font-size: 12px; color: var(--text);">Memuat leaderboard...</div>
+                <h3 style="color: var(--success); margin-bottom: 8px;">🏆 Leaderboard Top 10 Toko (Nasional)</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Peringkat</th>
+                                <th>Nama Toko</th>
+                                <th>Staff Selesai / Total Staff</th>
+                                <th>Rata-Rata Skor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nationalLeaderboardTableBody">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Memuat leaderboard...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
@@ -614,8 +629,15 @@
                 </div>
             </div>
 
+            <!-- TOOLBAR FILTER NASIONAL (DROPDOWN BULAN) -->
             <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+                    <div style="min-width: 170px;">
+                        <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">📅 Filter Bulan:</label>
+                        <select id="allStoresMonthFilter" onchange="renderAllStoresDashboard()" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
+                            <!-- Opsi bulan akan di-generate otomatis via JavaScript -->
+                        </select>
+                    </div>
                     <div style="min-width: 180px;">
                         <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">🔍 Cari Toko:</label>
                         <input type="text" id="allStoresSearchInput" placeholder="Ketik nama toko..." oninput="renderAllStoresDashboard()" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
@@ -770,7 +792,12 @@
     let activePhaseKey = "";
 
     window.onload = function() {
-        document.getElementById('coachingDate').value = new Date().toISOString().slice(0, 10);
+        let todayStr = new Date().toISOString().slice(0, 10);
+        document.getElementById('coachingDate').value = todayStr;
+        
+        // Populate dropdown bulan (12 bulan ke belakang hingga 3 bulan ke depan)
+        populateMonthDropdown();
+
         fetchWeather();
 
         fetch(WEB_APP_URL)
@@ -791,6 +818,41 @@
         initAllStoresChart();
         initPhaseDoughnutChart();
     };
+
+    function populateMonthDropdown() {
+        const monthSelect = document.getElementById('allStoresMonthFilter');
+        monthSelect.innerHTML = '';
+
+        const monthNames = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+
+        let currentDate = new Date();
+        let currentYear = currentDate.getFullYear();
+        let currentMonth = currentDate.getMonth(); // 0 - 11
+
+        // Generate rentang dari 1 tahun lalu hingga 1 tahun ke depan
+        for (let y = currentYear - 1; y <= currentYear + 1; y++) {
+            for (let m = 0; m < 12; m++) {
+                let monthFormatted = String(m + 1).padStart(2, '0');
+                let valueStr = `${y}-${monthFormatted}`;
+                let labelStr = `${monthNames[m]} ${y}`;
+
+                let opt = document.createElement('option');
+                opt.value = valueStr;
+                opt.text = labelStr;
+
+                // Set default terpilih ke bulan berjalan saat ini
+                let currentValStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+                if (valueStr === currentValStr) {
+                    opt.selected = true;
+                }
+
+                monthSelect.appendChild(opt);
+            }
+        }
+    }
 
     function promptAuditorLogin() {
         let pin = prompt("🔐 Masukkan PIN Akses Auditor / Mystery Shopper:");
@@ -1097,7 +1159,6 @@
         let phaseNotes = {};
         let total = 0;
 
-        // KUNCI PENGAMAN: Hitung otomatis batas maksimal bobot fase dari master data
         let maxAllowedScore = currentPhaseItems.reduce((sum, item) => sum + item.max, 0);
 
         currentPhaseItems.forEach(item => {
@@ -1112,7 +1173,6 @@
             total += sc;
         });
 
-        // VALIDASI KETAT (CLAMP): Jika total akumulasi melebihi bobot fase, kunci pas otomatis!
         if (total > maxAllowedScore) {
             total = maxAllowedScore;
         }
@@ -1587,20 +1647,17 @@
     function exportNationalPPT() {
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
-        let selectedDate = document.getElementById('coachingDate').value;
-        let selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
+        let selectedMonthYear = document.getElementById('allStoresMonthFilter').value || new Date().toISOString().slice(0, 7);
 
         let pptx = new PptxGenJS();
         pptx.layout = 'LAYOUT_16x9';
 
-        // SLIDE 1: COVER
         let slideCover = pptx.addSlide();
         slideCover.background = { color: "0071e3" };
         slideCover.addText("LAPORAN EKSEKUTIF ASESMEN NASIONAL", { x: 0.5, y: 1.5, w: 9.0, h: 0.8, fontSize: 24, bold: true, color: "FFFFFF" });
         slideCover.addText("Rekapitulasi Performa & Progress Seluruh Toko Digimap", { x: 0.5, y: 2.3, w: 9.0, h: 0.5, fontSize: 15, color: "E2E8F0" });
         slideCover.addText(`Periode Bulan: ${selectedMonthYear}   |   Total Toko Terdaftar: ${allStores.length}`, { x: 0.5, y: 4.2, w: 9.0, h: 0.5, fontSize: 12, color: "F8FAFC", italic: true });
 
-        // HITUNG DATA REKAPITULASI NASIONAL
         let completedStores = 0;
         let inProgressStores = 0;
         let unstartedStores = 0;
@@ -1650,7 +1707,6 @@
         let natAvg = activeStoresCount > 0 ? Math.round(sumScores / activeStoresCount) : 0;
         let nationalCompletionPct = allStores.length > 0 ? Math.round((completedStores / allStores.length) * 100) : 0;
 
-        // SLIDE 2: EXECUTIVE SUMMARY METRICS
         let slideExecNat = pptx.addSlide();
         slideExecNat.addText("Ringkasan Eksekutif & Summary KPI Nasional", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
 
@@ -1673,7 +1729,6 @@
         slideExecNat.addText("💡 Poin Sorotan Manajemen Pusat:", { x: 0.7, y: 4.0, w: 8.6, h: 0.25, fontSize: 11, bold: true, color: "1E293B" });
         slideExecNat.addText(`• Sebanyak ${completedStores} dari ${allStores.length} toko (${nationalCompletionPct}%) telah menyelesaikan seluruh rangkaian asesmen harian.\n• Terdapat ${unstartedStores} toko yang belum melakukan submit dan membutuhkan pengawasan khusus dari Partner Trainer / Area Manager.`, { x: 0.7, y: 4.3, w: 8.6, h: 0.8, fontSize: 10, color: "475569", lineSpacing: 14 });
 
-        // SLIDE 3: TOP 10 LEADERBOARD TOKO NASIONAL
         let slideLeaderboard = pptx.addSlide();
         slideLeaderboard.addText("🏆 Top 10 Leaderboard Toko Nasional", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
 
@@ -1706,7 +1761,6 @@
             autoPage: false
         });
 
-        // SLIDE 4: 📈 RATA-RATA SKOR NASIONAL PER FASE ASESMEN
         let slidePhaseAvg = pptx.addSlide();
         slidePhaseAvg.addText("📈 Rata-Rata Skor Nasional per Fase Asesmen", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
 
@@ -1766,7 +1820,6 @@
             autoPage: false
         });
 
-        // SLIDE 5: 🏢 REKAPITULASI PERFORMA & PROGRESS SELURUH TOKO NASIONAL
         let slideAllStores = pptx.addSlide();
         slideAllStores.addText("🏢 Rekapitulasi Performa & Progress Seluruh Toko Nasional", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
 
@@ -1827,7 +1880,6 @@
             paraSpaceAfter: 4
         });
 
-        // GENERATE DAN UNDUH FILE PPT
         pptx.writeFile({ fileName: `Laporan_Eksekutif_Nasional_Digimap_${selectedMonthYear}.pptx` }).then(() => {
             alert("✅ File presentasi PowerPoint (.pptx) Laporan Nasional berhasil di-generate!");
         }).catch(err => {
@@ -1853,10 +1905,10 @@
 
     function renderAllStoresDashboard() {
         const tableBody = document.getElementById('allStoresTableBody');
+        const leaderboardTableBody = document.getElementById('nationalLeaderboardTableBody');
         const searchVal = document.getElementById('allStoresSearchInput').value.trim().toLowerCase();
         const statusFilter = document.getElementById('allStoresStatusFilter').value;
-        const selectedDate = document.getElementById('coachingDate').value;
-        let selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
+        const selectedMonthYear = document.getElementById('allStoresMonthFilter').value || new Date().toISOString().slice(0, 7);
 
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         
@@ -1911,9 +1963,10 @@
 
             if (storeHistory.length > 0) {
                 activeStoresCount++;
-                storeScoreArray.push({ store: storeName, score: avgStoreScore });
+                storeScoreArray.push({ store: storeName, score: avgStoreScore, staffDone: completedStaffCount, totalStaff: totalStaffCount });
             } else {
                 unstartedStoresList.push(storeName);
+                storeScoreArray.push({ store: storeName, score: 0, staffDone: 0, totalStaff: totalStaffCount });
             }
             
             let storeStatus = "inprogress";
@@ -1946,7 +1999,6 @@
             `;
         });
 
-        // HITUNG RATA-RATA NASIONAL PER FASE
         let phaseMaxMap = {};
         Object.keys(phasesData).forEach(pName => {
             phaseMaxMap[pName] = phasesData[pName].reduce((sum, item) => sum + item.max, 0);
@@ -1995,18 +2047,26 @@
         document.getElementById('phaseAverageTableBody').innerHTML = phaseAvgHTML;
 
         storeScoreArray.sort((a, b) => b.score - a.score);
-        let top3HTML = "";
-        if (storeScoreArray.length === 0) {
-            top3HTML = `<div style="color: var(--text-secondary);">Belum ada toko yang memiliki nilai submit pada bulan ini.</div>`;
+        let top10TableHTML = "";
+        let top10List = storeScoreArray.slice(0, 10);
+
+        if (top10List.length === 0 || top10List.every(i => i.score === 0)) {
+            leaderboardTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Belum ada data skor toko pada bulan ${selectedMonthYear}.</td></tr>`;
         } else {
-            top3HTML = `<ol style="margin: 0; padding-left: 18px;">`;
-            storeScoreArray.slice(0, 3).forEach((item, idx) => {
-                let medal = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : "🥉");
-                top3HTML += `<li style="margin-bottom: 4px;"><b>${medal} ${item.store}</b> — <span style="color: var(--primary); font-weight: bold;">${item.score} Poin</span></li>`;
+            top10List.forEach((item, idx) => {
+                let rankBadge = idx === 0 ? "🥇 Rank 1" : (idx === 1 ? "🥈 Rank 2" : (idx === 2 ? "🥉 Rank 3" : `Rank ${idx + 1}`));
+                
+                top10TableHTML += `
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">${rankBadge}</td>
+                        <td style="font-weight: 600;">${item.store}</td>
+                        <td style="text-align: center;">${item.staffDone} / ${item.totalStaff} Selesai</td>
+                        <td style="text-align: center; font-weight: bold; color: var(--primary);">${item.score} Poin</td>
+                    </tr>
+                `;
             });
-            top3HTML += `</ol>`;
+            leaderboardTableBody.innerHTML = top10TableHTML;
         }
-        document.getElementById('nationalLeaderboardContent').innerHTML = top3HTML;
 
         document.getElementById('statTotalStores').innerText = totalStoresCount;
         document.getElementById('statCompletedStores').innerText = completedStoresCount;
@@ -2029,8 +2089,7 @@
     function exportToCSV() {
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
-        let selectedDate = document.getElementById('coachingDate').value;
-        let selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
+        let selectedMonthYear = document.getElementById('allStoresMonthFilter').value || new Date().toISOString().slice(0, 7);
 
         let csvContent = "Nama Toko,Jumlah Staff,Staff Selesai,Rata-Rata Skor,Status\n";
 
@@ -2080,8 +2139,7 @@
     function copyReportForWhatsApp() {
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
-        let selectedDate = document.getElementById('coachingDate').value;
-        let selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
+        let selectedMonthYear = document.getElementById('allStoresMonthFilter').value || new Date().toISOString().slice(0, 7);
         
         let totalStoresCount = allStores.length;
         let completedStoresCount = 0;
