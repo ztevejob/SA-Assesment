@@ -188,37 +188,43 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Loading Bar Indicator Styling */
+        /* Gauge Progress Bar Loading Indicator */
         .loading-bar-wrapper {
             display: none;
             width: 100%;
             background: var(--gray-bg);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 15px;
             margin-bottom: 20px;
-            text-align: center;
+            box-sizing: border-box;
         }
         .loading-bar-wrapper.active {
             display: block;
         }
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(0, 113, 227, 0.2);
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 0.8s ease-in-out infinite;
+        .loading-gauge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 8px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .loading-text {
             font-size: 12px;
             font-weight: 600;
-            color: var(--text-secondary);
+            color: var(--text);
+        }
+        .loading-gauge-track {
+            width: 100%;
+            height: 12px;
+            background-color: var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        .loading-gauge-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 6px;
+            transition: width 0.3s ease;
         }
 
         .phase-grid {
@@ -595,10 +601,15 @@
 
     <!-- TAB 1: LEMBAR PENILAIAN -->
     <div id="assessmentTab" class="tab-content active">
-        <!-- Loading Bar untuk Menu Penilaian -->
+        <!-- Gauge Progress Bar Loading untuk Menu Penilaian -->
         <div id="assessmentLoadingBar" class="loading-bar-wrapper">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">Sedang memuat data progress & riwayat staff dari server...</div>
+            <div class="loading-gauge-header">
+                <span>🔄 Mengambil data progress & riwayat staff dari server...</span>
+                <span id="assessmentLoadingPct">0%</span>
+            </div>
+            <div class="loading-gauge-track">
+                <div id="assessmentLoadingFill" class="loading-gauge-fill"></div>
+            </div>
         </div>
 
         <div id="dashboardView">
@@ -621,10 +632,15 @@
 
     <!-- TAB 2: SUMMARY & CHART ANALITIK -->
     <div id="summaryTab" class="tab-content">
-        <!-- Loading Bar untuk Menu Summary -->
+        <!-- Gauge Progress Bar Loading untuk Menu Summary -->
         <div id="summaryLoadingBar" class="loading-bar-wrapper">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">Mengambil rekapitulasi coaching & data analitik toko...</div>
+            <div class="loading-gauge-header">
+                <span>📊 Mengambil rekapitulasi coaching & data analitik toko...</span>
+                <span id="summaryLoadingPct">0%</span>
+            </div>
+            <div class="loading-gauge-track">
+                <div id="summaryLoadingFill" class="loading-gauge-fill"></div>
+            </div>
         </div>
 
         <div class="summary-container">
@@ -995,8 +1011,8 @@
     let currentStaffHistoryCache = [];
     let isAuditorMode = false;
 
-    // Fallback daftar toko lengkap (termasuk M118 sampai M297) jika offline / master kosong
-    const fallbackStores = [
+    // Daftar Lengkap 104 Toko Digimap (M118 s.d. M297)
+    const additionalStores = [
         "M118 Digimap Pondok Indah Mall 3", "M119 Digimap Centrepoint Mall Medan", "M120 Digimap Sun Plaza Medan", 
         "M121 Digimap Tunjungan Plaza 3 Surabaya", "M122 Digimap Galaxy Mall Surabaya", "M123 Digimap Mall Bali Galeria", 
         "M124 Digimap Pacific Place", "M125 Digimap Supermall Karawaci", "M126 Digimap Ciputra World Surabaya", 
@@ -1132,22 +1148,58 @@
         
         populateMonthDropdowns();
         fetchWeather();
-        setupStoresDropdown(fallbackStores);
 
-        // Fetch data master karyawan dari Google Apps Script
+        fetchMasterAndStores();
+        initDashboard();
+        initChart();
+        initAllStoresChart();
+        initPhaseDoughnutChart();
+    };
+
+    function updateGaugeLoading(barId, fillId, pctId, percent, text) {
+        const bar = document.getElementById(barId);
+        const fill = document.getElementById(fillId);
+        const pct = document.getElementById(pctId);
+        if (bar && fill && pct) {
+            bar.classList.add('active');
+            fill.style.width = percent + '%';
+            pct.innerText = percent + '%';
+        }
+    }
+
+    function hideGaugeLoading(barId) {
+        const bar = document.getElementById(barId);
+        if (bar) bar.classList.remove('active');
+    }
+
+    function fetchMasterAndStores() {
+        updateGaugeLoading('assessmentLoadingBar', 'assessmentLoadingFill', 'assessmentLoadingPct', 30, "Menghubungkan server master...");
+        
         fetch(WEB_APP_URL)
         .then(res => res.json())
         .then(data => {
-            if (data && data.length > 0) {
-                masterEmployees = data;
-                let storesFromMaster = [...new Set(data.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
-                if (storesFromMaster.length > 0) {
-                    setupStoresDropdown(storesFromMaster);
-                }
+            updateGaugeLoading('assessmentLoadingBar', 'assessmentLoadingFill', 'assessmentLoadingPct', 75, "Memproses data 104 toko...");
+            masterEmployees = data;
+            
+            let fetchedStores = data.map(item => item.store ? item.store.trim() : "").filter(Boolean);
+            let combinedStores = [...new Set([...fetchedStores, ...additionalStores])].sort();
+            
+            let storeDatalist = document.getElementById('storeListOptions');
+            storeDatalist.innerHTML = '';
+            combinedStores.forEach(store => {
+                storeDatalist.innerHTML += `<option value="${store}">`;
+            });
+
+            const allStoresNameFilter = document.getElementById('allStoresNameFilter');
+            if(allStoresNameFilter) {
+                allStoresNameFilter.innerHTML = `<option value="all">Semua Toko</option>`;
+                combinedStores.forEach(st => {
+                    allStoresNameFilter.innerHTML += `<option value="${st}">${st}</option>`;
+                });
             }
 
             let trainers = [];
-            masterEmployees.forEach(item => {
+            data.forEach(item => {
                 let rawTr = item['Trainer HO'] || item['trainerHO'] || item['Trainer_HO'];
                 if (!rawTr) {
                     for (let key in item) {
@@ -1170,31 +1222,19 @@
                     trainerSelect.innerHTML += `<option value="${tr}">${tr}</option>`;
                 });
             }
+
+            updateGaugeLoading('assessmentLoadingBar', 'assessmentLoadingFill', 'assessmentLoadingPct', 100, "Selesai");
+            setTimeout(() => hideGaugeLoading('assessmentLoadingBar'), 400);
         })
         .catch(err => {
-            console.log("Menggunakan fallback toko default karena koneksi master:", err);
-        });
-
-        initDashboard();
-        initChart();
-        initAllStoresChart();
-        initPhaseDoughnutChart();
-    };
-
-    function setupStoresDropdown(storesArr) {
-        let storeDatalist = document.getElementById('storeListOptions');
-        storeDatalist.innerHTML = '';
-        storesArr.forEach(store => {
-            storeDatalist.innerHTML += `<option value="${store}">`;
-        });
-
-        const allStoresNameFilter = document.getElementById('allStoresNameFilter');
-        if(allStoresNameFilter) {
-            allStoresNameFilter.innerHTML = `<option value="all">Semua Toko</option>`;
-            storesArr.forEach(st => {
-                allStoresNameFilter.innerHTML += `<option value="${st}">${st}</option>`;
+            console.log("Gagal memuat master karyawan:", err);
+            let storeDatalist = document.getElementById('storeListOptions');
+            storeDatalist.innerHTML = '';
+            additionalStores.forEach(store => {
+                storeDatalist.innerHTML += `<option value="${store}">`;
             });
-        }
+            hideGaugeLoading('assessmentLoadingBar');
+        });
     }
 
     function populateMonthDropdowns() {
@@ -1300,12 +1340,12 @@
         const val = storeInput.value.trim();
         if (!val) return;
 
-        let activeStores = masterEmployees.length > 0 ? [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))] : fallbackStores;
-        let matched = activeStores.find(s => s.toLowerCase() === val.toLowerCase());
+        let fetchedStores = masterEmployees.map(item => item.store ? item.store.trim() : "");
+        let combinedStores = [...new Set([...fetchedStores, ...additionalStores])];
+        let matched = combinedStores.find(s => s.toLowerCase() === val.toLowerCase());
 
         if (!matched) {
-            alert(`⚠️ Toko "${val}" tidak valid atau tidak ditemukan dalam database!`);
-            storeInput.value = '';
+            storeInput.value = val;
             onStoreChange();
         } else {
             storeInput.value = matched;
@@ -1323,8 +1363,7 @@
         let matched = storeStaff.find(emp => emp.name.trim().toLowerCase() === val.toLowerCase());
 
         if (!matched) {
-            alert(`⚠️ Nama staff "${val}" tidak terdaftar pada toko ${store}!`);
-            staffInput.value = '';
+            staffInput.value = val;
             checkStaffProgress();
         } else {
             staffInput.value = matched.name.trim();
@@ -1352,7 +1391,7 @@
             });
             document.getElementById('staffInput').placeholder = "Ketik atau pilih nama staff...";
         } else {
-            document.getElementById('staffInput').placeholder = "-- Toko tidak ditemukan dalam Master --";
+            document.getElementById('staffInput').placeholder = "Ketik nama staff baru...";
         }
         
         initDashboard();
@@ -1378,14 +1417,17 @@
         }
 
         if (store && staffName && selectedMonthYear) {
-            // Tampilkan loading bar pada tab penilaian
-            document.getElementById('assessmentLoadingBar').classList.add('active');
+            let loadingBarId = isSummaryActive ? 'summaryLoadingBar' : 'assessmentLoadingBar';
+            let loadingFillId = isSummaryActive ? 'summaryLoadingFill' : 'assessmentLoadingFill';
+            let loadingPctId = isSummaryActive ? 'summaryLoadingPct' : 'assessmentLoadingPct';
+
+            updateGaugeLoading(loadingBarId, loadingFillId, loadingPctId, 40, "Memuat progress staff...");
 
             let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}&staffName=${encodeURIComponent(staffName)}`;
             fetch(url)
             .then(res => res.json())
             .then(historyData => {
-                document.getElementById('assessmentLoadingBar').classList.remove('active');
+                updateGaugeLoading(loadingBarId, loadingFillId, loadingPctId, 90, "Memproses riwayat...");
                 currentStaffHistoryCache = historyData;
                 historyData.forEach(item => {
                     if (item.staffName && item.staffName.trim().toLowerCase() === staffName.toLowerCase()) {
@@ -1397,15 +1439,16 @@
                         }
                     }
                 });
+                updateGaugeLoading(loadingBarId, loadingFillId, loadingPctId, 100, "Selesai");
+                setTimeout(() => hideGaugeLoading(loadingBarId), 400);
                 initDashboard();
             })
             .catch(err => {
-                document.getElementById('assessmentLoadingBar').classList.remove('active');
                 console.log("Gagal memuat progress staff:", err);
+                hideGaugeLoading(loadingBarId);
                 initDashboard();
             });
         } else {
-            document.getElementById('assessmentLoadingBar').classList.remove('active');
             currentStaffHistoryCache = [];
             initDashboard();
         }
@@ -1712,7 +1755,6 @@
         const auditTableBody = document.getElementById('auditTableBody');
         const storeProgressTableBody = document.getElementById('storeProgressTableBody');
         const staffLabelEl = document.getElementById('activeStaffLabel');
-        const summaryLoadingBar = document.getElementById('summaryLoadingBar');
 
         if (staffLabelEl) {
             staffLabelEl.innerText = staffName ? `${staffName} (${selectedMonthYear})` : "(Belum dipilih)";
@@ -1727,8 +1769,7 @@
             return;
         }
 
-        // Tampilkan loading bar pada tab summary
-        summaryLoadingBar.classList.add('active');
+        updateGaugeLoading('summaryLoadingBar', 'summaryLoadingFill', 'summaryLoadingPct', 30, "Memuat ringkasan rekapitulasi...");
         tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Memuat rekap data...</td></tr>`;
         auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat audit...</td></tr>`;
         storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat progress...</td></tr>`;
@@ -1738,7 +1779,7 @@
         fetch(url)
         .then(res => res.json())
         .then(historyData => {
-            summaryLoadingBar.classList.remove('active');
+            updateGaugeLoading('summaryLoadingBar', 'summaryLoadingFill', 'summaryLoadingPct', 85, "Menghitung nilai analitik...");
             currentStaffHistoryCache = historyData;
             tableBody.innerHTML = '';
             auditTableBody.innerHTML = '';
@@ -1877,10 +1918,13 @@
 
             document.getElementById('summaryStoreAvgScore').innerText = `${avgStoreScoreVal} Poin`;
             document.getElementById('summaryStoreCompletion').innerText = `${storeCompletionPct}%`;
+
+            updateGaugeLoading('summaryLoadingBar', 'summaryLoadingFill', 'summaryLoadingPct', 100, "Selesai");
+            setTimeout(() => hideGaugeLoading('summaryLoadingBar'), 400);
         })
         .catch(err => { 
-            summaryLoadingBar.classList.remove('active');
             console.log("Gagal memuat riwayat:", err); 
+            hideGaugeLoading('summaryLoadingBar');
         });
     }
 
@@ -1904,8 +1948,8 @@
         const selectedMonthYear = document.getElementById('storeProgressMonthFilter').value || new Date().toISOString().slice(0, 7);
         const selectedTrainer = document.getElementById('storeProgressTrainerFilter').value;
 
-        let activeStores = masterEmployees.length > 0 ? [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))] : fallbackStores;
-        let allStores = activeStores.filter(Boolean);
+        let fetchedStores = masterEmployees.map(item => item.store ? item.store.trim() : "");
+        let allStores = [...new Set([...fetchedStores, ...additionalStores])].filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
 
         let tableRowsHTML = "";
@@ -2143,8 +2187,8 @@
         const searchVal = document.getElementById('allStoresNameFilter').value;
         const selectedMonthYear = document.getElementById('allStoresMonthFilter').value || new Date().toISOString().slice(0, 7);
 
-        let activeStores = masterEmployees.length > 0 ? [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))] : fallbackStores;
-        let allStores = activeStores.filter(Boolean);
+        let fetchedStores = masterEmployees.map(item => item.store ? item.store.trim() : "");
+        let allStores = [...new Set([...fetchedStores, ...additionalStores])].filter(Boolean);
         if (searchVal && searchVal !== 'all') {
             allStores = allStores.filter(store => store.toLowerCase() === searchVal.toLowerCase());
         }
@@ -2265,8 +2309,8 @@
     // ==========================================
     function exportFullNationalPPT() {
         let selectedMonthYear = document.getElementById('pptExportMonthSelect').value || new Date().toISOString().slice(0, 7);
-        let activeStores = masterEmployees.length > 0 ? [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))] : fallbackStores;
-        let allStores = activeStores.filter(Boolean);
+        let fetchedStores = masterEmployees.map(item => item.store ? item.store.trim() : "");
+        let allStores = [...new Set([...fetchedStores, ...additionalStores])].filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
 
         let pptx = new PptxGenJS();
@@ -2324,7 +2368,7 @@
         slideCover.addText("Digimap Assessment & Performance Dashboard", { x: 0.5, y: 2.3, w: 9.0, h: 0.5, fontSize: 15, color: "E2E8F0" });
         slideCover.addText(`Periode Laporan: ${selectedMonthYear}   |   Total Toko: ${allStores.length}`, { x: 0.5, y: 4.2, w: 9.0, h: 0.5, fontSize: 12, color: "F8FAFC", italic: true });
 
-        // SLIDE 2: 📊 1. DATA SUMMARY NASIONAL
+        // SLIDE 2: DATA SUMMARY NASIONAL
         let slideSummary = pptx.addSlide();
         slideSummary.addText("1. 📊 Ringkasan Data Summary Nasional", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
         
@@ -2346,7 +2390,7 @@
             border: { pt: 0.5, color: "CBD5E1" }
         });
 
-        // SLIDE 3: 🏆 2. LEADERBOARD TOP 10 TOKO
+        // SLIDE 3: LEADERBOARD TOP 10
         let slideLeaderboard = pptx.addSlide();
         slideLeaderboard.addText("2. 🏆 Leaderboard Top 10 Toko Nasional", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
 
@@ -2374,7 +2418,7 @@
             border: { pt: 0.5, color: "CBD5E1" }
         });
 
-        // SLIDE 4: 📈 3. RATA-RATA SKOR NASIONAL PER FASE
+        // SLIDE 4: RATA-RATA SKOR NASIONAL PER FASE
         let slidePhase = pptx.addSlide();
         slidePhase.addText("3. 📈 Capaian Rata-Rata Nasional per Fase", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
 
@@ -2425,7 +2469,7 @@
             border: { pt: 0.5, color: "CBD5E1" }
         });
 
-        // SLIDE 5: 📊 4. CHART VISUALISASI NASIONAL
+        // SLIDE 5: CHART VISUALISASI NASIONAL
         let slideChart = pptx.addSlide();
         slideChart.addText("4. 📊 Grafik Visualisasi Status Pengerjaan Toko", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
         
@@ -2437,7 +2481,7 @@
             slideChart.addText("Grafik tidak tersedia.", { x: 1.0, y: 2.0, fontSize: 14 });
         }
 
-        // AMBIL DATA TRAINER HO
+        // DATA TRAINER HO UNTUK SLIDE 6
         let trainerMap = {};
         allStores.forEach(storeName => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
@@ -2487,7 +2531,7 @@
             trainerMap[trainerHO].activeStaffCount += activeStaffInStore;
         });
 
-        // SLIDE 6: 👑 5. RINGKASAN PERFORMA TRAINER HO
+        // SLIDE 6: RINGKASAN TRAINER HO
         let slideTrainer = pptx.addSlide();
         slideTrainer.addText("5. 👑 Ringkasan Performa Masing-Masing Trainer HO", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
         
@@ -2523,7 +2567,7 @@
             border: { pt: 0.5, color: "CBD5E1" }
         });
 
-        // SLIDE 7: 🏢 6. REKAPITULASI PROGRESS SELURUH TOKO
+        // SLIDE 7: REKAPITULASI PROGRESS SELURUH TOKO
         let slideStores = pptx.addSlide();
         slideStores.addText("6. 🏢 Rekapitulasi Progress Seluruh Toko Nasional", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
 
