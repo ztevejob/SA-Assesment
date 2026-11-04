@@ -1056,7 +1056,7 @@
             }
 
             // Populate pilihan dropdown Trainer HO dari master karyawan
-            let trainers = [...new Set(data.map(item => item.trainerHO ? item.trainerHO.trim() : ""))].filter(Boolean);
+            let trainers = [...new Set(data.map(item => item.Trainer HO ? item.Trainer HO.trim() : ""))].filter(Boolean);
             let trainerSelect = document.getElementById('storeProgressTrainerFilter');
             if (trainerSelect) {
                 trainerSelect.innerHTML = `<option value="all">Semua Trainer HO</option>`;
@@ -1836,14 +1836,14 @@
             let totalStaffCount = storeStaff.length;
 
             // Ambil Trainer HO dari data master karyawan pada toko tersebut (ambil dari record pertama atau default)
-            let trainerHO = "Unassigned";
-            if (storeStaff.length > 0 && storeStaff[0].trainerHO) {
-                trainerHO = storeStaff[0].trainerHO.trim();
+            let Trainer HO = "Unassigned";
+            if (storeStaff.length > 0 && storeStaff[0].Trainer HO) {
+                Trainer HO = storeStaff[0].Trainer HO.trim();
             }
 
             // Filter berdasarkan Trainer HO
             if (selectedTrainer && selectedTrainer !== 'all') {
-                if (trainerHO.toLowerCase() !== selectedTrainer.toLowerCase()) return;
+                if (Trainer HO.toLowerCase() !== selectedTrainer.toLowerCase()) return;
             }
 
             let storeHistory = globalHistoryData.filter(item => {
@@ -1882,15 +1882,15 @@
             let completionPct = totalStaffCount > 0 ? Math.round((completedStaffCount / totalStaffCount) * 100) : 0;
 
             // Akumulasi data ke Trainer HO Map
-            if (!trainerMap[trainerHO]) {
-                trainerMap[trainerHO] = { storesSet: new Set(), totalStaff: 0, completedStaff: 0, sumScores: 0, activeStoresCount: 0 };
+            if (!trainerMap[Trainer HO]) {
+                trainerMap[Trainer HO] = { storesSet: new Set(), totalStaff: 0, completedStaff: 0, sumScores: 0, activeStoresCount: 0 };
             }
-            trainerMap[trainerHO].storesSet.add(storeName);
-            trainerMap[trainerHO].totalStaff += totalStaffCount;
-            trainerMap[trainerHO].completedStaff += completedStaffCount;
-            trainerMap[trainerHO].sumScores += totalStoreScoreAccumulated;
+            trainerMap[Trainer HO].storesSet.add(storeName);
+            trainerMap[Trainer HO].totalStaff += totalStaffCount;
+            trainerMap[Trainer HO].completedStaff += completedStaffCount;
+            trainerMap[Trainer HO].sumScores += totalStoreScoreAccumulated;
             if (storeHistory.length > 0) {
-                trainerMap[trainerHO].activeStoresCount++;
+                trainerMap[Trainer HO].activeStoresCount++;
             }
 
             // Progress bar HTML
@@ -1910,7 +1910,7 @@
                 <tr>
                     <td style="text-align: center; font-weight: bold;">${index + 1}</td>
                     <td style="font-weight: 600;">${storeName}</td>
-                    <td><span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px;">👤 ${trainerHO}</span></td>
+                    <td><span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px;">👤 ${Trainer HO}</span></td>
                     <td style="text-align: center;">${totalStaffCount} Orang</td>
                     <td style="text-align: center; font-weight: bold; color: var(--primary);">${avgStoreScore} Poin</td>
                     <td>${barHtml}</td>
@@ -2265,7 +2265,7 @@
         let trainerMap = {};
         allStores.forEach(storeName => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let trainerHO = (storeStaff.length > 0 && storeStaff[0].trainerHO) ? storeStaff[0].trainerHO.trim() : "Unassigned";
+            let Trainer HO = (storeStaff.length > 0 && storeStaff[0].Trainer HO) ? storeStaff[0].Trainer HO.trim() : "Unassigned";
             
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
@@ -2286,13 +2286,13 @@
                 if (uniquePhases >= totalPhasesCount) completedStaffCount++;
             });
 
-            if (!trainerMap[trainerHO]) {
-                trainerMap[trainerHO] = { stores: 0, totalStaff: 0, completedStaff: 0, sumScores: 0 };
+            if (!trainerMap[Trainer HO]) {
+                trainerMap[Trainer HO] = { stores: 0, totalStaff: 0, completedStaff: 0, sumScores: 0 };
             }
-            trainerMap[trainerHO].stores++;
-            trainerMap[trainerHO].totalStaff += storeStaff.length;
-            trainerMap[trainerHO].completedStaff += completedStaffCount;
-            trainerMap[trainerHO].sumScores += totalStoreScore;
+            trainerMap[Trainer HO].stores++;
+            trainerMap[Trainer HO].totalStaff += storeStaff.length;
+            trainerMap[Trainer HO].completedStaff += completedStaffCount;
+            trainerMap[Trainer HO].sumScores += totalStoreScore;
         });
 
         // SLIDE 2: RINGKASAN DATA TRAINER HO
@@ -2454,7 +2454,7 @@
         allStores.forEach(storeName => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
             let totalStaffCount = storeStaff.length;
-            let trainerHO = (storeStaff.length > 0 && storeStaff[0].trainerHO) ? storeStaff[0].trainerHO.trim() : "Unassigned";
+            let Trainer HO = (storeStaff.length > 0 && storeStaff[0].Trainer HO) ? storeStaff[0].Trainer HO.trim() : "Unassigned";
 
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
@@ -2483,7 +2483,7 @@
             if (storeHistory.length === 0) storeStatus = "Belum Ada Submit";
             else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) storeStatus = "Selesai 100%";
 
-            csvContent += `"${storeName}","${trainerHO}",${totalStaffCount},"${completedStaffCount} / ${totalStaffCount}",${avgStoreScore},"${storeStatus}"\n`;
+            csvContent += `"${storeName}","${Trainer HO}",${totalStaffCount},"${completedStaffCount} / ${totalStaffCount}",${avgStoreScore},"${storeStatus}"\n`;
         });
 
         let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
