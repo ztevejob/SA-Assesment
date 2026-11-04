@@ -188,6 +188,39 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
+        /* Loading Bar Indicator Styling */
+        .loading-bar-wrapper {
+            display: none;
+            width: 100%;
+            background: var(--gray-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .loading-bar-wrapper.active {
+            display: block;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 113, 227, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 0.8s ease-in-out infinite;
+            margin-bottom: 8px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
         .phase-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -301,7 +334,7 @@
             text-align: right;
         }
 
-        /* Tombol Aksi Tabel & Excel */
+        /* Tombol Aksi Tabel & Excel & WA */
         .action-btn {
             background-color: #2563eb;
             color: white;
@@ -329,6 +362,21 @@
             gap: 5px;
         }
         .excel-btn:hover { background-color: #059669; }
+
+        .wa-btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-weight: 600;
+            font-size: 11px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .wa-btn:hover { background-color: #1ebe5d; }
 
         /* Modal Popup untuk Lihat Staff */
         .modal-overlay {
@@ -547,6 +595,12 @@
 
     <!-- TAB 1: LEMBAR PENILAIAN -->
     <div id="assessmentTab" class="tab-content active">
+        <!-- Loading Bar untuk Menu Penilaian -->
+        <div id="assessmentLoadingBar" class="loading-bar-wrapper">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Sedang memuat data progress & riwayat staff dari server...</div>
+        </div>
+
         <div id="dashboardView">
             <h3 style="margin-bottom: 12px; font-size: 14px;">Pilih Fase Asesmen yang Ingin Dinilai:</h3>
             <div class="phase-grid" id="phaseGridContainer"></div>
@@ -567,6 +621,12 @@
 
     <!-- TAB 2: SUMMARY & CHART ANALITIK -->
     <div id="summaryTab" class="tab-content">
+        <!-- Loading Bar untuk Menu Summary -->
+        <div id="summaryLoadingBar" class="loading-bar-wrapper">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Mengambil rekapitulasi coaching & data analitik toko...</div>
+        </div>
+
         <div class="summary-container">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                 <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
@@ -800,12 +860,15 @@
 
             <!-- KOTAK SUMMARY MASING-MASING TRAINER HO (DARI KOLOM MASTER) -->
             <div class="summary-card" style="margin: 0; background: linear-gradient(135deg, rgba(0, 113, 227, 0.05), rgba(52, 199, 89, 0.05)); border: 1.5px solid var(--primary);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--primary); margin: 0;">👑 Ringkasan Performa Masing-Masing Trainer HO (Dari Master Karyawan)</h3>
-                    <button type="button" class="excel-btn" onclick="exportTableToExcel('trainerSummaryTableBody', 'Ringkasan_Trainer_HO.csv')">📥 Export Excel</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="wa-btn" onclick="copyAllTrainerSummaryToWA()">💬 Copy Ringkasan ke WA</button>
+                        <button type="button" class="excel-btn" onclick="exportTableToExcel('trainerSummaryTableBody', 'Ringkasan_Trainer_HO.csv')">📥 Export Excel</button>
+                    </div>
                 </div>
                 <p style="font-size: 11px; color: var(--text-secondary); margin-top: 0; margin-bottom: 15px;">
-                    💡 <i>Data Trainer HO dipetakan langsung dari master karyawan, dibandingkan dengan submit aktual, menampilkan total toko, total staff, staff selesai, dan rata-rata skor.</i>
+                    💡 <i>Data Trainer HO dipetakan langsung dari master karyawan, dibandingkan dengan submit aktual, menampilkan total toko, total staff, staff selesai, dan rata-rata skor aktif.</i>
                 </p>
                 <div class="table-responsive">
                     <table class="data-table">
@@ -817,10 +880,11 @@
                                 <th style="text-align: center;">Staff Selesai 100%</th>
                                 <th style="text-align: center;">Rata-Rata Skor Binaan</th>
                                 <th style="text-align: center;">Tingkat Kepatuhan (Completion Rate)</th>
+                                <th style="text-align: center; width: 90px;">Aksi WA</th>
                             </tr>
                         </thead>
                         <tbody id="trainerSummaryTableBody">
-                            <tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Memuat ringkasan trainer HO...</td></tr>
+                            <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Memuat ringkasan trainer HO...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -859,25 +923,27 @@
             <div class="summary-card" style="border: 2px solid #ea580c; background: rgba(234, 88, 12, 0.03);">
                 <h3 style="color: #ea580c; margin-bottom: 10px;">📑 Pusat Eksekutif Export PowerPoint (PPT) Nasional</h3>
                 <p style="font-size: 12px; color: var(--text); line-height: 1.6; margin-bottom: 20px;">
-                    Menu ini menyediakan fitur pembuatan file presentasi PowerPoint (.pptx) secara komprehensif dan otomatis berdasarkan data nasional terkini. Dokumen presentasi akan mencakup 4 bagian utama sesuai instruksi:
+                    Menu ini menyediakan pembuatan file presentasi PowerPoint (.pptx) secara komprehensif berdasarkan data nasional dan progress toko Anda sesuai 6 urutan slide:
                 </p>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px;">
-                    <div style="background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 8px;">
-                        <div style="font-weight: bold; color: #ea580c; font-size: 13px; margin-bottom: 5px;">1. 👑 Ringkasan Data Trainer HO</div>
-                        <div style="font-size: 11px; color: var(--text-secondary);">Merekap performa binaan setiap Trainer HO secara transparan dari master karyawan.</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 25px;">
+                    <div style="background: var(--card); border: 1px solid var(--border); padding: 12px; border-radius: 8px;">
+                        <div style="font-weight: bold; color: #ea580c; font-size: 12px;">1. Data Summary Nasional</div>
                     </div>
-                    <div style="background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 8px;">
-                        <div style="font-weight: bold; color: #ea580c; font-size: 13px; margin-bottom: 5px;">2. 📊 Chart Analitik Nasional</div>
-                        <div style="font-size: 11px; color: var(--text-secondary);">Grafik visualisasi status pengerjaan toko dan tren pencapaian asesmen.</div>
+                    <div style="background: var(--card); border: 1px solid var(--border); padding: 12px; border-radius: 8px;">
+                        <div style="font-weight: bold; color: #ea580c; font-size: 12px;">2. Leaderboard Top 10 Toko</div>
                     </div>
-                    <div style="background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 8px;">
-                        <div style="font-weight: bold; color: #ea580c; font-size: 13px; margin-bottom: 5px;">3. 🏢 Persentase Keseluruhan Toko</div>
-                        <div style="font-size: 11px; color: var(--text-secondary);">Rincian persentase kelulusan dan progress tiap toko di seluruh jaringan.</div>
+                    <div style="background: var(--card); border: 1px solid var(--border); padding: 12px; border-radius: 8px;">
+                        <div style="font-weight: bold; color: #ea580c; font-size: 12px;">3. Rata-Rata Skor Nasional per Fase</div>
                     </div>
-                    <div style="background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 8px;">
-                        <div style="font-weight: bold; color: #ea580c; font-size: 13px; margin-bottom: 5px;">4. 📈 Capaian Rata-Rata Nasional</div>
-                        <div style="font-size: 11px; color: var(--text-secondary);">Akumulasi rata-rata skor per fase asesmen secara nasional.</div>
+                    <div style="background: var(--card); border: 1px solid var(--border); padding: 12px; border-radius: 8px;">
+                        <div style="font-weight: bold; color: #ea580c; font-size: 12px;">4. Chart Visualisasi Nasional</div>
+                    </div>
+                    <div style="background: var(--card); border: 1px solid var(--border); padding: 12px; border-radius: 8px;">
+                        <div style="font-weight: bold; color: #ea580c; font-size: 12px;">5. Ringkasan Performa Trainer HO</div>
+                    </div>
+                    <div style="background: var(--card); border: 1px solid var(--border); padding: 12px; border-radius: 8px;">
+                        <div style="font-weight: bold; color: #ea580c; font-size: 12px;">6. Rekapitulasi Progress Seluruh Toko</div>
                     </div>
                 </div>
 
@@ -928,6 +994,45 @@
     let phaseDoughnutChart = null;
     let currentStaffHistoryCache = [];
     let isAuditorMode = false;
+
+    // Fallback daftar toko lengkap (termasuk M118 sampai M297) jika offline / master kosong
+    const fallbackStores = [
+        "M118 Digimap Pondok Indah Mall 3", "M119 Digimap Centrepoint Mall Medan", "M120 Digimap Sun Plaza Medan", 
+        "M121 Digimap Tunjungan Plaza 3 Surabaya", "M122 Digimap Galaxy Mall Surabaya", "M123 Digimap Mall Bali Galeria", 
+        "M124 Digimap Pacific Place", "M125 Digimap Supermall Karawaci", "M126 Digimap Ciputra World Surabaya", 
+        "M127 Digimap Lotte Shopping Avenue", "M128 Digimap Emporium Mall Pluit", "M129 Digimap Mall Puri Indah", 
+        "M130 Digimap Sunset Road Bali", "M131 Digimap Grand Indonesia", "M132 Digimap Plaza Senayan", 
+        "M133 Digimap Trans Studio Mall Bandung", "M134 Digimap Beachwalk Bali", "M201 Digimap Trans Studio Mall Cibubur", 
+        "M203 Digimap AEON Mall BSD", "M205 Digimap Paskal 23 Bandung", "M206 Digimap Pakuwon Mall Surabaya", 
+        "M212 Digimap Sunter Mall", "M214 Digimap AEON Mall Sentul", "M215 Digimap Mall Taman Anggrek", 
+        "M216 Digimap Tentrem Mall Semarang", "M217 Digimap Blok M Plaza", "M218 Digimap Plaza Balikpapan", 
+        "M219 Digimap Basko Padang", "M21B Digimap Ruko Blora", "M21F Digimap Ujung Berung Town Square", 
+        "M220 Digimap Malioboro Mall", "M221 Digimap A Yani Pontianak", "M222 Digimap Palembang Indah Mall", 
+        "M223 Digimap Roxy Square Jember", "M224 Digimap WTC Jambi", "M225 Digimap Citimall Dumai", 
+        "M226 Digimap Ambon City Center", "M227 Digimap AEON Tanjung Barat", "M228 Digimap Citimall Cianjur 2", 
+        "M229 Digimap Trans Icon Surabaya", "M230 Digimap The Park Kendari", "M231 Digimap Gress Mall Gresik", 
+        "M232 Digimap Pakuwon Mall Solo", "M233 Digimap Unimas District Sidoarjo", "M234 Digimap Citra Grand Cibubur", 
+        "M235 Digimap Lippo Plaza Kramat Jati", "M236 Digimap Palu Grand Mall", "M237 Digimap Solo Square", 
+        "M238 Digimap Pondok Indah Mall 2", "M239 Digimap Icon Mall Bali", "M240 Digimap Pacific Mall Tegal", 
+        "M241 Digimap Revo Mall", "M243 Digimap Aeon Mall Delta Mas", "M244 Digimap Java Mall Semarang", 
+        "M245 Digimap Living World Kota Wisata", "M246 Digimap Malang Town Square", "M247 Digimap Lippo Plaza Jambi", 
+        "M248 Digimap Suncity Mall Sidoarjo", "M249 Digimap Lippo Plaza Palangkaraya", "M250 Digimap Lippo Plaza Batu", 
+        "M251 Digimap The Kings Shopping Centre", "M252 Digimap Binjai Mall", "M253 Digimap Plaza Surabaya", 
+        "M254 Digimap Basko city Mall", "M255 Digimap Antasari Place", "M256 Digimap Lippo Plaza Lubuklinggau", 
+        "M257 Digimap City Plaza Jatinegara", "M258 Digimap Lippo Plaza Manado", "M259 Digimap Jatinangor Town Square", 
+        "M260 Digimap Kudus Extention Mall", "M261 Digimap PIK Elang Laut", "M262 Digimap Suzuya Merdeka Square Siantar", 
+        "M263 Digimap Citimall Sampit", "M264 Digimap Plaza Semanggi", "M265 Digimap Merr Street", 
+        "M266 Digimap HIVE Harapan Indah", "M267 Digimap Mall Cijantung", "M268 Digimap Diana Mall Timika", 
+        "M269 Digimap Tenth Avenue", "M270 Digimap Citimall Lahat", "M271 Digimap Mall Indramayu", 
+        "M272 Digimap Kota Baru Parahyangan", "M273 Digimap Metro Lampung", "M274 Digimap Street Ciputat Raya", 
+        "M275 Digimap Citimall Baturaja", "M276 Digimap Shila At Sawangan", "M277 Digimap Citimall Tuban", 
+        "M278 Digimap A.S.S Brebes", "M279 Digimap Ciumbuleuit", "M281 Digimap Ngaliyan Street", 
+        "M282 Digimap Citimall Pangkalan bun", "M283 Digimap Basuki Rahmat Tulungagung", "M284 Digimap BSD Loka", 
+        "M285 Digimap Blitar Square", "M286 Digimap Citimall Prabumulih", "M287 Digimap Grand Tarakan", 
+        "M288 Digimap Mojopahit Street Mojokerto", "M289 Digimap Maleo Town Square", "M290 Digimap Mandau City Mall", 
+        "M292 Digimap Graha Raya", "M293 Digimap Jend Sudirman Salatiga", "M294 Digimap Bojonegoro Street", 
+        "M295 Digimap Juanda Tasikmalaya", "M297 Digimap Ponorogo City Center"
+    ];
     
     const phasesData = {
         "Fase 1a: Foundation (Professional & Retail)": [
@@ -1019,36 +1124,30 @@
     const notes = {};
     const completedPhases = {};
     let activePhaseKey = "";
+    let cachedTrainerSummaryForWA = [];
 
     window.onload = function() {
         let todayStr = new Date().toISOString().slice(0, 10);
-        
         document.getElementById('coachingDate').value = todayStr;
         
         populateMonthDropdowns();
         fetchWeather();
+        setupStoresDropdown(fallbackStores);
 
+        // Fetch data master karyawan dari Google Apps Script
         fetch(WEB_APP_URL)
         .then(res => res.json())
         .then(data => {
-            masterEmployees = data;
-            let stores = [...new Set(data.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
-            let storeDatalist = document.getElementById('storeListOptions');
-            storeDatalist.innerHTML = '';
-            stores.forEach(store => {
-                storeDatalist.innerHTML += `<option value="${store}">`;
-            });
-
-            const allStoresNameFilter = document.getElementById('allStoresNameFilter');
-            if(allStoresNameFilter) {
-                stores.forEach(st => {
-                    allStoresNameFilter.innerHTML += `<option value="${st}">${st}</option>`;
-                });
+            if (data && data.length > 0) {
+                masterEmployees = data;
+                let storesFromMaster = [...new Set(data.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
+                if (storesFromMaster.length > 0) {
+                    setupStoresDropdown(storesFromMaster);
+                }
             }
 
-            // Populate pilihan dropdown Trainer HO secara fleksibel dari master karyawan
             let trainers = [];
-            data.forEach(item => {
+            masterEmployees.forEach(item => {
                 let rawTr = item['Trainer HO'] || item['trainerHO'] || item['Trainer_HO'];
                 if (!rawTr) {
                     for (let key in item) {
@@ -1072,13 +1171,31 @@
                 });
             }
         })
-        .catch(err => console.log("Gagal memuat master karyawan:", err));
+        .catch(err => {
+            console.log("Menggunakan fallback toko default karena koneksi master:", err);
+        });
 
         initDashboard();
         initChart();
         initAllStoresChart();
         initPhaseDoughnutChart();
     };
+
+    function setupStoresDropdown(storesArr) {
+        let storeDatalist = document.getElementById('storeListOptions');
+        storeDatalist.innerHTML = '';
+        storesArr.forEach(store => {
+            storeDatalist.innerHTML += `<option value="${store}">`;
+        });
+
+        const allStoresNameFilter = document.getElementById('allStoresNameFilter');
+        if(allStoresNameFilter) {
+            allStoresNameFilter.innerHTML = `<option value="all">Semua Toko</option>`;
+            storesArr.forEach(st => {
+                allStoresNameFilter.innerHTML += `<option value="${st}">${st}</option>`;
+            });
+        }
+    }
 
     function populateMonthDropdowns() {
         const monthSelects = [
@@ -1126,7 +1243,7 @@
             isAuditorMode = true;
             document.getElementById('auditorIndicator').style.display = 'block';
             document.getElementById('auditorControlPanel').style.display = 'block';
-            alert("✅ Mode Auditor Berhasil Diaktifkan!\n- Batasan 1x sebulan diabaikan.\n- Sesi dapat dicatat sebagai Mystery Shopper.");
+            alert("✅ Mode Auditor Berhasil Diaktifkan!");
             initDashboard();
         } else if (pin !== null) {
             alert("❌ PIN Salah!");
@@ -1183,11 +1300,11 @@
         const val = storeInput.value.trim();
         if (!val) return;
 
-        let stores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
-        let matched = stores.find(s => s.toLowerCase() === val.toLowerCase());
+        let activeStores = masterEmployees.length > 0 ? [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))] : fallbackStores;
+        let matched = activeStores.find(s => s.toLowerCase() === val.toLowerCase());
 
         if (!matched) {
-            alert(`⚠️ Toko "${val}" tidak valid atau tidak ditemukan dalam database Master!\nSilakan pilih nama toko yang lengkap.`);
+            alert(`⚠️ Toko "${val}" tidak valid atau tidak ditemukan dalam database!`);
             storeInput.value = '';
             onStoreChange();
         } else {
@@ -1261,10 +1378,14 @@
         }
 
         if (store && staffName && selectedMonthYear) {
+            // Tampilkan loading bar pada tab penilaian
+            document.getElementById('assessmentLoadingBar').classList.add('active');
+
             let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}&staffName=${encodeURIComponent(staffName)}`;
             fetch(url)
             .then(res => res.json())
             .then(historyData => {
+                document.getElementById('assessmentLoadingBar').classList.remove('active');
                 currentStaffHistoryCache = historyData;
                 historyData.forEach(item => {
                     if (item.staffName && item.staffName.trim().toLowerCase() === staffName.toLowerCase()) {
@@ -1279,10 +1400,12 @@
                 initDashboard();
             })
             .catch(err => {
+                document.getElementById('assessmentLoadingBar').classList.remove('active');
                 console.log("Gagal memuat progress staff:", err);
                 initDashboard();
             });
         } else {
+            document.getElementById('assessmentLoadingBar').classList.remove('active');
             currentStaffHistoryCache = [];
             initDashboard();
         }
@@ -1372,7 +1495,7 @@
         if (!validateMetaForCoaching()) return;
 
         if (completedPhases[phaseName] && !isAuditorMode && !preserveScores) {
-            alert(`⚠️ BATAS PENILAIAN BULAN INI\n\nFase "${phaseName}" untuk staff ini sudah diselesaikan dan hanya dapat dilakukan 1 kali dalam bulan ini.`);
+            alert(`⚠️ BATAS PENILAIAN BULAN INI\n\nFase "${phaseName}" untuk staff ini sudah diselesaikan.`);
             return;
         }
 
@@ -1451,18 +1574,12 @@
         currentPhaseItems.forEach(item => {
             let sc = scores[item.id] || 0;
             phaseScores[item.id] = sc;
-            
             let noteVal = notes[item.id] ? notes[item.id].trim() : "";
-            if (noteVal !== "") {
-                phaseNotes[item.id] = noteVal;
-            }
-
+            if (noteVal !== "") phaseNotes[item.id] = noteVal;
             total += sc;
         });
 
-        if (total > maxAllowedScore) {
-            total = maxAllowedScore;
-        }
+        if (total > maxAllowedScore) total = maxAllowedScore;
 
         let jenisSesi = isAuditorMode ? document.getElementById('sessionTypeSelect').value : "Coaching";
         let auditor = isAuditorMode ? document.getElementById('auditorNameInput').value.trim() : "-";
@@ -1479,7 +1596,7 @@
             auditor: auditor
         };
 
-        alert(`Mengirim data ${activePhaseKey} (Skor Terkunci: ${total} / Max: ${maxAllowedScore}) ke Google Sheets...`);
+        alert(`Mengirim data ${activePhaseKey} (Skor: ${total}) ke Google Sheets...`);
 
         fetch(WEB_APP_URL, {
             method: 'POST',
@@ -1488,10 +1605,8 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            if (jenisSesi === "Coaching") {
-                completedPhases[activePhaseKey] = true;
-            }
-            alert(`✅ Sukses! Fase "${activePhaseKey}" tersimpan dengan skor ${total}.`);
+            if (jenisSesi === "Coaching") completedPhases[activePhaseKey] = true;
+            alert(`✅ Sukses! Fase "${activePhaseKey}" tersimpan.`);
             backToDashboard();
         })
         .catch(error => { alert('Gagal mengirim data: ' + error); });
@@ -1520,21 +1635,10 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 20,
-                        grace: '15%'
-                    }
-                },
+                scales: { y: { beginAtZero: true, max: 20, grace: '15%' } },
                 plugins: {
                     legend: { display: false },
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        font: { weight: 'bold', size: 10 },
-                        color: '#1d1d1f'
-                    }
+                    datalabels: { anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 }, color: '#1d1d1f' }
                 }
             },
             plugins: [ChartDataLabels]
@@ -1559,16 +1663,9 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        font: { weight: 'bold', size: 11 },
-                        color: '#1d1d1f'
-                    }
+                    datalabels: { anchor: 'end', align: 'top', font: { weight: 'bold', size: 11 }, color: '#1d1d1f' }
                 },
-                scales: {
-                    y: { beginAtZero: true, grace: '15%' }
-                }
+                scales: { y: { beginAtZero: true, grace: '15%' } }
             },
             plugins: [ChartDataLabels]
         });
@@ -1594,23 +1691,11 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: { boxWidth: 10, font: { size: 9 } }
-                    },
+                    legend: { position: 'right', labels: { boxWidth: 10, font: { size: 9 } } },
                     datalabels: {
-                        formatter: (value, ctx) => {
-                            return value > 0 ? value + '%' : '';
-                        },
+                        formatter: (value) => value > 0 ? value + '%' : '',
                         color: '#ffffff',
                         font: { weight: 'bold', size: 9 }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return ` ${context.label}: ${context.raw}% Capaian`;
-                            }
-                        }
                     }
                 },
                 cutout: '60%'
@@ -1627,29 +1712,33 @@
         const auditTableBody = document.getElementById('auditTableBody');
         const storeProgressTableBody = document.getElementById('storeProgressTableBody');
         const staffLabelEl = document.getElementById('activeStaffLabel');
+        const summaryLoadingBar = document.getElementById('summaryLoadingBar');
 
         if (staffLabelEl) {
             staffLabelEl.innerText = staffName ? `${staffName} (${selectedMonthYear})` : "(Belum dipilih)";
         }
 
         if (!store) {
-            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas untuk melihat rekap nilai.</td></tr>`;
-            auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff terlebih dahulu.</td></tr>`;
-            storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih/ketik <b>Toko / Store</b> terlebih dahulu di atas.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih Toko terlebih dahulu.</td></tr>`;
+            auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff.</td></tr>`;
+            storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko.</td></tr>`;
             document.getElementById('summaryStoreAvgScore').innerText = `0 Poin`;
             document.getElementById('summaryStoreCompletion').innerText = `0%`;
             return;
         }
 
-        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Sedang memuat rekap data dari Google Sheets...</td></tr>`;
-        auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data audit...</td></tr>`;
-        storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Sedang memuat progress staff toko...</td></tr>`;
+        // Tampilkan loading bar pada tab summary
+        summaryLoadingBar.classList.add('active');
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Memuat rekap data...</td></tr>`;
+        auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat audit...</td></tr>`;
+        storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat progress...</td></tr>`;
 
         let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}`;
 
         fetch(url)
         .then(res => res.json())
         .then(historyData => {
+            summaryLoadingBar.classList.remove('active');
             currentStaffHistoryCache = historyData;
             tableBody.innerHTML = '';
             auditTableBody.innerHTML = '';
@@ -1709,7 +1798,7 @@
                 });
 
                 if (auditList.length === 0) {
-                    auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Belum ada riwayat audit Mystery Shopper untuk staff ini pada bulan ${selectedMonthYear}.</td></tr>`;
+                    auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Belum ada riwayat audit Mystery Shopper.</td></tr>`;
                 } else {
                     auditList.forEach(audit => {
                         auditTableBody.innerHTML += `
@@ -1733,60 +1822,44 @@
                     performanceChart.update();
                 }
             } else {
-                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Pilih <b>Nama Staff</b> di atas untuk melihat detail per fase.</td></tr>`;
-                auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Pilih Nama Staff terlebih dahulu.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Pilih Nama Staff.</td></tr>`;
+                auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Pilih Nama Staff.</td></tr>`;
                 document.getElementById('summaryTotalScore').innerText = `0 / 100`;
                 document.getElementById('summaryCompletedPhases').innerText = `0 / ${phaseKeys.length}`;
-                if (performanceChart) {
-                    performanceChart.data.datasets[0].data = new Array(phaseKeys.length).fill(0);
-                    performanceChart.update();
-                }
             }
 
             storeProgressTableBody.innerHTML = '';
             let storeStaffList = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
 
-            if (storeStaffList.length === 0) {
-                storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Tidak ada data staff terdaftar untuk toko ini di Master.</td></tr>`;
-                document.getElementById('summaryStoreAvgScore').innerText = `0 Poin`;
-                document.getElementById('summaryStoreCompletion').innerText = `0%`;
-                return;
-            }
-
             let sumStoreScores = 0;
             let storeCompletedStaffCount = 0;
+            let activeStoreStaffCount = 0;
 
             storeStaffList.forEach(emp => {
                 let empName = emp.name.trim();
                 let empHistory = historyData.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
                 
                 let empPhaseMap = {};
-                let empDatesSet = new Set();
                 empHistory.forEach(item => {
                     let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                     let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
                     let jenisSesi = item.jenisSesi || "Coaching";
                     if (item.phaseName && itemMonth === selectedMonthYear && jenisSesi === "Coaching") {
                         empPhaseMap[item.phaseName] = Number(item.totalScore || 0);
-                        if (cleanDate) empDatesSet.add(cleanDate);
                     }
                 });
 
                 let uniqueCompletedPhases = Object.keys(empPhaseMap).length;
                 let totalScoreUnik = Object.values(empPhaseMap).reduce((sum, score) => sum + score, 0);
                 let finalCappedKumulatif = totalScoreUnik > 108 ? 108 : totalScoreUnik;
+                
                 sumStoreScores += finalCappedKumulatif;
-
+                if (finalCappedKumulatif > 0) activeStoreStaffCount++;
                 if (uniqueCompletedPhases >= phaseKeys.length) storeCompletedStaffCount++;
 
-                let progressBadge = '';
-                if (uniqueCompletedPhases >= phaseKeys.length) {
-                    progressBadge = '<span style="color:var(--success); font-weight:600;">Selesai (100%)</span>';
-                } else if (uniqueCompletedPhases > 0) {
-                    progressBadge = '<span style="color:var(--primary); font-weight:600;">Proses (' + uniqueCompletedPhases + '/' + phaseKeys.length + ')</span>';
-                } else {
-                    progressBadge = '<span style="color:var(--text-secondary);">Belum</span>';
-                }
+                let progressBadge = uniqueCompletedPhases >= phaseKeys.length 
+                    ? '<span style="color:var(--success); font-weight:600;">Selesai (100%)</span>' 
+                    : (uniqueCompletedPhases > 0 ? '<span style="color:var(--primary); font-weight:600;">Proses</span>' : '<span style="color:var(--text-secondary);">Belum</span>');
 
                 storeProgressTableBody.innerHTML += `
                     <tr>
@@ -1799,17 +1872,15 @@
                 `;
             });
 
-            let avgStoreScoreVal = storeStaffList.length > 0 ? Math.round(sumStoreScores / storeStaffList.length) : 0;
+            let avgStoreScoreVal = activeStoreStaffCount > 0 ? Math.round(sumStoreScores / activeStoreStaffCount) : 0;
             let storeCompletionPct = storeStaffList.length > 0 ? Math.round((storeCompletedStaffCount / storeStaffList.length) * 100) : 0;
 
             document.getElementById('summaryStoreAvgScore').innerText = `${avgStoreScoreVal} Poin`;
             document.getElementById('summaryStoreCompletion').innerText = `${storeCompletionPct}%`;
         })
-        .catch(err => {
-            console.log("Gagal memuat riwayat:", err);
-            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #dc2626;">Gagal mengambil data riwayat.</td></tr>`;
-            auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Gagal mengambil data audit.</td></tr>`;
-            storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Gagal mengambil data progress staff.</td></tr>`;
+        .catch(err => { 
+            summaryLoadingBar.classList.remove('active');
+            console.log("Gagal memuat riwayat:", err); 
         });
     }
 
@@ -1821,7 +1892,7 @@
                 globalHistoryData = data;
                 renderStoreProgressTab();
             })
-            .catch(err => console.log("Gagal memuat history untuk tab progress:", err));
+            .catch(err => console.log("Gagal memuat history:", err));
         } else {
             renderStoreProgressTab();
         }
@@ -1833,17 +1904,18 @@
         const selectedMonthYear = document.getElementById('storeProgressMonthFilter').value || new Date().toISOString().slice(0, 7);
         const selectedTrainer = document.getElementById('storeProgressTrainerFilter').value;
 
-        let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
+        let activeStores = masterEmployees.length > 0 ? [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))] : fallbackStores;
+        let allStores = activeStores.filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
 
         let tableRowsHTML = "";
         let trainerMap = {}; 
+        cachedTrainerSummaryForWA = [];
 
         allStores.forEach((storeName, index) => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
             let totalStaffCount = storeStaff.length;
 
-            // Pencarian fleksibel untuk memastikan Trainer HO terbaca dengan benar dari Master Karyawan
             let trainerHO = "Unassigned";
             if (storeStaff.length > 0) {
                 let empObj = storeStaff[0];
@@ -1874,6 +1946,7 @@
 
             let completedStaffCount = 0;
             let totalStoreScoreAccumulated = 0;
+            let activeStoreStaffCount = 0;
             let staffCompletedList = [];
             let staffIncompleteList = [];
 
@@ -1888,6 +1961,7 @@
                 let cappedEmpScore = Math.min(empScore, 108);
 
                 totalStoreScoreAccumulated += cappedEmpScore;
+                if (cappedEmpScore > 0) activeStoreStaffCount++;
 
                 if (uniquePhases >= totalPhasesCount) {
                     completedStaffCount++;
@@ -1897,19 +1971,17 @@
                 }
             });
 
-            let avgStoreScore = totalStaffCount > 0 && storeHistory.length > 0 ? Math.round(totalStoreScoreAccumulated / totalStaffCount) : 0;
+            let avgStoreScore = activeStoreStaffCount > 0 ? Math.round(totalStoreScoreAccumulated / activeStoreStaffCount) : 0;
             let completionPct = totalStaffCount > 0 ? Math.round((completedStaffCount / totalStaffCount) * 100) : 0;
 
             if (!trainerMap[trainerHO]) {
-                trainerMap[trainerHO] = { storesSet: new Set(), totalStaff: 0, completedStaff: 0, sumScores: 0, activeStoresCount: 0 };
+                trainerMap[trainerHO] = { storesSet: new Set(), totalStaff: 0, completedStaff: 0, sumScores: 0, activeStaffCount: 0 };
             }
             trainerMap[trainerHO].storesSet.add(storeName);
             trainerMap[trainerHO].totalStaff += totalStaffCount;
             trainerMap[trainerHO].completedStaff += completedStaffCount;
             trainerMap[trainerHO].sumScores += totalStoreScoreAccumulated;
-            if (storeHistory.length > 0) {
-                trainerMap[trainerHO].activeStoresCount++;
-            }
+            trainerMap[trainerHO].activeStaffCount += activeStoreStaffCount;
 
             let barHtml = `
                 <div class="progress-gauge-container">
@@ -1937,19 +2009,26 @@
             `;
         });
 
-        tableBody.innerHTML = tableRowsHTML || `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Tidak ada data toko untuk filter tersebut.</td></tr>`;
+        tableBody.innerHTML = tableRowsHTML || `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Tidak ada data toko.</td></tr>`;
 
         let trainerSummaryHTML = "";
         let trainerKeys = Object.keys(trainerMap);
 
         if (trainerKeys.length === 0) {
-            trainerSummaryBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Belum ada data Trainer HO yang terpetakan.</td></tr>`;
+            trainerSummaryBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Belum ada data Trainer HO.</td></tr>`;
         } else {
             trainerKeys.forEach(trName => {
                 let data = trainerMap[trName];
                 let storeCount = data.storesSet.size;
-                let avgTrainerScore = data.totalStaff > 0 ? Math.round(data.sumScores / data.totalStaff) : 0;
+                let divisor = data.activeStaffCount > 0 ? data.activeStaffCount : 1;
+                let avgTrainerScore = Math.round(data.sumScores / divisor);
                 let trainerCompletionRate = data.totalStaff > 0 ? Math.round((data.completedStaff / data.totalStaff) * 100) : 0;
+
+                cachedTrainerSummaryForWA.push({
+                    name: trName, stores: storeCount, totalStaff: data.totalStaff,
+                    completedStaff: data.completedStaff, avgScore: avgTrainerScore,
+                    completionRate: trainerCompletionRate, month: selectedMonthYear
+                });
 
                 trainerSummaryHTML += `
                     <tr>
@@ -1959,6 +2038,9 @@
                         <td style="text-align: center; color: var(--success); font-weight: bold;">${data.completedStaff} Staff</td>
                         <td style="text-align: center; font-weight: bold;">${avgTrainerScore} Poin</td>
                         <td style="text-align: center; font-weight: bold; color: ${trainerCompletionRate >= 80 ? 'var(--success)' : 'var(--primary)'};">${trainerCompletionRate}% Kepatuhan</td>
+                        <td style="text-align: center;">
+                            <button type="button" class="wa-btn" onclick="copyTrainerToWA('${trName}', ${storeCount}, ${data.totalStaff}, ${data.completedStaff}, ${avgTrainerScore}, ${trainerCompletionRate}, '${selectedMonthYear}')" style="padding: 4px 8px; font-size: 10px;">💬 Copy WA</button>
+                        </td>
                     </tr>
                 `;
             });
@@ -1966,37 +2048,47 @@
         }
     }
 
+    function copyTrainerToWA(name, stores, totalStaff, completedStaff, avgScore, completionRate, month) {
+        let waText = `👑 *RINGKASAN PERFORMA TRAINER HO* 👑\n` +
+                     `📅 Periode: ${month}\n` +
+                     `👤 Nama Trainer: *${name}*\n\n` +
+                     `🏢 Jumlah Toko Binaan: ${stores} Toko\n` +
+                     `👥 Total Staff Binaan: ${totalStaff} Orang\n` +
+                     `✅ Staff Selesai 100%: ${completedStaff} Staff\n` +
+                     `📈 Rata-Rata Skor Binaan: ${avgScore} Poin\n` +
+                     `🎯 Tingkat Kepatuhan: ${completionRate}%\n\n` +
+                     `_Digimap Assessment System_`;
+
+        navigator.clipboard.writeText(waText).then(() => {
+            alert(`✅ Ringkasan untuk Trainer "${name}" berhasil disalin!`);
+        });
+    }
+
+    function copyAllTrainerSummaryToWA() {
+        if (cachedTrainerSummaryForWA.length === 0) return;
+        let selectedMonth = document.getElementById('storeProgressMonthFilter').value || new Date().toISOString().slice(0, 7);
+        let waText = `👑 *REKAPITULASI NASIONAL PERFORMA TRAINER HO* 👑\n📅 Periode: ${selectedMonth}\n\n`;
+
+        cachedTrainerSummaryForWA.forEach((tr, idx) => {
+            waText += `${idx + 1}. *${tr.name}* (Toko: ${tr.stores}, Staff: ${tr.totalStaff}, Selesai: ${tr.completedStaff}, Rata2 Skor: ${tr.avgScore}, Kepatuhan: ${tr.completionRate}%)\n`;
+        });
+        waText += `\n_Digimap Assessment System_`;
+
+        navigator.clipboard.writeText(waText).then(() => {
+            alert("✅ Seluruh Ringkasan Trainer HO berhasil disalin ke Clipboard!");
+        });
+    }
+
     function openStoreStaffModal(storeName, completedJsonStr, incompleteJsonStr) {
         let completedArr = JSON.parse(completedJsonStr);
         let incompleteArr = JSON.parse(incompleteJsonStr);
 
         document.getElementById('modalStoreTitle').innerText = `Rincian Staff Toko: ${storeName}`;
+        let contentHtml = `<h4 style="color: var(--success); margin: 0 0 8px 0; font-size: 13px;">✅ Selesai (100%):</h4>`;
+        contentHtml += completedArr.length === 0 ? `<p style="font-size: 12px; color: var(--text-secondary);">Belum ada.</p>` : `<ul style="font-size: 12px;">` + completedArr.map(n=>`<li><b>${n}</b></li>`).join('') + `</ul>`;
         
-        let contentHtml = `
-            <div style="margin-bottom: 15px;">
-                <h4 style="color: var(--success); margin: 0 0 8px 0; font-size: 13px;">✅ Staff Sudah Selesai Asesmen (100%):</h4>
-        `;
-        if (completedArr.length === 0) {
-            contentHtml += `<p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Belum ada staff yang menyelesaikan 100% pada periode ini.</p>`;
-        } else {
-            contentHtml += `<ul style="margin: 0; padding-left: 20px; font-size: 12px;">`;
-            completedArr.forEach(name => { contentHtml += `<li><b>${name}</b></li>`; });
-            contentHtml += `</ul>`;
-        }
-
-        contentHtml += `
-            </div>
-            <div>
-                <h4 style="color: #dc2626; margin: 15px 0 8px 0; font-size: 13px;">⏳ Staff Belum / Sedang Proses:</h4>
-        `;
-        if (incompleteArr.length === 0) {
-            contentHtml += `<p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Semua staff di toko ini telah menyelesaikan asesmen!</p>`;
-        } else {
-            contentHtml += `<ul style="margin: 0; padding-left: 20px; font-size: 12px;">`;
-            incompleteArr.forEach(item => { contentHtml += `<li>${item}</li>`; });
-            contentHtml += `</ul>`;
-        }
-        contentHtml += `</div>`;
+        contentHtml += `<h4 style="color: #dc2626; margin: 15px 0 8px 0; font-size: 13px;">⏳ Belum / Proses:</h4>`;
+        contentHtml += incompleteArr.length === 0 ? `<p style="font-size: 12px; color: var(--text-secondary);">Semua selesai!</p>` : `<ul style="font-size: 12px;">` + incompleteArr.map(n=>`<li>${n}</li>`).join('') + `</ul>`;
 
         document.getElementById('modalStoreContent').innerHTML = contentHtml;
         document.getElementById('storeStaffModal').style.display = 'flex';
@@ -2008,10 +2100,7 @@
 
     function exportTableToExcel(tableBodyId, filename = 'Data_Export.csv') {
         let tableEl = document.getElementById(tableBodyId);
-        if (!tableEl) {
-            alert("Tabel tidak ditemukan!");
-            return;
-        }
+        if (!tableEl) return;
 
         let csvRows = [];
         let parentTable = tableEl.closest('table');
@@ -2026,8 +2115,7 @@
             if (cols.length > 0) csvRows.push(cols.join(","));
         });
 
-        let csvString = csvRows.join("\n");
-        let blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        let blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
         let url = URL.createObjectURL(blob);
         let link = document.createElement("a");
         link.setAttribute("href", url);
@@ -2039,7 +2127,7 @@
 
     function loadAllStoresDashboard() {
         const leaderboardTableBody = document.getElementById('nationalLeaderboardTableBody');
-        leaderboardTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Memuat data global seluruh toko...</td></tr>`;
+        leaderboardTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Memuat...</td></tr>`;
 
         fetch(`${WEB_APP_URL}?action=getHistory`)
         .then(res => res.json())
@@ -2047,36 +2135,22 @@
             globalHistoryData = data;
             renderAllStoresDashboard();
         })
-        .catch(err => {
-            console.log("Gagal memuat rekap semua toko:", err);
-            leaderboardTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #dc2626;">Gagal mengambil data dari server.</td></tr>`;
-        });
+        .catch(err => { console.log("Gagal:", err); });
     }
 
     function renderAllStoresDashboard() {
         const leaderboardTableBody = document.getElementById('nationalLeaderboardTableBody');
         const searchVal = document.getElementById('allStoresNameFilter').value;
-        const statusFilter = document.getElementById('allStoresStatusFilter').value;
         const selectedMonthYear = document.getElementById('allStoresMonthFilter').value || new Date().toISOString().slice(0, 7);
 
-        let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
-        
+        let activeStores = masterEmployees.length > 0 ? [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))] : fallbackStores;
+        let allStores = activeStores.filter(Boolean);
         if (searchVal && searchVal !== 'all') {
             allStores = allStores.filter(store => store.toLowerCase() === searchVal.toLowerCase());
         }
 
-        if (allStores.length === 0) {
-            leaderboardTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Tidak ada toko yang cocok dengan filter.</td></tr>`;
-            return;
-        }
-
         let totalPhasesCount = Object.keys(phasesData).length;
-        let totalStoresCount = allStores.length;
-        let completedStoresCount = 0;
-        let inProgressStoresCount = 0;
-        let unstartedStoresCount = 0;
-        let activeStoresCount = 0;
-
+        let completedStoresCount = 0, inProgressStoresCount = 0, unstartedStoresCount = 0, activeStoresCount = 0;
         let storeScoreArray = [];
 
         allStores.forEach(storeName => {
@@ -2090,22 +2164,22 @@
                 return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
             });
 
-            let completedStaffCount = 0;
-            let totalAccumulatedPerStaff = 0;
+            let completedStaffCount = 0, totalAccumulatedPerStaff = 0, activeStaffInStore = 0;
 
             storeStaff.forEach(emp => {
-                let empName = emp.name.trim();
-                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
                 let empPhaseScores = {};
                 empHist.forEach(h => { if (h.phaseName) empPhaseScores[h.phaseName] = Number(h.totalScore || 0); });
                 let uniquePhases = Object.keys(empPhaseScores).length;
                 let empScore = Object.values(empPhaseScores).reduce((a, b) => a + b, 0);
 
-                totalAccumulatedPerStaff += Math.min(empScore, 108);
+                let cappedEmp = Math.min(empScore, 108);
+                totalAccumulatedPerStaff += cappedEmp;
+                if (cappedEmp > 0) activeStaffInStore++;
                 if (uniquePhases >= totalPhasesCount) completedStaffCount++;
             });
 
-            let avgStoreScore = totalStaffCount > 0 && storeHistory.length > 0 ? Math.round(totalAccumulatedPerStaff / totalStaffCount) : 0;
+            let avgStoreScore = activeStaffInStore > 0 ? Math.round(totalAccumulatedPerStaff / activeStaffInStore) : 0;
 
             if (storeHistory.length > 0) {
                 activeStoresCount++;
@@ -2114,16 +2188,9 @@
                 storeScoreArray.push({ store: storeName, score: 0, staffDone: 0, totalStaff: totalStaffCount });
             }
             
-            let storeStatus = "inprogress";
-            if (storeHistory.length === 0) {
-                storeStatus = "notstarted";
-                unstartedStoresCount++;
-            } else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) {
-                storeStatus = "completed";
-                completedStoresCount++;
-            } else {
-                inProgressStoresCount++;
-            }
+            if (storeHistory.length === 0) unstartedStoresCount++;
+            else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) { completedStoresCount++; }
+            else { inProgressStoresCount++; }
         });
 
         let phaseMaxMap = {};
@@ -2131,21 +2198,13 @@
             phaseMaxMap[pName] = phasesData[pName].reduce((sum, item) => sum + item.max, 0);
         });
 
-        let phaseScoresSum = {};
-        let phaseCounts = {};
-        let filteredHistory = globalHistoryData.filter(item => {
+        let phaseScoresSum = {}, phaseCounts = {};
+        globalHistoryData.filter(item => {
             let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
-            let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-            let jenisSesi = item.jenisSesi || "Coaching";
-            return itemMonth === selectedMonthYear && jenisSesi === "Coaching";
-        });
-
-        filteredHistory.forEach(item => {
+            return cleanDate.slice(0, 7) === selectedMonthYear && (item.jenisSesi || "Coaching") === "Coaching";
+        }).forEach(item => {
             if (item.phaseName) {
-                if (!phaseScoresSum[item.phaseName]) {
-                    phaseScoresSum[item.phaseName] = 0;
-                    phaseCounts[item.phaseName] = 0;
-                }
+                if (!phaseScoresSum[item.phaseName]) { phaseScoresSum[item.phaseName] = 0; phaseCounts[item.phaseName] = 0; }
                 phaseScoresSum[item.phaseName] += Number(item.totalScore || 0);
                 phaseCounts[item.phaseName]++;
             }
@@ -2160,14 +2219,13 @@
             let maxP = phaseMaxMap[pName] || 0;
             let pct = maxP > 0 ? Math.round((avg / maxP) * 100) : 0;
             phasePercentages.push(pct);
-            let colorStyle = pct >= 80 ? "color: var(--success);" : (pct >= 60 ? "color: var(--primary);" : "color: #dc2626;");
 
             phaseAvgHTML += `
                 <tr>
                     <td style="font-weight: 600;">${pName}</td>
                     <td style="text-align: center;">${maxP} Poin</td>
-                    <td style="text-align: center; font-weight: 600;">${avg} Poin <span style="font-size: 10px; color: var(--text-secondary);">(${count} Sesi)</span></td>
-                    <td style="text-align: center; font-weight: bold; ${colorStyle}">${pct}%</td>
+                    <td style="text-align: center; font-weight: 600;">${avg} Poin</td>
+                    <td style="text-align: center; font-weight: bold;">${pct}%</td>
                 </tr>
             `;
         });
@@ -2175,27 +2233,19 @@
 
         storeScoreArray.sort((a, b) => b.score - a.score);
         let top10TableHTML = "";
-        let top10List = storeScoreArray.slice(0, 10);
+        storeScoreArray.slice(0, 10).forEach((item, idx) => {
+            top10TableHTML += `
+                <tr>
+                    <td style="text-align: center; font-weight: bold;">Rank ${idx + 1}</td>
+                    <td style="font-weight: 600;">${item.store}</td>
+                    <td style="text-align: center;">${item.staffDone} / ${item.totalStaff} Selesai</td>
+                    <td style="text-align: center; font-weight: bold; color: var(--primary);">${item.score} Poin</td>
+                </tr>
+            `;
+        });
+        leaderboardTableBody.innerHTML = top10TableHTML || `<tr><td colspan="4" style="text-align: center;">Belum ada data skor.</td></tr>`;
 
-        if (top10List.length === 0 || top10List.every(i => i.score === 0)) {
-            leaderboardTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Belum ada data skor toko pada bulan ${selectedMonthYear}.</td></tr>`;
-        } else {
-            top10List.forEach((item, idx) => {
-                let rankBadge = idx === 0 ? "🥇 Rank 1" : (idx === 1 ? "🥈 Rank 2" : (idx === 2 ? "🥉 Rank 3" : `Rank ${idx + 1}`));
-                
-                top10TableHTML += `
-                    <tr>
-                        <td style="text-align: center; font-weight: bold;">${rankBadge}</td>
-                        <td style="font-weight: 600;">${item.store}</td>
-                        <td style="text-align: center;">${item.staffDone} / ${item.totalStaff} Selesai</td>
-                        <td style="text-align: center; font-weight: bold; color: var(--primary);">${item.score} Poin</td>
-                    </tr>
-                `;
-            });
-            leaderboardTableBody.innerHTML = top10TableHTML;
-        }
-
-        document.getElementById('statTotalStores').innerText = totalStoresCount;
+        document.getElementById('statTotalStores').innerText = allStores.length;
         document.getElementById('statCompletedStores').innerText = completedStoresCount;
         document.getElementById('statUnstartedStores').innerText = unstartedStoresCount;
         document.getElementById('statActiveStores').innerText = `${activeStoresCount} Toko`;
@@ -2204,162 +2254,127 @@
             allStoresChart.data.datasets[0].data = [completedStoresCount, inProgressStoresCount, unstartedStoresCount];
             allStoresChart.update();
         }
-
         if (phaseDoughnutChart) {
             phaseDoughnutChart.data.datasets[0].data = phasePercentages;
             phaseDoughnutChart.update();
         }
     }
 
+    // ==========================================
+    // EXPORT PPT EXECUTIVES 6 SLIDE SESUAI URUTAN
+    // ==========================================
     function exportFullNationalPPT() {
         let selectedMonthYear = document.getElementById('pptExportMonthSelect').value || new Date().toISOString().slice(0, 7);
-        let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
+        let activeStores = masterEmployees.length > 0 ? [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))] : fallbackStores;
+        let allStores = activeStores.filter(Boolean);
         let totalPhasesCount = Object.keys(phasesData).length;
 
         let pptx = new PptxGenJS();
         pptx.layout = 'LAYOUT_16x9';
 
+        let completedStoresCount = 0, inProgressStoresCount = 0, unstartedStoresCount = 0, activeStoresCount = 0;
+        let storeScoreArray = [];
+
+        allStores.forEach(storeName => {
+            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let totalStaffCount = storeStaff.length;
+
+            let storeHistory = globalHistoryData.filter(item => {
+                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
+                let jenisSesi = item.jenisSesi || "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
+            });
+
+            let completedStaffCount = 0, totalAccumulatedPerStaff = 0, activeStaffInStore = 0;
+
+            storeStaff.forEach(emp => {
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
+                let empPhaseScores = {};
+                empHist.forEach(h => { if (h.phaseName) empPhaseScores[h.phaseName] = Number(h.totalScore || 0); });
+                let uniquePhases = Object.keys(empPhaseScores).length;
+                let empScore = Object.values(empPhaseScores).reduce((a, b) => a + b, 0);
+
+                let cappedEmp = Math.min(empScore, 108);
+                totalAccumulatedPerStaff += cappedEmp;
+                if (cappedEmp > 0) activeStaffInStore++;
+                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
+            });
+
+            let avgStoreScore = activeStaffInStore > 0 ? Math.round(totalAccumulatedPerStaff / activeStaffInStore) : 0;
+
+            if (storeHistory.length > 0) {
+                activeStoresCount++;
+                storeScoreArray.push({ store: storeName, score: avgStoreScore, staffDone: completedStaffCount, totalStaff: totalStaffCount });
+            } else {
+                storeScoreArray.push({ store: storeName, score: 0, staffDone: 0, totalStaff: totalStaffCount });
+            }
+            
+            if (storeHistory.length === 0) unstartedStoresCount++;
+            else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) { completedStoresCount++; }
+            else { inProgressStoresCount++; }
+        });
+
+        storeScoreArray.sort((a, b) => b.score - a.score);
+
+        // SLIDE 1: COVER
         let slideCover = pptx.addSlide();
         slideCover.background = { color: "0071e3" };
         slideCover.addText("LAPORAN EKSEKUTIF KESELURUHAN NASIONAL", { x: 0.5, y: 1.5, w: 9.0, h: 0.8, fontSize: 24, bold: true, color: "FFFFFF" });
         slideCover.addText("Digimap Assessment & Performance Dashboard", { x: 0.5, y: 2.3, w: 9.0, h: 0.5, fontSize: 15, color: "E2E8F0" });
         slideCover.addText(`Periode Laporan: ${selectedMonthYear}   |   Total Toko: ${allStores.length}`, { x: 0.5, y: 4.2, w: 9.0, h: 0.5, fontSize: 12, color: "F8FAFC", italic: true });
 
-        let trainerMap = {};
-        allStores.forEach(storeName => {
-            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let trainerHO = "Unassigned";
-            if (storeStaff.length > 0) {
-                let empObj = storeStaff[0];
-                let rawTrainer = empObj['Trainer HO'] || empObj['trainerHO'] || empObj['Trainer_HO'];
-                if (!rawTrainer) {
-                    for (let key in empObj) {
-                        if (key.replace(/[\s_]/g, "").toLowerCase() === "trainerho") {
-                            rawTrainer = empObj[key];
-                            break;
-                        }
-                    }
-                }
-                if (rawTrainer && String(rawTrainer).trim() !== "") {
-                    trainerHO = String(rawTrainer).trim();
-                }
-            }
-            
-            let storeHistory = globalHistoryData.filter(item => {
-                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
-                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                let jenisSesi = item.jenisSesi || "Coaching";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
-            });
-
-            let completedStaffCount = 0;
-            let totalStoreScore = 0;
-            storeStaff.forEach(emp => {
-                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
-                let empPhases = {};
-                empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = Number(h.totalScore || 0); });
-                let uniquePhases = Object.keys(empPhases).length;
-                let empScore = Object.values(empPhases).reduce((a, b) => a + b, 0);
-                totalStoreScore += Math.min(empScore, 108);
-                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
-            });
-
-            if (!trainerMap[trainerHO]) {
-                trainerMap[trainerHO] = { stores: 0, totalStaff: 0, completedStaff: 0, sumScores: 0 };
-            }
-            trainerMap[trainerHO].stores++;
-            trainerMap[trainerHO].totalStaff += storeStaff.length;
-            trainerMap[trainerHO].completedStaff += completedStaffCount;
-            trainerMap[trainerHO].sumScores += totalStoreScore;
-        });
-
-        let slideTrainer = pptx.addSlide();
-        slideTrainer.addText("1. 👑 Ringkasan Performa Masing-Masing Trainer HO", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
+        // SLIDE 2: 📊 1. DATA SUMMARY NASIONAL
+        let slideSummary = pptx.addSlide();
+        slideSummary.addText("1. 📊 Ringkasan Data Summary Nasional", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
         
-        let trainerTableRows = [
+        let summaryTableRows = [
             [
-                { text: "Nama Trainer HO", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF" } },
-                { text: "Jml Toko", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
-                { text: "Total Staff", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
-                { text: "Staff Selesai", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
-                { text: "Rata-Rata Skor", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
-                { text: "Kepatuhan", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } }
-            ]
+                { text: "Metrik Kinerja Nasional", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF" } },
+                { text: "Nilai / Total", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } }
+            ],
+            [ { text: "Total Toko Terdaftar", options: { fontSize: 12 } }, { text: `${allStores.length} Toko`, options: { fontSize: 12, align: "center", bold: true } } ],
+            [ { text: "Toko Selesai 100%", options: { fontSize: 12 } }, { text: `${completedStoresCount} Toko`, options: { fontSize: 12, align: "center", bold: true, color: "34C759" } } ],
+            [ { text: "Toko Dalam Proses", options: { fontSize: 12 } }, { text: `${inProgressStoresCount} Toko`, options: { fontSize: 12, align: "center", bold: true, color: "0071e3" } } ],
+            [ { text: "Toko Belum Submit", options: { fontSize: 12 } }, { text: `${unstartedStoresCount} Toko`, options: { fontSize: 12, align: "center", bold: true, color: "DC2626" } } ],
+            [ { text: "Toko Aktif Submit", options: { fontSize: 12 } }, { text: `${activeStoresCount} Toko`, options: { fontSize: 12, align: "center", bold: true, color: "F59E0B" } } ]
         ];
 
-        Object.keys(trainerMap).forEach(trName => {
-            let d = trainerMap[trName];
-            let avgSc = d.totalStaff > 0 ? Math.round(d.sumScores / d.totalStaff) : 0;
-            let compRate = d.totalStaff > 0 ? Math.round((d.completedStaff / d.totalStaff) * 100) : 0;
-            trainerTableRows.push([
-                { text: trName, options: { fontSize: 9, bold: true } },
-                { text: `${d.stores}`, options: { fontSize: 9, align: "center" } },
-                { text: `${d.totalStaff}`, options: { fontSize: 9, align: "center" } },
-                { text: `${d.completedStaff}`, options: { fontSize: 9, align: "center", bold: true, color: "34C759" } },
-                { text: `${avgSc} Poin`, options: { fontSize: 9, align: "center", bold: true } },
-                { text: `${compRate}%`, options: { fontSize: 9, align: "center", bold: true, color: "0071e3" } }
-            ]);
-        });
-
-        slideTrainer.addTable(trainerTableRows, {
-            x: 0.5, y: 1.1, w: 9.0,
-            colW: [2.5, 1.1, 1.2, 1.3, 1.4, 1.5],
+        slideSummary.addTable(summaryTableRows, {
+            x: 1.0, y: 1.2, w: 7.5,
+            colW: [4.5, 3.0],
             border: { pt: 0.5, color: "CBD5E1" }
         });
 
-        let slideStores = pptx.addSlide();
-        slideStores.addText("2. 🏢 Persentase Keseluruhan Toko Nasional", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
+        // SLIDE 3: 🏆 2. LEADERBOARD TOP 10 TOKO
+        let slideLeaderboard = pptx.addSlide();
+        slideLeaderboard.addText("2. 🏆 Leaderboard Top 10 Toko Nasional", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
 
-        let storeTableRows = [
+        let top10TableRows = [
             [
+                { text: "Peringkat", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
                 { text: "Nama Toko / Store", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF" } },
-                { text: "Total Staff", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
-                { text: "Staff Selesai", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
-                { text: "Rata-Rata Skor", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
-                { text: "Capaian (%)", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } }
+                { text: "Staff Selesai / Total", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
+                { text: "Rata-Rata Skor", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } }
             ]
         ];
 
-        allStores.forEach(storeName => {
-            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let storeHistory = globalHistoryData.filter(item => {
-                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
-                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                let jenisSesi = item.jenisSesi || "Coaching";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
-            });
-
-            let completedStaffCount = 0;
-            let totalStoreScore = 0;
-            storeStaff.forEach(emp => {
-                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
-                let empPhases = {};
-                empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = Number(h.totalScore || 0); });
-                let uniquePhases = Object.keys(empPhases).length;
-                let empScore = Object.values(empPhases).reduce((a, b) => a + b, 0);
-                totalStoreScore += Math.min(empScore, 108);
-                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
-            });
-
-            let avgSc = storeStaff.length > 0 && storeHistory.length > 0 ? Math.round(totalStoreScore / storeStaff.length) : 0;
-            let pct = storeStaff.length > 0 ? Math.round((completedStaffCount / storeStaff.length) * 100) : 0;
-
-            storeTableRows.push([
-                { text: storeName, options: { fontSize: 8.5 } },
-                { text: `${storeStaff.length}`, options: { fontSize: 8.5, align: "center" } },
-                { text: `${completedStaffCount}/${storeStaff.length}`, options: { fontSize: 8.5, align: "center" } },
-                { text: `${avgSc} Poin`, options: { fontSize: 8.5, align: "center", bold: true } },
-                { text: `${pct}%`, options: { fontSize: 8.5, align: "center", bold: true, color: pct >= 80 ? "34C759" : "0071e3" } }
+        storeScoreArray.slice(0, 10).forEach((item, idx) => {
+            top10TableRows.push([
+                { text: `Rank ${idx + 1}`, options: { fontSize: 9, align: "center", bold: true } },
+                { text: item.store, options: { fontSize: 9, bold: true } },
+                { text: `${item.staffDone} / ${item.totalStaff}`, options: { fontSize: 9, align: "center" } },
+                { text: `${item.score} Poin`, options: { fontSize: 9, align: "center", bold: true, color: "0071e3" } }
             ]);
         });
 
-        slideStores.addTable(storeTableRows, {
+        slideLeaderboard.addTable(top10TableRows, {
             x: 0.5, y: 1.1, w: 9.0,
-            colW: [3.8, 1.2, 1.4, 1.3, 1.3],
-            border: { pt: 0.5, color: "CBD5E1" },
-            autoPage: true
+            colW: [1.5, 3.5, 2.2, 1.8],
+            border: { pt: 0.5, color: "CBD5E1" }
         });
 
+        // SLIDE 4: 📈 3. RATA-RATA SKOR NASIONAL PER FASE
         let slidePhase = pptx.addSlide();
         slidePhase.addText("3. 📈 Capaian Rata-Rata Nasional per Fase", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
 
@@ -2368,8 +2383,7 @@
             phaseMaxMap[pName] = phasesData[pName].reduce((sum, item) => sum + item.max, 0);
         });
 
-        let phaseScoresSum = {};
-        let phaseCounts = {};
+        let phaseScoresSum = {}, phaseCounts = {};
         globalHistoryData.forEach(item => {
             let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
             let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
@@ -2408,14 +2422,167 @@
         slidePhase.addTable(phaseTableRows, {
             x: 0.5, y: 1.1, w: 9.0,
             colW: [4.2, 1.4, 1.8, 1.6],
+            border: { pt: 0.5, color: "CBD5E1" }
+        });
+
+        // SLIDE 5: 📊 4. CHART VISUALISASI NASIONAL
+        let slideChart = pptx.addSlide();
+        slideChart.addText("4. 📊 Grafik Visualisasi Status Pengerjaan Toko", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
+        
+        let chartCanvas = document.getElementById('allStoresChart');
+        if (chartCanvas) {
+            let chartImgData = chartCanvas.toDataURL('image/png');
+            slideChart.addImage({ data: chartImgData, x: 1.5, y: 1.1, w: 7.0, h: 3.6 });
+        } else {
+            slideChart.addText("Grafik tidak tersedia.", { x: 1.0, y: 2.0, fontSize: 14 });
+        }
+
+        // AMBIL DATA TRAINER HO
+        let trainerMap = {};
+        allStores.forEach(storeName => {
+            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let trainerHO = "Unassigned";
+            if (storeStaff.length > 0) {
+                let empObj = storeStaff[0];
+                let rawTrainer = empObj['Trainer HO'] || empObj['trainerHO'] || empObj['Trainer_HO'];
+                if (!rawTrainer) {
+                    for (let key in empObj) {
+                        if (key.replace(/[\s_]/g, "").toLowerCase() === "trainerho") {
+                            rawTrainer = empObj[key];
+                            break;
+                        }
+                    }
+                }
+                if (rawTrainer && String(rawTrainer).trim() !== "") trainerHO = String(rawTrainer).trim();
+            }
+            
+            let storeHistory = globalHistoryData.filter(item => {
+                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
+                let jenisSesi = item.jenisSesi || "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
+            });
+
+            let completedStaffCount = 0, totalStoreScore = 0, activeStaffInStore = 0;
+
+            storeStaff.forEach(emp => {
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
+                let empPhases = {};
+                empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = Number(h.totalScore || 0); });
+                let uniquePhases = Object.keys(empPhases).length;
+                let empScore = Object.values(empPhases).reduce((a, b) => a + b, 0);
+                let capped = Math.min(empScore, 108);
+                totalStoreScore += capped;
+                if (capped > 0) activeStaffInStore++;
+                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
+            });
+
+            if (!trainerMap[trainerHO]) {
+                trainerMap[trainerHO] = { stores: 0, totalStaff: 0, completedStaff: 0, sumScores: 0, activeStaffCount: 0 };
+            }
+            trainerMap[trainerHO].stores++;
+            trainerMap[trainerHO].totalStaff += storeStaff.length;
+            trainerMap[trainerHO].completedStaff += completedStaffCount;
+            trainerMap[trainerHO].sumScores += totalStoreScore;
+            trainerMap[trainerHO].activeStaffCount += activeStaffInStore;
+        });
+
+        // SLIDE 6: 👑 5. RINGKASAN PERFORMA TRAINER HO
+        let slideTrainer = pptx.addSlide();
+        slideTrainer.addText("5. 👑 Ringkasan Performa Masing-Masing Trainer HO", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
+        
+        let trainerTableRows = [
+            [
+                { text: "Nama Trainer HO", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF" } },
+                { text: "Jml Toko", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
+                { text: "Total Staff", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
+                { text: "Staff Selesai", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
+                { text: "Rata-Rata Skor", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
+                { text: "Kepatuhan", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } }
+            ]
+        ];
+
+        Object.keys(trainerMap).forEach(trName => {
+            let d = trainerMap[trName];
+            let divisor = d.activeStaffCount > 0 ? d.activeStaffCount : 1;
+            let avgSc = Math.round(d.sumScores / divisor);
+            let compRate = d.totalStaff > 0 ? Math.round((d.completedStaff / d.totalStaff) * 100) : 0;
+            trainerTableRows.push([
+                { text: trName, options: { fontSize: 9, bold: true } },
+                { text: `${d.stores}`, options: { fontSize: 9, align: "center" } },
+                { text: `${d.totalStaff}`, options: { fontSize: 9, align: "center" } },
+                { text: `${d.completedStaff}`, options: { fontSize: 9, align: "center", bold: true, color: "34C759" } },
+                { text: `${avgSc} Poin`, options: { fontSize: 9, align: "center", bold: true } },
+                { text: `${compRate}%`, options: { fontSize: 9, align: "center", bold: true, color: "0071e3" } }
+            ]);
+        });
+
+        slideTrainer.addTable(trainerTableRows, {
+            x: 0.5, y: 1.1, w: 9.0,
+            colW: [2.5, 1.1, 1.2, 1.3, 1.4, 1.5],
+            border: { pt: 0.5, color: "CBD5E1" }
+        });
+
+        // SLIDE 7: 🏢 6. REKAPITULASI PROGRESS SELURUH TOKO
+        let slideStores = pptx.addSlide();
+        slideStores.addText("6. 🏢 Rekapitulasi Progress Seluruh Toko Nasional", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
+
+        let storeTableRows = [
+            [
+                { text: "Nama Toko / Store", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF" } },
+                { text: "Total Staff", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
+                { text: "Staff Selesai", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
+                { text: "Rata-Rata Skor", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } },
+                { text: "Capaian (%)", options: { bold: true, fill: { color: "0071e3" }, color: "FFFFFF", align: "center" } }
+            ]
+        ];
+
+        allStores.forEach(storeName => {
+            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let storeHistory = globalHistoryData.filter(item => {
+                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
+                let jenisSesi = item.jenisSesi || "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
+            });
+
+            let completedStaffCount = 0, totalStoreScore = 0, activeStaffInStore = 0;
+
+            storeStaff.forEach(emp => {
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
+                let empPhases = {};
+                empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = Number(h.totalScore || 0); });
+                let uniquePhases = Object.keys(empPhases).length;
+                let empScore = Object.values(empPhases).reduce((a, b) => a + b, 0);
+                let capped = Math.min(empScore, 108);
+                totalStoreScore += capped;
+                if (capped > 0) activeStaffInStore++;
+                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
+            });
+
+            let avgSc = activeStaffInStore > 0 ? Math.round(totalStoreScore / activeStaffInStore) : 0;
+            let pct = storeStaff.length > 0 ? Math.round((completedStaffCount / storeStaff.length) * 100) : 0;
+
+            storeTableRows.push([
+                { text: storeName, options: { fontSize: 8.5 } },
+                { text: `${storeStaff.length}`, options: { fontSize: 8.5, align: "center" } },
+                { text: `${completedStaffCount}/${storeStaff.length}`, options: { fontSize: 8.5, align: "center" } },
+                { text: `${avgSc} Poin`, options: { fontSize: 8.5, align: "center", bold: true } },
+                { text: `${pct}%`, options: { fontSize: 8.5, align: "center", bold: true, color: pct >= 80 ? "34C759" : "0071e3" } }
+            ]);
+        });
+
+        slideStores.addTable(storeTableRows, {
+            x: 0.5, y: 1.1, w: 9.0,
+            colW: [3.8, 1.2, 1.4, 1.3, 1.3],
             border: { pt: 0.5, color: "CBD5E1" },
-            autoPage: false
+            autoPage: true
         });
 
         pptx.writeFile({ fileName: `Laporan_Eksekutif_Nasional_${selectedMonthYear}.pptx` }).then(() => {
-            alert("✅ File presentasi PowerPoint (.pptx) Executive Nasional berhasil di-generate dan diunduh!");
+            alert("✅ File presentasi PowerPoint (.pptx) dengan 6 urutan slide baru berhasil di-generate!");
         }).catch(err => {
-            alert("Gagal mengunduh PPT Nasional: " + err);
+            alert("Gagal mengunduh PPT: " + err);
         });
     }
 </script>
