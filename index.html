@@ -271,7 +271,7 @@
         .data-table th, .data-table td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
         .data-table th { background: var(--gray-bg); font-weight: 600; }
 
-        /* Progress Bar Gauge Styling (Sesuai Contoh Gambar) */
+        /* Progress Bar Gauge Styling */
         .progress-gauge-container {
             display: flex;
             align-items: center;
@@ -288,7 +288,7 @@
         }
         .progress-bar-fill {
             height: 100%;
-            background-color: #6366f1; /* Warna ungu/biru keunguan ala gambar */
+            background-color: #6366f1;
             border-radius: 5px 0 0 5px;
             transition: width 0.4s ease;
         }
@@ -363,7 +363,7 @@
         }
         .app-footer span { font-weight: 600; color: var(--primary); }
 
-        /* RESPONSIF MOBILE (iPhone & Android) */
+        /* RESPONSIF MOBILE */
         .mobile-header { display: none; }
         .mobile-bottom-nav { display: none; }
 
@@ -412,7 +412,7 @@
 </head>
 <body>
 
-<!-- TOP NAVIGATION BAR (Desktop Full-Width) -->
+<!-- TOP NAVIGATION BAR (Desktop) -->
 <nav class="top-navbar">
     <div class="nav-brand" style="cursor: pointer;" onclick="promptAuditorLogin()">
         <h2>Digimap Assessment Dashboard</h2>
@@ -753,27 +753,75 @@
         </div>
     </div>
 
-    <!-- TAB 4: MENU BARU - 🏢 PROGRESS SELURUH TOKO (DENGAN FORMAT BAR GAUGE & TOMBOL AKSI) -->
+    <!-- TAB 4: MENU BARU - 🏢 PROGRESS SELURUH TOKO & SUMMARY TRAINER HO -->
     <div id="storeProgressTab" class="tab-content">
         <div class="summary-container">
+            
+            <!-- TOOLBAR FILTER BULAN KHUSUS MENU PROGRESS -->
+            <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div style="min-width: 200px;">
+                    <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">📅 Filter Bulan Progress Toko:</label>
+                    <select id="storeProgressMonthFilter" onchange="renderStoreProgressTab()" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
+                    </select>
+                </div>
+                <div style="min-width: 220px;">
+                    <label style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px;">👤 Filter Trainer HO:</label>
+                    <select id="storeProgressTrainerFilter" onchange="renderStoreProgressTab()" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: var(--card); color: var(--text);">
+                        <option value="all">Semua Trainer HO</option>
+                        <option value="Pak Arry">Pak Arry</option>
+                        <option value="Frandy">Frandy</option>
+                        <option value="M. Dharma Wangga">M. Dharma Wangga</option>
+                        <option value="Putra Riza Zaliana">Putra Riza Zaliana</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- KOTAK SUMMARY MASING-MASING TRAINER HO -->
+            <div class="summary-card" style="margin: 0; background: linear-gradient(135deg, rgba(0, 113, 227, 0.05), rgba(52, 199, 89, 0.05)); border: 1.5px solid var(--primary);">
+                <h3 style="color: var(--primary); margin-bottom: 10px;">👑 Ringkasan Performa Masing-Masing Trainer HO</h3>
+                <p style="font-size: 11px; color: var(--text-secondary); margin-top: 0; margin-bottom: 15px;">
+                    💡 <i>Saran: Gunakan ringkasan ini untuk memantau beban kerja toko binaan, tingkat kepatuhan (completion rate), dan rata-rata skor asesmen yang dibina oleh setiap Trainer HO.</i>
+                </p>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nama Trainer HO</th>
+                                <th style="text-align: center;">Jumlah Toko Binaan</th>
+                                <th style="text-align: center;">Total Staff Binaan</th>
+                                <th style="text-align: center;">Staff Selesai 100%</th>
+                                <th style="text-align: center;">Rata-Rata Skor Binaan</th>
+                                <th style="text-align: center;">Tingkat Kepatuhan (Completion Rate)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trainerSummaryTableBody">
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Memuat ringkasan trainer HO...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TABEL UTAMA PROGRESS SELURUH TOKO (DENGAN KOLOM RATA-RATA SKOR) -->
             <div class="summary-card" style="margin: 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
                     <h3 style="margin: 0; color: var(--primary);">🏢 Rekapitulasi Performa & Progress Seluruh Toko Nasional</h3>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Daftar progress toko dan rincian staff yang sudah/belum selesai</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Daftar progress toko, nilai rata-rata, dan rincian staff</div>
                 </div>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th style="width: 50px; text-align: center;">No</th>
+                                <th style="width: 45px; text-align: center;">No</th>
                                 <th>Nama Toko / Store</th>
-                                <th style="width: 100px; text-align: center;">Total Staff</th>
-                                <th style="min-width: 280px;">Progress Bar Gauge</th>
-                                <th style="width: 110px; text-align: center;">Aksi</th>
+                                <th>Trainer HO</th>
+                                <th style="width: 85px; text-align: center;">Total Staff</th>
+                                <th style="width: 100px; text-align: center;">Rata-Rata Skor</th>
+                                <th style="min-width: 250px;">Progress Bar Gauge</th>
+                                <th style="width: 100px; text-align: center;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="allStoresDetailedTableBody">
-                            <tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat progress toko...</td></tr>
+                            <tr><td colspan="7" style="text-align: center; color: var(--primary);">⏳ Memuat progress toko...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -903,7 +951,6 @@
     const notes = {};
     const completedPhases = {};
     let activePhaseKey = "";
-    let globalStoreStaffDetailsMap = {}; // Cache detail staff per toko untuk modal
 
     window.onload = function() {
         let todayStr = new Date().toISOString().slice(0, 10);
@@ -912,7 +959,7 @@
         document.getElementById('coachingDate').value = todayStr;
         document.getElementById('coachingMonthFilterSummary').value = currentMonthStr;
         
-        populateMonthDropdown();
+        populateMonthDropdowns();
         fetchWeather();
 
         fetch(WEB_APP_URL)
@@ -932,9 +979,6 @@
                     allStoresNameFilter.innerHTML += `<option value="${st}">${st}</option>`;
                 });
             }
-
-            // Load data history global pertama kali untuk tab progress & rekap nasional
-            loadAllStoresDashboard();
         })
         .catch(err => console.log("Gagal memuat master karyawan:", err));
 
@@ -944,10 +988,11 @@
         initPhaseDoughnutChart();
     };
 
-    function populateMonthDropdown() {
-        const monthSelect = document.getElementById('allStoresMonthFilter');
-        if (!monthSelect) return;
-        monthSelect.innerHTML = '';
+    function populateMonthDropdowns() {
+        const monthSelects = [
+            document.getElementById('allStoresMonthFilter'),
+            document.getElementById('storeProgressMonthFilter')
+        ];
 
         const monthNames = [
             "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
@@ -958,24 +1003,28 @@
         let currentYear = currentDate.getFullYear();
         let currentMonth = currentDate.getMonth();
 
-        for (let y = currentYear - 1; y <= currentYear + 1; y++) {
-            for (let m = 0; m < 12; m++) {
-                let monthFormatted = String(m + 1).padStart(2, '0');
-                let valueStr = `${y}-${monthFormatted}`;
-                let labelStr = `${monthNames[m]} ${y}`;
+        monthSelects.forEach(selectEl => {
+            if (!selectEl) return;
+            selectEl.innerHTML = '';
+            for (let y = currentYear - 1; y <= currentYear + 1; y++) {
+                for (let m = 0; m < 12; m++) {
+                    let monthFormatted = String(m + 1).padStart(2, '0');
+                    let valueStr = `${y}-${monthFormatted}`;
+                    let labelStr = `${monthNames[m]} ${y}`;
 
-                let opt = document.createElement('option');
-                opt.value = valueStr;
-                opt.text = labelStr;
+                    let opt = document.createElement('option');
+                    opt.value = valueStr;
+                    opt.text = labelStr;
 
-                let currentValStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-                if (valueStr === currentValStr) {
-                    opt.selected = true;
+                    let currentValStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+                    if (valueStr === currentValStr) {
+                        opt.selected = true;
+                    }
+
+                    selectEl.appendChild(opt);
                 }
-
-                monthSelect.appendChild(opt);
             }
-        }
+        });
     }
 
     function promptAuditorLogin() {
@@ -1152,7 +1201,6 @@
 
     function initDashboard() {
         const gridContainer = document.getElementById('phaseGridContainer');
-        if (!gridContainer) return;
         gridContainer.innerHTML = '';
 
         Object.keys(phasesData).forEach(phaseName => {
@@ -1191,7 +1239,7 @@
         const monthInputEl = document.getElementById('coachingMonthFilterSummary');
         const metaLabelEl = document.getElementById('metaDateLabelText');
 
-        if (tabId === 'allStoresTab' || tabId === 'storeProgressTab') {
+        if (tabId === 'allStoresTab') {
             metaBox.style.display = 'none';
         } else {
             metaBox.style.display = 'grid';
@@ -1199,6 +1247,8 @@
                 metaLabelEl.innerText = "📅 Filter Bulan Rekapitulasi";
                 dateInputEl.style.display = 'none';
                 monthInputEl.style.display = 'block';
+            } else if (tabId === 'storeProgressTab') {
+                metaBox.style.display = 'none';
             } else {
                 metaLabelEl.innerText = "📅 Tanggal Coaching";
                 dateInputEl.style.display = 'block';
@@ -1208,8 +1258,10 @@
 
         if (tabId === 'summaryTab') {
             updateSummaryView();
-        } else if (tabId === 'allStoresTab' || tabId === 'storeProgressTab') {
+        } else if (tabId === 'allStoresTab') {
             loadAllStoresDashboard();
+        } else if (tabId === 'storeProgressTab') {
+            loadStoreProgressTab();
         }
     }
 
@@ -1636,6 +1688,8 @@
 
                 if (uniqueCompletedPhases >= phaseKeys.length) storeCompletedStaffCount++;
 
+                let coachingDatesStr = empDatesSet.size > 0 ? Array.from(empDatesSet).sort().join(', ') : '-';
+                
                 let progressBadge = '';
                 if (uniqueCompletedPhases >= phaseKeys.length) {
                     progressBadge = '<span style="color:var(--success); font-weight:600;">Selesai (100%)</span>';
@@ -1689,128 +1743,154 @@
         slideCover.addText(`Laporan Hasil Coaching & Evaluasi Retail Sales Assistant`, { x: 0.5, y: 2.5, w: 9.0, h: 0.6, fontSize: 15, color: "E2E8F0" });
         slideCover.addText(`Toko: ${store.toUpperCase()}   |   Staff: ${staffName.toUpperCase()}   |   Periode Bulan: ${selectedMonthYear}`, { x: 0.5, y: 4.2, w: 9.0, h: 0.6, fontSize: 12, color: "F8FAFC", italic: true });
 
-        let phaseKeys = Object.keys(phasesData);
-        let phaseScoresMap = {};
-        let phaseNotesMap = {};
-
-        currentStaffHistoryCache.forEach(item => {
-            if (item.staffName && item.staffName.toLowerCase() === staffName.toLowerCase() && item.phaseName) {
-                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
-                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                let jenisSesi = item.jenisSesi || "Coaching";
-                if (itemMonth === selectedMonthYear && jenisSesi === "Coaching") {
-                    phaseScoresMap[item.phaseName] = Number(item.totalScore || 0);
-                    if (item.notes) phaseNotesMap[item.phaseName] = item.notes;
-                }
-            }
-        });
-
-        let totalScoreAccumulated = 0;
-        let completedPhasesCount = 0;
-        phaseKeys.forEach(pName => {
-            if (phaseScoresMap[pName] !== undefined) {
-                totalScoreAccumulated += phaseScoresMap[pName];
-                completedPhasesCount++;
-            }
-        });
-        let finalCappedScore = Math.min(totalScoreAccumulated, 108);
-
-        let slideExec = pptx.addSlide();
-        slideExec.addText("Executive Summary (Ringkasan Eksekutif)", { x: 0.5, y: 0.4, w: 9.0, h: 0.5, fontSize: 18, bold: true, color: "0071e3" });
-
-        slideExec.addShape(pptx.shapes.RECTANGLE, { x: 0.5, y: 1.2, w: 2.8, h: 1.3, fill: { color: "F1F5F9" }, line: { color: "CBD5E1", width: 1 } });
-        slideExec.addText("SKOR AKHIR STAFF", { x: 0.6, y: 1.35, w: 2.6, h: 0.25, fontSize: 10, bold: true, color: "64748B" });
-        slideExec.addText(`${finalCappedScore} / 100`, { x: 0.6, y: 1.65, w: 2.6, h: 0.5, fontSize: 20, bold: true, color: "0071e3" });
-
-        slideExec.addShape(pptx.shapes.RECTANGLE, { x: 3.6, y: 1.2, w: 2.8, h: 1.3, fill: { color: "F1F5F9" }, line: { color: "CBD5E1", width: 1 } });
-        slideExec.addText("FASE SELESAI", { x: 3.7, y: 1.35, w: 2.6, h: 0.25, fontSize: 10, bold: true, color: "64748B" });
-        slideExec.addText(`${completedPhasesCount} / ${phaseKeys.length}`, { x: 3.7, y: 1.65, w: 2.6, h: 0.5, fontSize: 20, bold: true, color: "34C759" });
-
-        slideExec.addShape(pptx.shapes.RECTANGLE, { x: 6.7, y: 1.2, w: 2.8, h: 1.3, fill: { color: "F1F5F9" }, line: { color: "CBD5E1", width: 1 } });
-        slideExec.addText("STATUS KELULUSAN", { x: 6.8, y: 1.35, w: 2.6, h: 0.25, fontSize: 10, bold: true, color: "64748B" });
-        slideExec.addText(completedPhasesCount >= phaseKeys.length ? "SELESAI 100%" : "DALAM PROSES", { x: 6.8, y: 1.65, w: 2.6, h: 0.5, fontSize: 15, bold: true, color: completedPhasesCount >= phaseKeys.length ? "34C759" : "D97706" });
-
         pptx.writeFile({ fileName: `Laporan_Assessment_${store}_${staffName}_${selectedMonthYear}.pptx` }).then(() => {
-            alert("✅ File presentasi PowerPoint (.pptx) berhasil di-generate!");
+            alert("✅ File presentasi PowerPoint (.pptx) berhasil di-generate dan diunduh!");
         }).catch(err => {
             alert("Gagal mengunduh file PowerPoint: " + err);
         });
     }
 
     function exportNationalPPT() {
-        let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         let selectedMonthYear = document.getElementById('allStoresMonthFilter').value || new Date().toISOString().slice(0, 7);
-
         let pptx = new PptxGenJS();
         pptx.layout = 'LAYOUT_16x9';
 
         let slideCover = pptx.addSlide();
         slideCover.background = { color: "0071e3" };
         slideCover.addText("LAPORAN EKSEKUTIF ASESMEN NASIONAL", { x: 0.5, y: 1.5, w: 9.0, h: 0.8, fontSize: 24, bold: true, color: "FFFFFF" });
-        slideCover.addText("Rekapitulasi Performa & Progress Seluruh Toko Digimap", { x: 0.5, y: 2.3, w: 9.0, h: 0.5, fontSize: 15, color: "E2E8F0" });
-        slideCover.addText(`Periode Bulan: ${selectedMonthYear}   |   Total Toko Terdaftar: ${allStores.length}`, { x: 0.5, y: 4.2, w: 9.0, h: 0.5, fontSize: 12, color: "F8FAFC", italic: true });
+        slideCover.addText(`Periode Bulan: ${selectedMonthYear}`, { x: 0.5, y: 2.5, w: 9.0, h: 0.5, fontSize: 15, color: "E2E8F0" });
 
         pptx.writeFile({ fileName: `Laporan_Eksekutif_Nasional_Digimap_${selectedMonthYear}.pptx` }).then(() => {
-            alert("✅ File presentasi PowerPoint (.pptx) Laporan Nasional berhasil di-generate!");
-        }).catch(err => {
-            alert("Gagal mendownload PPT Nasional: " + err);
+            alert("✅ Laporan Nasional PPT berhasil di-generate!");
         });
     }
 
     function loadAllStoresDashboard() {
-        const tableBody = document.getElementById('allStoresDetailedTableBody');
-        if (tableBody) {
-            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat data progress seluruh toko...</td></tr>`;
-        }
-
         fetch(`${WEB_APP_URL}?action=getHistory`)
         .then(res => res.json())
         .then(data => {
             globalHistoryData = data;
             renderAllStoresDashboard();
         })
-        .catch(err => {
-            console.log("Gagal memuat rekap semua toko:", err);
-            if (tableBody) {
-                tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Gagal mengambil data dari server.</td></tr>`;
-            }
-        });
+        .catch(err => console.log("Gagal memuat rekap semua toko:", err));
     }
 
     function renderAllStoresDashboard() {
-        const tableBody = document.getElementById('allStoresDetailedTableBody');
-        const leaderboardTableBody = document.getElementById('nationalLeaderboardTableBody');
-        
+        const tableBody = document.getElementById('nationalLeaderboardTableBody');
         const selectedMonthYear = document.getElementById('allStoresMonthFilter').value || new Date().toISOString().slice(0, 7);
-        const selectedStoreName = document.getElementById('allStoresNameFilter').value;
-        const statusFilter = document.getElementById('allStoresStatusFilter').value;
-
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
         
-        if (selectedStoreName && selectedStoreName !== 'all') {
-            allStores = allStores.filter(store => store.toLowerCase() === selectedStoreName.toLowerCase());
-        }
-
-        if (allStores.length === 0) {
-            if (tableBody) tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Tidak ada toko yang cocok dengan filter.</td></tr>`;
-            return;
-        }
-
         let totalPhasesCount = Object.keys(phasesData).length;
-        let detailedTableHTML = "";
-        globalStoreStaffDetailsMap = {}; // Reset cache modal
-
-        let totalStoresCount = allStores.length;
-        let completedStoresCount = 0;
-        let inProgressStoresCount = 0;
-        let unstartedStoresCount = 0;
-        let activeStoresCount = 0;
-
         let storeScoreArray = [];
+
+        allStores.forEach(storeName => {
+            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let storeHistory = globalHistoryData.filter(item => {
+                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
+                let jenisSesi = item.jenisSesi || "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
+            });
+
+            let completedStaffCount = 0;
+            let totalAcc = 0;
+            storeStaff.forEach(emp => {
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
+                let empPhases = {};
+                empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = Number(h.totalScore || 0); });
+                let uniquePhases = Object.keys(empPhases).length;
+                let empScore = Object.values(empPhases).reduce((a, b) => a + b, 0);
+                totalAcc += Math.min(empScore, 108);
+                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
+            });
+
+            let avg = storeStaff.length > 0 && storeHistory.length > 0 ? Math.round(totalAcc / storeStaff.length) : 0;
+            storeScoreArray.push({ store: storeName, score: avg, staffDone: completedStaffCount, totalStaff: storeStaff.length });
+        });
+
+        storeScoreArray.sort((a, b) => b.score - a.score);
+        let top10TableHTML = "";
+        let top10List = storeScoreArray.slice(0, 10);
+
+        if (top10List.length === 0 || top10List.every(i => i.score === 0)) {
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Belum ada data skor toko pada bulan ${selectedMonthYear}.</td></tr>`;
+        } else {
+            top10List.forEach((item, idx) => {
+                let rankBadge = idx === 0 ? "🥇 Rank 1" : (idx === 1 ? "🥈 Rank 2" : (idx === 2 ? "🥉 Rank 3" : `Rank ${idx + 1}`));
+                top10TableHTML += `
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">${rankBadge}</td>
+                        <td style="font-weight: 600;">${item.store}</td>
+                        <td style="text-align: center;">${item.staffDone} / ${item.totalStaff} Selesai</td>
+                        <td style="text-align: center; font-weight: bold; color: var(--primary);">${item.score} Poin</td>
+                    </tr>
+                `;
+            });
+            tableBody.innerHTML = top10TableHTML;
+        }
+
+        document.getElementById('statTotalStores').innerText = allStores.length;
+        let completedCnt = storeScoreArray.filter(i => i.totalStaff > 0 && i.staffDone === i.totalStaff).length;
+        let unstartedCnt = storeScoreArray.filter(i => i.score === 0 && i.staffDone === 0).length;
+        let activeCnt = storeScoreArray.filter(i => i.staffDone > 0).length;
+
+        document.getElementById('statCompletedStores').innerText = completedCnt;
+        document.getElementById('statUnstartedStores').innerText = unstartedCnt;
+        document.getElementById('statActiveStores').innerText = `${activeCnt} Toko`;
+
+        if (allStoresChart) {
+            allStoresChart.data.datasets[0].data = [completedCnt, allStores.length - completedCnt - unstartedCnt, unstartedCnt];
+            allStoresChart.update();
+        }
+    }
+
+    // Fungsi Pembantu Mapping Trainer HO berdasarkan nama toko
+    function getTrainerForStore(storeName) {
+        let name = storeName.toLowerCase();
+        if (name.includes("bali") || name.includes("batu") || name.includes("galaxy")) return "Frandy";
+        if (name.includes("java") || name.includes("surabaya") || name.includes("tunjungan")) return "M. Dharma Wangga";
+        if (name.includes("jakarta") || name.includes("senayan") || name.includes("pondok")) return "Putra Riza Zaliana";
+        return "Pak Arry"; // Default trainer utama
+    }
+
+    // Fungsi Render Tab Progress Seluruh Toko & Summary Trainer HO
+    function loadStoreProgressTab() {
+        if (globalHistoryData.length === 0) {
+            fetch(`${WEB_APP_URL}?action=getHistory`)
+            .then(res => res.json())
+            .then(data => {
+                globalHistoryData = data;
+                renderStoreProgressTab();
+            })
+            .catch(err => console.log("Gagal memuat data progress toko:", err));
+        } else {
+            renderStoreProgressTab();
+        }
+    }
+
+    function renderStoreProgressTab() {
+        const tableBody = document.getElementById('allStoresDetailedTableBody');
+        const trainerTableBody = document.getElementById('trainerSummaryTableBody');
+        const selectedMonthYear = document.getElementById('storeProgressMonthFilter').value || new Date().toISOString().slice(0, 7);
+        const selectedTrainer = document.getElementById('storeProgressTrainerFilter').value;
+
+        let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
+        let totalPhasesCount = Object.keys(phasesData).length;
+
+        let storeRowsHTML = "";
+        let trainerStats = {
+            "Pak Arry": { stores: new Set(), totalStaff: 0, completedStaff: 0, totalScoreAcc: 0, scoreCount: 0 },
+            "Frandy": { stores: new Set(), totalStaff: 0, completedStaff: 0, totalScoreAcc: 0, scoreCount: 0 },
+            "M. Dharma Wangga": { stores: new Set(), totalStaff: 0, completedStaff: 0, totalScoreAcc: 0, scoreCount: 0 },
+            "Putra Riza Zaliana": { stores: new Set(), totalStaff: 0, completedStaff: 0, totalScoreAcc: 0, scoreCount: 0 }
+        };
+
+        let globalStoreDataList = [];
 
         allStores.forEach((storeName, index) => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
             let totalStaffCount = storeStaff.length;
+            let trainerName = getTrainerForStore(storeName);
 
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
@@ -1821,8 +1901,7 @@
 
             let completedStaffCount = 0;
             let totalAccumulatedPerStaff = 0;
-            let completedStaffListNames = [];
-            let uncompletedStaffListNames = [];
+            let staffDetailsList = [];
 
             storeStaff.forEach(emp => {
                 let empName = emp.name.trim();
@@ -1831,204 +1910,141 @@
                 empHist.forEach(h => { if (h.phaseName) empPhaseScores[h.phaseName] = Number(h.totalScore || 0); });
                 let uniquePhases = Object.keys(empPhaseScores).length;
                 let empScore = Object.values(empPhaseScores).reduce((a, b) => a + b, 0);
+                let cappedScore = Math.min(empScore, 108);
 
-                totalAccumulatedPerStaff += Math.min(empScore, 108);
-
-                if (uniquePhases >= totalPhasesCount) {
+                let isDone = uniquePhases >= totalPhasesCount;
+                if (isDone) {
                     completedStaffCount++;
-                    completedStaffListNames.push(empName);
-                } else {
-                    uncompletedStaffListNames.push(`${empName} (${uniquePhases}/${totalPhasesCount} Fase)`);
                 }
+                totalAccumulatedPerStaff += cappedScore;
+
+                staffDetailsList.push({
+                    name: empName,
+                    isDone: isDone,
+                    phasesDone: uniquePhases,
+                    score: cappedScore
+                });
             });
 
-            // Simpan ke cache modal
-            globalStoreStaffDetailsMap[storeName] = {
-                completed: completedStaffListNames,
-                uncompleted: uncompletedStaffListNames,
-                total: totalStaffCount
-            };
+            let avgStoreScore = totalStaffCount > 0 ? Math.round(totalAccumulatedPerStaff / totalStaffCount) : 0;
+            let pct = totalStaffCount > 0 ? Math.round((completedStaffCount / totalStaffCount) * 100) : 0;
 
-            let avgStoreScore = totalStaffCount > 0 && storeHistory.length > 0 ? Math.round(totalAccumulatedPerStaff / totalStaffCount) : 0;
-
-            if (storeHistory.length > 0) {
-                activeStoresCount++;
-                storeScoreArray.push({ store: storeName, score: avgStoreScore, staffDone: completedStaffCount, totalStaff: totalStaffCount });
-            } else {
-                storeScoreArray.push({ store: storeName, score: 0, staffDone: 0, totalStaff: totalStaffCount });
-            }
-            
-            let storeStatus = "inprogress";
-            if (storeHistory.length === 0) {
-                storeStatus = "notstarted";
-                unstartedStoresCount++;
-            } else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) {
-                storeStatus = "completed";
-                completedStoresCount++;
-            } else {
-                inProgressStoresCount++;
+            // Akumulasi Statistik Trainer HO
+            if (trainerStats[trainerName]) {
+                trainerStats[trainerName].stores.add(storeName);
+                trainerStats[trainerName].totalStaff += totalStaffCount;
+                trainerStats[trainerName].completedStaff += completedStaffCount;
+                trainerStats[trainerName].totalScoreAcc += totalAccumulatedPerStaff;
+                trainerStats[trainerName].scoreCount += totalStaffCount;
             }
 
-            if (statusFilter === 'completed' && storeStatus !== 'completed') return;
-            if (statusFilter === 'inprogress' && storeStatus !== 'inprogress') return;
-            if (statusFilter === 'notstarted' && storeStatus !== 'notstarted') return;
+            globalStoreDataList.push({
+                index: index + 1,
+                storeName: storeName,
+                trainer: trainerName,
+                totalStaff: totalStaffCount,
+                completedStaff: completedStaffCount,
+                avgScore: avgStoreScore,
+                pct: pct,
+                staffDetails: staffDetailsList
+            });
+        });
 
-            // Hitung persentase progress gauge
-            let percentage = totalStaffCount > 0 ? Math.round((completedStaffCount / totalStaffCount) * 100) : 0;
+        // Render Ringkasan Trainer HO
+        let trainerHtml = "";
+        Object.keys(trainerStats).forEach(tName => {
+            let t = trainerStats[tName];
+            let storeCount = t.stores.size;
+            let avgScoreTrainer = t.scoreCount > 0 ? Math.round(t.totalScoreAcc / t.scoreCount) : 0;
+            let complianceRate = t.totalStaff > 0 ? Math.round((t.completedStaff / t.totalStaff) * 100) : 0;
 
-            detailedTableHTML += `
+            trainerHtml += `
                 <tr>
-                    <td style="text-align: center; font-weight: 600;">${index + 1}</td>
-                    <td style="font-weight: 600;">${storeName}</td>
-                    <td style="text-align: center; font-weight: 600;">${totalStaffCount}</td>
+                    <td style="font-weight: 600; color: var(--primary);">👤 ${tName}</td>
+                    <td style="text-align: center; font-weight: 600;">${storeCount} Toko</td>
+                    <td style="text-align: center;">${t.totalStaff} Orang</td>
+                    <td style="text-align: center; color: var(--success); font-weight: bold;">${t.completedStaff} Staff</td>
+                    <td style="text-align: center; font-weight: bold; color: #f59e0b;">${avgScoreTrainer} Poin</td>
+                    <td style="text-align: center;">
+                        <span style="background: ${complianceRate >= 75 ? 'rgba(52, 199, 89, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${complianceRate >= 75 ? '#34c759' : '#d97706'}; padding: 3px 8px; border-radius: 6px; font-weight: bold;">
+                            ${complianceRate}% Kepatuhan
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+        trainerTableBody.innerHTML = trainerHtml;
+
+        // Filter tabel utama berdasarkan Trainer HO jika dipilih
+        let filteredStores = globalStoreDataList;
+        if (selectedTrainer && selectedTrainer !== 'all') {
+            filteredStores = globalStoreDataList.filter(s => s.trainer === selectedTrainer);
+        }
+
+        if (filteredStores.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Tidak ada data toko untuk trainer tersebut.</td></tr>`;
+            return;
+        }
+
+        filteredStores.forEach((item, idx) => {
+            storeRowsHTML += `
+                <tr>
+                    <td style="text-align: center; font-weight: bold;">${idx + 1}</td>
+                    <td style="font-weight: 600;">${item.storeName}</td>
+                    <td><span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px;">👤 ${item.trainer}</span></td>
+                    <td style="text-align: center;">${item.totalStaff} Staff</td>
+                    <td style="text-align: center; font-weight: bold; color: #f59e0b;">${item.avgScore} Poin</td>
                     <td>
                         <div class="progress-gauge-container">
                             <div class="progress-bar-track">
-                                <div class="progress-bar-fill" style="width: ${percentage}%;"></div>
+                                <div class="progress-bar-fill" style="width: ${item.pct}%;"></div>
                             </div>
-                            <div class="progress-gauge-text">${percentage}% (${completedStaffCount}/${totalStaffCount})</div>
+                            <span class="progress-gauge-text">${item.pct}% (${item.completedStaff}/${item.totalStaff})</span>
                         </div>
                     </td>
                     <td style="text-align: center;">
-                        <button type="button" class="action-btn" onclick="openStoreStaffModal('${storeName}')">Lihat Staff</button>
+                        <button type="button" class="action-btn" onclick='openStoreStaffModal(${JSON.stringify(item)})'>Lihat Staff</button>
                     </td>
                 </tr>
             `;
         });
 
-        if (tableBody) {
-            tableBody.innerHTML = detailedTableHTML || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Tidak ada data toko yang sesuai dengan filter.</td></tr>`;
-        }
-
-        // Hitung rata-rata nasional per fase untuk doughnut chart & tabel
-        let phaseMaxMap = {};
-        Object.keys(phasesData).forEach(pName => {
-            phaseMaxMap[pName] = phasesData[pName].reduce((sum, item) => sum + item.max, 0);
-        });
-
-        let phaseScoresSum = {};
-        let phaseCounts = {};
-        let filteredHistory = globalHistoryData.filter(item => {
-            let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
-            let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-            let jenisSesi = item.jenisSesi || "Coaching";
-            return itemMonth === selectedMonthYear && jenisSesi === "Coaching";
-        });
-
-        filteredHistory.forEach(item => {
-            if (item.phaseName) {
-                if (!phaseScoresSum[item.phaseName]) {
-                    phaseScoresSum[item.phaseName] = 0;
-                    phaseCounts[item.phaseName] = 0;
-                }
-                phaseScoresSum[item.phaseName] += Number(item.totalScore || 0);
-                phaseCounts[item.phaseName]++;
-            }
-        });
-
-        let phaseAvgHTML = "";
-        let phasePercentages = [];
-        Object.keys(phasesData).forEach(pName => {
-            let totalS = phaseScoresSum[pName] || 0;
-            let count = phaseCounts[pName] || 0;
-            let avg = count > 0 ? (totalS / count).toFixed(1) : 0;
-            let maxP = phaseMaxMap[pName] || 0;
-            let pct = maxP > 0 ? Math.round((avg / maxP) * 100) : 0;
-            phasePercentages.push(pct);
-            let colorStyle = pct >= 80 ? "color: var(--success);" : (pct >= 60 ? "color: var(--primary);" : "color: #dc2626;");
-
-            phaseAvgHTML += `
-                <tr>
-                    <td style="font-weight: 600;">${pName}</td>
-                    <td style="text-align: center;">${maxP} Poin</td>
-                    <td style="text-align: center; font-weight: 600;">${avg} Poin <span style="font-size: 10px; color: var(--text-secondary);">(${count} Sesi)</span></td>
-                    <td style="text-align: center; font-weight: bold; ${colorStyle}">${pct}%</td>
-                </tr>
-            `;
-        });
-        const phaseAvgTableBodyEl = document.getElementById('phaseAverageTableBody');
-        if (phaseAvgTableBodyEl) phaseAvgTableBodyEl.innerHTML = phaseAvgHTML;
-
-        storeScoreArray.sort((a, b) => b.score - a.score);
-        let top10TableHTML = "";
-        let top10List = storeScoreArray.slice(0, 10);
-
-        if (leaderboardTableBody) {
-            if (top10List.length === 0 || top10List.every(i => i.score === 0)) {
-                leaderboardTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Belum ada data skor toko pada bulan ${selectedMonthYear}.</td></tr>`;
-            } else {
-                top10List.forEach((item, idx) => {
-                    let rankBadge = idx === 0 ? "🥇 Rank 1" : (idx === 1 ? "🥈 Rank 2" : (idx === 2 ? "🥉 Rank 3" : `Rank ${idx + 1}`));
-                    
-                    top10TableHTML += `
-                        <tr>
-                            <td style="text-align: center; font-weight: bold;">${rankBadge}</td>
-                            <td style="font-weight: 600;">${item.store}</td>
-                            <td style="text-align: center;">${item.staffDone} / ${item.totalStaff} Selesai</td>
-                            <td style="text-align: center; font-weight: bold; color: var(--primary);">${item.score} Poin</td>
-                        </tr>
-                    `;
-                });
-                leaderboardTableBody.innerHTML = top10TableHTML;
-            }
-        }
-
-        const statTotal = document.getElementById('statTotalStores');
-        const statComp = document.getElementById('statCompletedStores');
-        const statUnstart = document.getElementById('statUnstartedStores');
-        const statAct = document.getElementById('statActiveStores');
-
-        if (statTotal) statTotal.innerText = totalStoresCount;
-        if (statComp) statComp.innerText = completedStoresCount;
-        if (statUnstart) statUnstart.innerText = unstartedStoresCount;
-        if (statAct) statAct.innerText = `${activeStoresCount} Toko`;
-
-        if (allStoresChart) {
-            allStoresChart.data.datasets[0].data = [completedStoresCount, inProgressStoresCount, unstartedStoresCount];
-            allStoresChart.update();
-        }
-
-        if (phaseDoughnutChart) {
-            phaseDoughnutChart.data.datasets[0].data = phasePercentages;
-            phaseDoughnutChart.update();
-        }
+        tableBody.innerHTML = storeRowsHTML;
     }
 
-    function openStoreStaffModal(storeName) {
-        const modal = document.getElementById('storeStaffModal');
-        const titleEl = document.getElementById('modalStoreTitle');
-        const contentEl = document.getElementById('modalStoreContent');
+    function openStoreStaffModal(storeItem) {
+        document.getElementById('modalStoreTitle').innerText = `Rincian Staff Toko: ${storeItem.storeName} (${storeItem.completedStaff}/${storeItem.totalStaff} Selesai)`;
+        
+        let doneHtml = "";
+        let notDoneHtml = "";
 
-        titleEl.innerText = `Detail Progress Staff — ${storeName}`;
-        let details = globalStoreStaffDetailsMap[storeName];
+        storeItem.staffDetails.forEach(st => {
+            if (st.isDone) {
+                doneHtml += `<li style="margin-bottom: 6px; color: var(--success); font-weight: 600;">✅ ${st.name} <span style="font-size: 11px; color: var(--text-secondary); font-weight: normal;">(Selesai 10/10 Fase - ${st.score} Poin)</span></li>`;
+            } else {
+                notDoneHtml += `<li style="margin-bottom: 6px; color: #dc2626; font-weight: 600;">❌ ${st.name} <span style="font-size: 11px; color: var(--text-secondary); font-weight: normal;">(Proses ${st.phasesDone}/10 Fase - ${st.score} Poin)</span></li>`;
+            }
+        });
 
-        if (!details) {
-            contentEl.innerHTML = `<p style="text-align: center; color: var(--text-secondary);">Tidak ada data staff untuk toko ini.</p>`;
-        } else {
-            let completedHtml = details.completed.length > 0 
-                ? details.completed.map(name => `<li style="color: var(--success); font-weight: 600; margin-bottom: 4px;">✅ ${name}</li>`).join('')
-                : `<li style="color: var(--text-secondary); font-style: italic;">Belum ada staff yang selesai 100%.</li>`;
-
-            let uncompletedHtml = details.uncompleted.length > 0 
-                ? details.uncompleted.map(name => `<li style="color: #dc2626; margin-bottom: 4px;">⏳ ${name}</li>`).join('')
-                : `<li style="color: var(--success); font-style: italic;">Semua staff telah menyelesaikan asesmen!</li>`;
-
-            contentEl.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 15px;">
-                    <div>
-                        <h4 style="margin: 0 0 8px 0; color: var(--success); font-size: 13px;">🟢 Staff Sudah Selesai 100% (${details.completed.length} Orang):</h4>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 12px;">${completedHtml}</ul>
-                    </div>
-                    <hr style="border: none; border-top: 1px solid var(--border);">
-                    <div>
-                        <h4 style="margin: 0 0 8px 0; color: #dc2626; font-size: 13px;">🔴 Staff Belum Selesai / Dalam Proses (${details.uncompleted.length} Orang):</h4>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 12px;">${uncompletedHtml}</ul>
-                    </div>
+        let content = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="background: rgba(52, 199, 89, 0.06); border: 1px solid rgba(52, 199, 89, 0.3); border-radius: 8px; padding: 12px;">
+                    <h4 style="margin: 0 0 10px 0; color: var(--success); font-size: 13px;">🟢 Sudah Selesai 100% (${storeItem.completedStaff})</h4>
+                    <ul style="margin: 0; padding-left: 18px; font-size: 12px;">
+                        ${doneHtml || '<i style="color: var(--text-secondary);">Belum ada staff yang selesai</i>'}
+                    </ul>
                 </div>
-            `;
-        }
+                <div style="background: rgba(220, 38, 38, 0.06); border: 1px solid rgba(220, 38, 38, 0.3); border-radius: 8px; padding: 12px;">
+                    <h4 style="margin: 0 0 10px 0; color: #dc2626; font-size: 13px;">🔴 Belum Selesai / Proses (${storeItem.totalStaff - storeItem.completedStaff})</h4>
+                    <ul style="margin: 0; padding-left: 18px; font-size: 12px;">
+                        ${notDoneHtml || '<i style="color: var(--text-secondary);">Semua staff sudah selesai!</i>'}
+                    </ul>
+                </div>
+            </div>
+        `;
 
-        modal.style.display = 'flex';
+        document.getElementById('modalStoreContent').innerHTML = content;
+        document.getElementById('storeStaffModal').style.display = 'flex';
     }
 
     function closeStoreStaffModal() {
@@ -2037,18 +2053,36 @@
 
     function exportToCSV() {
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
-        let selectedMonthYear = document.getElementById('allStoresMonthFilter').value || new Date().toISOString().slice(0, 7);
+        let selectedMonthYear = document.getElementById('storeProgressMonthFilter').value || new Date().toISOString().slice(0, 7);
+        let totalPhasesCount = Object.keys(phasesData).length;
 
-        let csvContent = "No,Nama Toko,Total Staff,Staff Selesai,Persentase Progress\n";
+        let csvContent = "No,Nama Toko,Trainer HO,Total Staff,Rata-Rata Skor,Staff Selesai,Persentase\n";
 
         allStores.forEach((storeName, idx) => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let totalStaffCount = storeStaff.length;
-            let details = globalStoreStaffDetailsMap[storeName] || { completed: [] };
-            let completedCount = details.completed.length;
-            let pct = totalStaffCount > 0 ? Math.round((completedCount / totalStaffCount) * 100) : 0;
+            let trainerName = getTrainerForStore(storeName);
+            let storeHistory = globalHistoryData.filter(item => {
+                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && (item.jenisSesi || "Coaching") === "Coaching";
+            });
 
-            csvContent += `${idx + 1},"${storeName}",${totalStaffCount},${completedCount},${pct}%\n`;
+            let completedStaffCount = 0;
+            let totalAcc = 0;
+            storeStaff.forEach(emp => {
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
+                let empPhases = {};
+                empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = Number(h.totalScore || 0); });
+                let uniquePhases = Object.keys(empPhases).length;
+                let empScore = Object.values(empPhases).reduce((a, b) => a + b, 0);
+                totalAcc += Math.min(empScore, 108);
+                if (uniquePhases >= totalPhasesCount) completedStaffCount++;
+            });
+
+            let avg = storeStaff.length > 0 ? Math.round(totalAcc / storeStaff.length) : 0;
+            let pct = storeStaff.length > 0 ? Math.round((completedStaffCount / storeStaff.length) * 100) : 0;
+
+            csvContent += `${idx + 1},"${storeName}","${trainerName}",${storeStaff.length},${avg},${completedStaffCount},${pct}%\n`;
         });
 
         let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -2063,24 +2097,33 @@
 
     function copyReportForWhatsApp() {
         let allStores = [...new Set(masterEmployees.map(item => item.store ? item.store.trim() : ""))].filter(Boolean);
-        let selectedMonthYear = document.getElementById('allStoresMonthFilter').value || new Date().toISOString().slice(0, 7);
+        let selectedMonthYear = document.getElementById('storeProgressMonthFilter').value || new Date().toISOString().slice(0, 7);
+        let totalPhasesCount = Object.keys(phasesData).length;
         
-        let reportText = `📊 *REKAP PROGRESS TOKO DIGIMAP*\n📅 Periode: ${selectedMonthYear}\n\n`;
-        
+        let reportText = `📊 *RINGKASAN PROGRESS TOKO NASIONAL DIGIMAP*\n📅 Periode: ${selectedMonthYear}\n\n`;
+
         allStores.forEach((storeName, index) => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let details = globalStoreStaffDetailsMap[storeName] || { completed: [] };
-            let completedCount = details.completed.length;
-            let total = storeStaff.length;
-            let pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
+            let storeHistory = globalHistoryData.filter(item => {
+                let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && (item.jenisSesi || "Coaching") === "Coaching";
+            });
 
-            reportText += `${index + 1}. *${storeName}* — ${pct}% (${completedCount}/${total} Staff)\n`;
+            let completedStaffCount = 0;
+            storeStaff.forEach(emp => {
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
+                let empPhases = {};
+                empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = true; });
+                if (Object.keys(empPhases).length >= totalPhasesCount) completedStaffCount++;
+            });
+
+            let pct = storeStaff.length > 0 ? Math.round((completedStaffCount / storeStaff.length) * 100) : 0;
+            reportText += `${index + 1}. *${storeName}* — ${completedStaffCount}/${storeStaff.length} Selesai (${pct}%)\n`;
         });
 
         navigator.clipboard.writeText(reportText).then(() => {
-            alert("✅ Laporan berhasil disalin ke clipboard!");
-        }).catch(err => {
-            alert("Gagal menyalin: " + err);
+            alert("✅ Laporan progress toko berhasil disalin ke clipboard!");
         });
     }
 </script>
