@@ -557,7 +557,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div>
                 <h4 style="margin: 0; color: #7c3aed; font-size: 14px;">🕵️‍♂️ Panel Kontrol Mode Auditor & Mystery Shopper</h4>
-                <p style="margin: 4px 0 0 0; font-size: 11px; color: var(--text-secondary);">Anda sedang mengakses mode khusus audit. Batasan 1x sebulan dilepas.</p>
+                <p style="margin: 4px 0 0 0; font-size: 11px; color: var(--text-secondary);">Anda sedang mengakses mode khusus audit. Batasan penilaian Store Trainer (PT) dibuka.</p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <div>
@@ -746,6 +746,17 @@
 
     <!-- TAB 3: REKAPITULASI NASIONAL -->
     <div id="allStoresTab" class="tab-content">
+        <!-- Gauge Progress Bar Loading untuk Menu Nasional -->
+        <div id="nationalLoadingBar" class="loading-bar-wrapper">
+            <div class="loading-gauge-header">
+                <span>📈 Memuat rekapitulasi data nasional...</span>
+                <span id="nationalLoadingPct">0%</span>
+            </div>
+            <div class="loading-gauge-track">
+                <div id="nationalLoadingFill" class="loading-gauge-fill"></div>
+            </div>
+        </div>
+
         <div class="summary-container">
             <!-- TOOLBAR FILTER NASIONAL -->
             <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 15px; border-radius: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
@@ -857,6 +868,17 @@
 
     <!-- TAB 4: MENU PROGRESS SELURUH TOKO & SUMMARY TRAINER HO -->
     <div id="storeProgressTab" class="tab-content">
+        <!-- Gauge Progress Bar Loading untuk Menu Progress Toko -->
+        <div id="storeProgressLoadingBar" class="loading-bar-wrapper">
+            <div class="loading-gauge-header">
+                <span>🏢 Memuat progress seluruh toko nasional...</span>
+                <span id="storeProgressLoadingPct">0%</span>
+            </div>
+            <div class="loading-gauge-track">
+                <div id="storeProgressLoadingFill" class="loading-gauge-fill"></div>
+            </div>
+        </div>
+
         <div class="summary-container">
             
             <!-- TOOLBAR FILTER BULAN & TRAINER HO -->
@@ -1283,8 +1305,10 @@
             isAuditorMode = true;
             document.getElementById('auditorIndicator').style.display = 'block';
             document.getElementById('auditorControlPanel').style.display = 'block';
-            alert("✅ Mode Auditor Berhasil Diaktifkan!");
-            initDashboard();
+            alert("✅ Mode Auditor Berhasil Diaktifkan! Penilaian Store Trainer (PT) kini dibuka.");
+            
+            // Refresh datalist staff agar nama ST (seperti Muhammad Iqbal) muncul kembali khusus untuk auditor
+            onStoreChange();
         } else if (pin !== null) {
             alert("❌ PIN Salah!");
         }
@@ -1294,8 +1318,10 @@
         isAuditorMode = false;
         document.getElementById('auditorIndicator').style.display = 'none';
         document.getElementById('auditorControlPanel').style.display = 'none';
-        alert("🔒 Mode Auditor Dinonaktifkan.");
-        initDashboard();
+        alert("🔒 Mode Auditor Dinonaktifkan. Store Trainer dikunci kembali.");
+        
+        // Refresh datalist staff agar nama ST tersembunyi dari staff reguler
+        onStoreChange();
     }
 
     function fetchWeather() {
@@ -1359,16 +1385,23 @@
         const val = staffInput.value.trim();
         if (!store || !val) return;
 
-        let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
-        let matched = storeStaff.find(emp => emp.name.trim().toLowerCase() === val.toLowerCase());
+        let allStoreEmployees = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
+        let matchedEmp = allStoreEmployees.find(emp => emp.name.trim().toLowerCase() === val.toLowerCase());
 
-        if (!matched) {
-            staffInput.value = val;
-            checkStaffProgress();
+        if (matchedEmp) {
+            let pos = (matchedEmp.position || matchedEmp.jabatan || matchedEmp.role || matchedEmp.title || "").toUpperCase();
+            let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+            
+            if (isST && !isAuditorMode) {
+                alert(`⚠️ Akses Dibatasi\n\n"${matchedEmp.name}" adalah Store Trainer (PT). Sesuai aturan, Store Trainer tidak dapat menilai diri sendiri dan hanya dapat diases oleh Tim Audit / Mystery Shopper (Mode Auditor).`);
+                staffInput.value = "";
+                return;
+            }
+            staffInput.value = matchedEmp.name.trim();
         } else {
-            staffInput.value = matched.name.trim();
-            checkStaffProgress();
+            staffInput.value = val;
         }
+        checkStaffProgress();
     }
 
     function onStoreChange() {
@@ -1381,17 +1414,24 @@
 
         if (!storeInputVal) return;
 
-        let filteredStaff = masterEmployees.filter(item => 
-            item.store && item.store.trim().toLowerCase().includes(storeInputVal)
-        );
+        let filteredStaff = masterEmployees.filter(item => {
+            let matchStore = item.store && item.store.trim().toLowerCase().includes(storeInputVal);
+            let pos = (item.position || item.jabatan || item.role || item.title || "").toUpperCase();
+            let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+            
+            if (isST) {
+                return isAuditorMode; // Jika mode auditor aktif, ST dimunculkan. Jika tidak, ST disembunyikan total.
+            }
+            return matchStore;
+        });
         
         if (filteredStaff.length > 0) {
             filteredStaff.forEach(staff => {
                 staffDatalist.innerHTML += `<option value="${staff.name.trim()}">`;
             });
-            document.getElementById('staffInput').placeholder = "Ketik atau pilih nama staff...";
+            document.getElementById('staffInput').placeholder = isAuditorMode ? "Pilih Staff / Store Trainer (Mode Audit)..." : "Pilih SPV / Kasir / Staff...";
         } else {
-            document.getElementById('staffInput').placeholder = "Ketik nama staff baru...";
+            document.getElementById('staffInput').placeholder = "Tidak ada staff reguler di toko ini";
         }
         
         initDashboard();
@@ -1870,7 +1910,12 @@
             }
 
             storeProgressTableBody.innerHTML = '';
-            let storeStaffList = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
+            let storeStaffList = masterEmployees.filter(emp => {
+                let matchStore = emp.store && emp.store.trim().toLowerCase() === store.toLowerCase();
+                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+                return matchStore && !isST;
+            });
 
             let sumStoreScores = 0;
             let storeCompletedStaffCount = 0;
@@ -1929,16 +1974,25 @@
     }
 
     function loadStoreProgressTab() {
+        updateGaugeLoading('storeProgressLoadingBar', 'storeProgressLoadingFill', 'storeProgressLoadingPct', 30, "Memuat data progress toko...");
         if (globalHistoryData.length === 0) {
             fetch(`${WEB_APP_URL}?action=getHistory`)
             .then(res => res.json())
             .then(data => {
+                updateGaugeLoading('storeProgressLoadingBar', 'storeProgressLoadingFill', 'storeProgressLoadingPct', 80, "Memproses data...");
                 globalHistoryData = data;
                 renderStoreProgressTab();
+                updateGaugeLoading('storeProgressLoadingBar', 'storeProgressLoadingFill', 'storeProgressLoadingPct', 100, "Selesai");
+                setTimeout(() => hideGaugeLoading('storeProgressLoadingBar'), 400);
             })
-            .catch(err => console.log("Gagal memuat history:", err));
+            .catch(err => {
+                console.log("Gagal memuat history:", err);
+                hideGaugeLoading('storeProgressLoadingBar');
+            });
         } else {
             renderStoreProgressTab();
+            updateGaugeLoading('storeProgressLoadingBar', 'storeProgressLoadingFill', 'storeProgressLoadingPct', 100, "Selesai");
+            setTimeout(() => hideGaugeLoading('storeProgressLoadingBar'), 400);
         }
     }
 
@@ -1957,12 +2011,25 @@
         cachedTrainerSummaryForWA = [];
 
         allStores.forEach((storeName, index) => {
-            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let totalStaffCount = storeStaff.length;
+            let storeEmployeesAll = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            
+            let storeStaffNonST = storeEmployeesAll.filter(emp => {
+                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+                return !isST;
+            });
+
+            let storeStaffST = storeEmployeesAll.filter(emp => {
+                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+                return isST;
+            });
+
+            let totalTargetCount = storeStaffNonST.length + storeStaffST.length;
 
             let trainerHO = "Unassigned";
-            if (storeStaff.length > 0) {
-                let empObj = storeStaff[0];
+            if (storeEmployeesAll.length > 0) {
+                let empObj = storeEmployeesAll[0];
                 let rawTrainer = empObj['Trainer HO'] || empObj['trainerHO'] || empObj['Trainer_HO'];
                 if (!rawTrainer) {
                     for (let key in empObj) {
@@ -1984,8 +2051,7 @@
             let storeHistory = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                let jenisSesi = item.jenisSesi || "Coaching";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
             });
 
             let completedStaffCount = 0;
@@ -1994,9 +2060,9 @@
             let staffCompletedList = [];
             let staffIncompleteList = [];
 
-            storeStaff.forEach(emp => {
+            storeStaffNonST.forEach(emp => {
                 let empName = emp.name.trim();
-                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase());
+                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase() && (item.jenisSesi || "Coaching") === "Coaching");
                 let empPhaseScores = {};
                 empHist.forEach(h => { if (h.phaseName) empPhaseScores[h.phaseName] = Number(h.totalScore || 0); });
                 
@@ -2011,18 +2077,45 @@
                     completedStaffCount++;
                     staffCompletedList.push(empName);
                 } else {
-                    staffIncompleteList.push(`${empName} (${uniquePhases}/${totalPhasesCount} fase)`);
+                    staffIncompleteList.push(`${empName} (${uniquePhases}/${totalPhasesCount} fase coaching)`);
                 }
             });
 
+            let stAssessedCount = 0;
+            let stStatusText = "";
+            let hasSTPosition = storeStaffST.length > 0;
+            
+            if (hasSTPosition) {
+                storeStaffST.forEach(stEmp => {
+                    let stName = stEmp.name.trim();
+                    let stAuditHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === stName.toLowerCase() && item.jenisSesi === "Mystery Shopper");
+                    
+                    if (stAuditHist.length > 0) {
+                        stAssessedCount++;
+                        completedStaffCount++;
+                        staffCompletedList.push(`${stName} (ST - Sudah Di-audit)`);
+                    } else {
+                        staffIncompleteList.push(`${stName} (⚠️ ST Belum Di-asses oleh Auditor)`);
+                    }
+                });
+
+                if (stAssessedCount >= storeStaffST.length) {
+                    stStatusText = "✅ ST Sudah Di-asses oleh Auditor";
+                } else {
+                    stStatusText = "⚠️ ST Belum Di-asses oleh Auditor (Progress max < 100%)";
+                }
+            } else {
+                stStatusText = "";
+            }
+
             let avgStoreScore = activeStoreStaffCount > 0 ? Math.round(totalStoreScoreAccumulated / activeStoreStaffCount) : 0;
-            let completionPct = totalStaffCount > 0 ? Math.round((completedStaffCount / totalStaffCount) * 100) : 0;
+            let completionPct = totalTargetCount > 0 ? Math.round((completedStaffCount / totalTargetCount) * 100) : 0;
 
             if (!trainerMap[trainerHO]) {
                 trainerMap[trainerHO] = { storesSet: new Set(), totalStaff: 0, completedStaff: 0, sumScores: 0, activeStaffCount: 0 };
             }
             trainerMap[trainerHO].storesSet.add(storeName);
-            trainerMap[trainerHO].totalStaff += totalStaffCount;
+            trainerMap[trainerHO].totalStaff += totalTargetCount;
             trainerMap[trainerHO].completedStaff += completedStaffCount;
             trainerMap[trainerHO].sumScores += totalStoreScoreAccumulated;
             trainerMap[trainerHO].activeStaffCount += activeStoreStaffCount;
@@ -2032,22 +2125,23 @@
                     <div class="progress-bar-track">
                         <div class="progress-bar-fill" style="width: ${completionPct}%;"></div>
                     </div>
-                    <div class="progress-gauge-text">${completionPct}% (${completedStaffCount}/${totalStaffCount})</div>
+                    <div class="progress-gauge-text">${completionPct}% (${completedStaffCount}/${totalTargetCount})</div>
                 </div>
+                ${stStatusText ? `<div style="font-size: 10px; color: ${stAssessedCount >= storeStaffST.length ? 'var(--success)' : '#d97706'}; margin-top: 3px; font-weight: 600;">${stStatusText}</div>` : ''}
             `;
 
-            let encodedCompleted = encodeURIComponent(JSON.stringify(staffCompletedList));
-            let encodedIncomplete = encodeURIComponent(JSON.stringify(staffIncompleteList));
+            window[`storeStaffCompleted_${index}`] = staffCompletedList;
+            window[`storeStaffIncomplete_${index}`] = staffIncompleteList;
 
             tableRowsHTML += `
                 <tr>
                     <td style="text-align: center; font-weight: bold;">${index + 1}</td>
                     <td style="font-weight: 600;">${storeName}</td>
-                    <td style="text-align: center;">${totalStaffCount} Orang</td>
+                    <td style="text-align: center;">${totalTargetCount} Orang</td>
                     <td style="text-align: center; font-weight: bold; color: var(--primary);">${avgStoreScore} Poin</td>
                     <td>${barHtml}</td>
                     <td style="text-align: center;">
-                        <button type="button" class="action-btn" onclick="openStoreStaffModal('${storeName}', decodeURIComponent('${encodedCompleted}'), decodeURIComponent('${encodedIncomplete}'))">Lihat Staff</button>
+                        <button type="button" class="action-btn" onclick="openStoreStaffModalSafe('${storeName}', ${index})">Lihat Staff</button>
                     </td>
                 </tr>
             `;
@@ -2059,7 +2153,7 @@
         let trainerKeys = Object.keys(trainerMap);
 
         if (trainerKeys.length === 0) {
-            trainerSummaryBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Belum ada data Trainer HO.</td></tr>`;
+            trainerSummaryBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Memuat ringkasan trainer HO...</td></tr>`;
         } else {
             trainerKeys.forEach(trName => {
                 let data = trainerMap[trName];
@@ -2092,6 +2186,21 @@
         }
     }
 
+    function openStoreStaffModalSafe(storeName, index) {
+        let completedArr = window[`storeStaffCompleted_${index}`] || [];
+        let incompleteArr = window[`storeStaffIncomplete_${index}`] || [];
+
+        document.getElementById('modalStoreTitle').innerText = `Rincian Staff Toko: ${storeName}`;
+        let contentHtml = `<h4 style="color: var(--success); margin: 0 0 8px 0; font-size: 13px;">✅ Selesai Operasional (100%):</h4>`;
+        contentHtml += completedArr.length === 0 ? `<p style="font-size: 12px; color: var(--text-secondary);">Belum ada.</p>` : `<ul style="font-size: 12px;">` + completedArr.map(n=>`<li><b>${n}</b></li>`).join('') + `</ul>`;
+        
+        contentHtml += `<h4 style="color: #dc2626; margin: 15px 0 8px 0; font-size: 13px;">⏳ Belum / Proses:</h4>`;
+        contentHtml += incompleteArr.length === 0 ? `<p style="font-size: 12px; color: var(--text-secondary);">Semua operasional selesai!</p>` : `<ul style="font-size: 12px;">` + incompleteArr.map(n=>`<li>${n}</li>`).join('') + `</ul>`;
+
+        document.getElementById('modalStoreContent').innerHTML = contentHtml;
+        document.getElementById('storeStaffModal').style.display = 'flex';
+    }
+
     function copyTrainerToWA(name, stores, totalStaff, completedStaff, avgScore, completionRate, month) {
         let waText = `👑 *RINGKASAN PERFORMA TRAINER HO* 👑\n` +
                      `📅 Periode: ${month}\n` +
@@ -2121,21 +2230,6 @@
         navigator.clipboard.writeText(waText).then(() => {
             alert("✅ Seluruh Ringkasan Trainer HO berhasil disalin ke Clipboard!");
         });
-    }
-
-    function openStoreStaffModal(storeName, completedJsonStr, incompleteJsonStr) {
-        let completedArr = JSON.parse(completedJsonStr);
-        let incompleteArr = JSON.parse(incompleteJsonStr);
-
-        document.getElementById('modalStoreTitle').innerText = `Rincian Staff Toko: ${storeName}`;
-        let contentHtml = `<h4 style="color: var(--success); margin: 0 0 8px 0; font-size: 13px;">✅ Selesai (100%):</h4>`;
-        contentHtml += completedArr.length === 0 ? `<p style="font-size: 12px; color: var(--text-secondary);">Belum ada.</p>` : `<ul style="font-size: 12px;">` + completedArr.map(n=>`<li><b>${n}</b></li>`).join('') + `</ul>`;
-        
-        contentHtml += `<h4 style="color: #dc2626; margin: 15px 0 8px 0; font-size: 13px;">⏳ Belum / Proses:</h4>`;
-        contentHtml += incompleteArr.length === 0 ? `<p style="font-size: 12px; color: var(--text-secondary);">Semua selesai!</p>` : `<ul style="font-size: 12px;">` + incompleteArr.map(n=>`<li>${n}</li>`).join('') + `</ul>`;
-
-        document.getElementById('modalStoreContent').innerHTML = contentHtml;
-        document.getElementById('storeStaffModal').style.display = 'flex';
     }
 
     function closeStoreStaffModal() {
@@ -2170,16 +2264,29 @@
     }
 
     function loadAllStoresDashboard() {
+        updateGaugeLoading('nationalLoadingBar', 'nationalLoadingFill', 'nationalLoadingPct', 30, "Memuat data nasional...");
         const leaderboardTableBody = document.getElementById('nationalLeaderboardTableBody');
         leaderboardTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Memuat...</td></tr>`;
 
-        fetch(`${WEB_APP_URL}?action=getHistory`)
-        .then(res => res.json())
-        .then(data => {
-            globalHistoryData = data;
+        if (globalHistoryData.length === 0) {
+            fetch(`${WEB_APP_URL}?action=getHistory`)
+            .then(res => res.json())
+            .then(data => {
+                updateGaugeLoading('nationalLoadingBar', 'nationalLoadingFill', 'nationalLoadingPct', 80, "Memproses rekap nasional...");
+                globalHistoryData = data;
+                renderAllStoresDashboard();
+                updateGaugeLoading('nationalLoadingBar', 'nationalLoadingFill', 'nationalLoadingPct', 100, "Selesai");
+                setTimeout(() => hideGaugeLoading('nationalLoadingBar'), 400);
+            })
+            .catch(err => {
+                console.log("Gagal:", err);
+                hideGaugeLoading('nationalLoadingBar');
+            });
+        } else {
             renderAllStoresDashboard();
-        })
-        .catch(err => { console.log("Gagal:", err); });
+            updateGaugeLoading('nationalLoadingBar', 'nationalLoadingFill', 'nationalLoadingPct', 100, "Selesai");
+            setTimeout(() => hideGaugeLoading('nationalLoadingBar'), 400);
+        }
     }
 
     function renderAllStoresDashboard() {
@@ -2198,20 +2305,33 @@
         let storeScoreArray = [];
 
         allStores.forEach(storeName => {
-            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let totalStaffCount = storeStaff.length;
+            let storeEmployeesAll = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            
+            let storeStaffNonST = storeEmployeesAll.filter(emp => {
+                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+                return !isST;
+            });
 
-            let storeHistory = globalHistoryData.filter(item => {
+            let storeStaffST = storeEmployeesAll.filter(emp => {
+                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+                return isST;
+            });
+
+            let totalStaffCount = storeStaffNonST.length + storeStaffST.length;
+
+            let storeHistoryAll = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                let jenisSesi = item.jenisSesi || "Coaching";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
             });
 
             let completedStaffCount = 0, totalAccumulatedPerStaff = 0, activeStaffInStore = 0;
 
-            storeStaff.forEach(emp => {
-                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
+            storeStaffNonST.forEach(emp => {
+                let empName = emp.name.trim();
+                let empHist = storeHistoryAll.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase() && (item.jenisSesi || "Coaching") === "Coaching");
                 let empPhaseScores = {};
                 empHist.forEach(h => { if (h.phaseName) empPhaseScores[h.phaseName] = Number(h.totalScore || 0); });
                 let uniquePhases = Object.keys(empPhaseScores).length;
@@ -2223,16 +2343,24 @@
                 if (uniquePhases >= totalPhasesCount) completedStaffCount++;
             });
 
+            storeStaffST.forEach(stEmp => {
+                let stName = stEmp.name.trim();
+                let stAuditHist = storeHistoryAll.filter(item => item.staffName && item.staffName.toLowerCase() === stName.toLowerCase() && item.jenisSesi === "Mystery Shopper");
+                if (stAuditHist.length > 0) {
+                    completedStaffCount++;
+                }
+            });
+
             let avgStoreScore = activeStaffInStore > 0 ? Math.round(totalAccumulatedPerStaff / activeStaffInStore) : 0;
 
-            if (storeHistory.length > 0) {
+            if (storeHistoryAll.length > 0) {
                 activeStoresCount++;
                 storeScoreArray.push({ store: storeName, score: avgStoreScore, staffDone: completedStaffCount, totalStaff: totalStaffCount });
             } else {
                 storeScoreArray.push({ store: storeName, score: 0, staffDone: 0, totalStaff: totalStaffCount });
             }
             
-            if (storeHistory.length === 0) unstartedStoresCount++;
+            if (storeHistoryAll.length === 0) unstartedStoresCount++;
             else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) { completedStoresCount++; }
             else { inProgressStoresCount++; }
         });
@@ -2320,20 +2448,30 @@
         let storeScoreArray = [];
 
         allStores.forEach(storeName => {
-            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let totalStaffCount = storeStaff.length;
+            let storeEmployeesAll = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let storeStaffNonST = storeEmployeesAll.filter(emp => {
+                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+                return !isST;
+            });
+            let storeStaffST = storeEmployeesAll.filter(emp => {
+                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+                return isST;
+            });
+            let totalStaffCount = storeStaffNonST.length + storeStaffST.length;
 
-            let storeHistory = globalHistoryData.filter(item => {
+            let storeHistoryAll = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                let jenisSesi = item.jenisSesi || "Coaching";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
             });
 
             let completedStaffCount = 0, totalAccumulatedPerStaff = 0, activeStaffInStore = 0;
 
-            storeStaff.forEach(emp => {
-                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
+            storeStaffNonST.forEach(emp => {
+                let empName = emp.name.trim();
+                let empHist = storeHistoryAll.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase() && (item.jenisSesi || "Coaching") === "Coaching");
                 let empPhaseScores = {};
                 empHist.forEach(h => { if (h.phaseName) empPhaseScores[h.phaseName] = Number(h.totalScore || 0); });
                 let uniquePhases = Object.keys(empPhaseScores).length;
@@ -2345,16 +2483,24 @@
                 if (uniquePhases >= totalPhasesCount) completedStaffCount++;
             });
 
+            storeStaffST.forEach(stEmp => {
+                let stName = stEmp.name.trim();
+                let stAuditHist = storeHistoryAll.filter(item => item.staffName && item.staffName.toLowerCase() === stName.toLowerCase() && item.jenisSesi === "Mystery Shopper");
+                if (stAuditHist.length > 0) {
+                    completedStaffCount++;
+                }
+            });
+
             let avgStoreScore = activeStaffInStore > 0 ? Math.round(totalAccumulatedPerStaff / activeStaffInStore) : 0;
 
-            if (storeHistory.length > 0) {
+            if (storeHistoryAll.length > 0) {
                 activeStoresCount++;
                 storeScoreArray.push({ store: storeName, score: avgStoreScore, staffDone: completedStaffCount, totalStaff: totalStaffCount });
             } else {
                 storeScoreArray.push({ store: storeName, score: 0, staffDone: 0, totalStaff: totalStaffCount });
             }
             
-            if (storeHistory.length === 0) unstartedStoresCount++;
+            if (storeHistoryAll.length === 0) unstartedStoresCount++;
             else if (totalStaffCount > 0 && completedStaffCount === totalStaffCount) { completedStoresCount++; }
             else { inProgressStoresCount++; }
         });
@@ -2484,10 +2630,22 @@
         // DATA TRAINER HO UNTUK SLIDE 6
         let trainerMap = {};
         allStores.forEach(storeName => {
-            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let storeEmployeesAll = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let storeStaffNonST = storeEmployeesAll.filter(emp => {
+                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+                return !isST;
+            });
+            let storeStaffST = storeEmployeesAll.filter(emp => {
+                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+                return isST;
+            });
+            let totalStaffCount = storeStaffNonST.length + storeStaffST.length;
+
             let trainerHO = "Unassigned";
-            if (storeStaff.length > 0) {
-                let empObj = storeStaff[0];
+            if (storeEmployeesAll.length > 0) {
+                let empObj = storeEmployeesAll[0];
                 let rawTrainer = empObj['Trainer HO'] || empObj['trainerHO'] || empObj['Trainer_HO'];
                 if (!rawTrainer) {
                     for (let key in empObj) {
@@ -2500,17 +2658,17 @@
                 if (rawTrainer && String(rawTrainer).trim() !== "") trainerHO = String(rawTrainer).trim();
             }
             
-            let storeHistory = globalHistoryData.filter(item => {
+            let storeHistoryAll = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                let jenisSesi = item.jenisSesi || "Coaching";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
             });
 
             let completedStaffCount = 0, totalStoreScore = 0, activeStaffInStore = 0;
 
-            storeStaff.forEach(emp => {
-                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
+            storeStaffNonST.forEach(emp => {
+                let empName = emp.name.trim();
+                let empHist = storeHistoryAll.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase() && (item.jenisSesi || "Coaching") === "Coaching");
                 let empPhases = {};
                 empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = Number(h.totalScore || 0); });
                 let uniquePhases = Object.keys(empPhases).length;
@@ -2521,11 +2679,19 @@
                 if (uniquePhases >= totalPhasesCount) completedStaffCount++;
             });
 
+            storeStaffST.forEach(stEmp => {
+                let stName = stEmp.name.trim();
+                let stAuditHist = storeHistoryAll.filter(item => item.staffName && item.staffName.toLowerCase() === stName.toLowerCase() && item.jenisSesi === "Mystery Shopper");
+                if (stAuditHist.length > 0) {
+                    completedStaffCount++;
+                }
+            });
+
             if (!trainerMap[trainerHO]) {
                 trainerMap[trainerHO] = { stores: 0, totalStaff: 0, completedStaff: 0, sumScores: 0, activeStaffCount: 0 };
             }
             trainerMap[trainerHO].stores++;
-            trainerMap[trainerHO].totalStaff += storeStaff.length;
+            trainerMap[trainerHO].totalStaff += totalStaffCount;
             trainerMap[trainerHO].completedStaff += completedStaffCount;
             trainerMap[trainerHO].sumScores += totalStoreScore;
             trainerMap[trainerHO].activeStaffCount += activeStaffInStore;
@@ -2582,18 +2748,30 @@
         ];
 
         allStores.forEach(storeName => {
-            let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let storeHistory = globalHistoryData.filter(item => {
+            let storeEmployeesAll = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
+            let storeStaffNonST = storeEmployeesAll.filter(emp => {
+                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+                return !isST;
+            });
+            let storeStaffST = storeEmployeesAll.filter(emp => {
+                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
+                return isST;
+            });
+            let totalStaffCount = storeStaffNonST.length + storeStaffST.length;
+
+            let storeHistoryAll = globalHistoryData.filter(item => {
                 let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
                 let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                let jenisSesi = item.jenisSesi || "Coaching";
-                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear && jenisSesi === "Coaching";
+                return item.store && item.store.trim().toLowerCase() === storeName.toLowerCase() && itemMonth === selectedMonthYear;
             });
 
             let completedStaffCount = 0, totalStoreScore = 0, activeStaffInStore = 0;
 
-            storeStaff.forEach(emp => {
-                let empHist = storeHistory.filter(item => item.staffName && item.staffName.toLowerCase() === emp.name.trim().toLowerCase());
+            storeStaffNonST.forEach(emp => {
+                let empName = emp.name.trim();
+                let empHist = storeHistoryAll.filter(item => item.staffName && item.staffName.toLowerCase() === empName.toLowerCase() && (item.jenisSesi || "Coaching") === "Coaching");
                 let empPhases = {};
                 empHist.forEach(h => { if (h.phaseName) empPhases[h.phaseName] = Number(h.totalScore || 0); });
                 let uniquePhases = Object.keys(empPhases).length;
@@ -2604,13 +2782,21 @@
                 if (uniquePhases >= totalPhasesCount) completedStaffCount++;
             });
 
+            storeStaffST.forEach(stEmp => {
+                let stName = stEmp.name.trim();
+                let stAuditHist = storeHistoryAll.filter(item => item.staffName && item.staffName.toLowerCase() === stName.toLowerCase() && item.jenisSesi === "Mystery Shopper");
+                if (stAuditHist.length > 0) {
+                    completedStaffCount++;
+                }
+            });
+
             let avgSc = activeStaffInStore > 0 ? Math.round(totalStoreScore / activeStaffInStore) : 0;
-            let pct = storeStaff.length > 0 ? Math.round((completedStaffCount / storeStaff.length) * 100) : 0;
+            let pct = totalStaffCount > 0 ? Math.round((completedStaffCount / totalStaffCount) * 100) : 0;
 
             storeTableRows.push([
                 { text: storeName, options: { fontSize: 8.5 } },
-                { text: `${storeStaff.length}`, options: { fontSize: 8.5, align: "center" } },
-                { text: `${completedStaffCount}/${storeStaff.length}`, options: { fontSize: 8.5, align: "center" } },
+                { text: `${totalStaffCount}`, options: { fontSize: 8.5, align: "center" } },
+                { text: `${completedStaffCount}/${totalStaffCount}`, options: { fontSize: 8.5, align: "center" } },
                 { text: `${avgSc} Poin`, options: { fontSize: 8.5, align: "center", bold: true } },
                 { text: `${pct}%`, options: { fontSize: 8.5, align: "center", bold: true, color: pct >= 80 ? "34C759" : "0071e3" } }
             ]);
