@@ -1771,9 +1771,6 @@
         }
 
         updateGaugeLoading('summaryLoadingBar', 'summaryLoadingFill', 'summaryLoadingPct', 30, "Memuat ringkasan rekapitulasi...");
-        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Memuat rekap data...</td></tr>`;
-        auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat audit...</td></tr>`;
-        storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--primary);">⏳ Memuat progress...</td></tr>`;
 
         let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}`;
 
@@ -2523,13 +2520,13 @@
             });
 
             if (!trainerMap[trainerHO]) {
-                trainerMap[trainerHO] = { stores: 0, totalStaff: 0, completedStaff: 0, sumScores: 0, activeStaffCount: 0 };
+                trainerMap[trainerHO] = { stores: 0, totalStaff: 0, completedStaff: 0, sumScores: 0, activeStaffInStore: 0 };
             }
             trainerMap[trainerHO].stores++;
             trainerMap[trainerHO].totalStaff += storeStaff.length;
             trainerMap[trainerHO].completedStaff += completedStaffCount;
             trainerMap[trainerHO].sumScores += totalStoreScore;
-            trainerMap[trainerHO].activeStaffCount += activeStaffInStore;
+            trainerMap[trainerHO].activeStaffInStore += activeStaffInStore;
         });
 
         // SLIDE 6: RINGKASAN TRAINER HO
@@ -2549,7 +2546,7 @@
 
         Object.keys(trainerMap).forEach(trName => {
             let d = trainerMap[trName];
-            let divisor = d.activeStaffCount > 0 ? d.activeStaffCount : 1;
+            let divisor = d.activeStaffInStore > 0 ? d.activeStaffInStore : 1;
             let avgSc = Math.round(d.sumScores / divisor);
             let compRate = d.totalStaff > 0 ? Math.round((d.completedStaff / d.totalStaff) * 100) : 0;
             trainerTableRows.push([
