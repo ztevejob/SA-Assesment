@@ -557,7 +557,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div>
                 <h4 style="margin: 0; color: #7c3aed; font-size: 14px;">🕵️‍♂️ Panel Kontrol Mode Auditor & Mystery Shopper</h4>
-                <p style="margin: 4px 0 0 0; font-size: 11px; color: var(--text-secondary);">Anda sedang mengakses mode khusus audit. Batasan penilaian Store Trainer (PT) dibuka.</p>
+                <p style="margin: 4px 0 0 0; font-size: 11px; color: var(--text-secondary);">Anda sedang mengakses mode khusus audit. Batasan Store Trainer (PT) & 1x sebulan dilepas.</p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <div>
@@ -1194,6 +1194,14 @@
         if (bar) bar.classList.remove('active');
     }
 
+    // Helper Universal untuk Mendeteksi Apakah Karyawan adalah Store Trainer (PT / ST)
+    function isStoreTrainerEmployee(emp) {
+        if (!emp) return false;
+        let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
+        let name = (emp.name || "").toUpperCase();
+        return pos.includes("STORE TRAINER") || pos.includes("TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY") || name.includes("IQBAL");
+    }
+
     function fetchMasterAndStores() {
         updateGaugeLoading('assessmentLoadingBar', 'assessmentLoadingFill', 'assessmentLoadingPct', 30, "Menghubungkan server master...");
         
@@ -1305,10 +1313,8 @@
             isAuditorMode = true;
             document.getElementById('auditorIndicator').style.display = 'block';
             document.getElementById('auditorControlPanel').style.display = 'block';
-            alert("✅ Mode Auditor Berhasil Diaktifkan! Penilaian Store Trainer (PT) kini dibuka.");
-            
-            // Refresh datalist staff agar nama ST (seperti Muhammad Iqbal) muncul kembali khusus untuk auditor
-            onStoreChange();
+            alert("✅ Mode Auditor Berhasil Diaktifkan! Batasan Store Trainer & Asesmen Mandiri Dibuka.");
+            initDashboard();
         } else if (pin !== null) {
             alert("❌ PIN Salah!");
         }
@@ -1318,10 +1324,8 @@
         isAuditorMode = false;
         document.getElementById('auditorIndicator').style.display = 'none';
         document.getElementById('auditorControlPanel').style.display = 'none';
-        alert("🔒 Mode Auditor Dinonaktifkan. Store Trainer dikunci kembali.");
-        
-        // Refresh datalist staff agar nama ST tersembunyi dari staff reguler
-        onStoreChange();
+        alert("🔒 Mode Auditor Dinonaktifkan.");
+        initDashboard();
     }
 
     function fetchWeather() {
@@ -1389,11 +1393,8 @@
         let matchedEmp = allStoreEmployees.find(emp => emp.name.trim().toLowerCase() === val.toLowerCase());
 
         if (matchedEmp) {
-            let pos = (matchedEmp.position || matchedEmp.jabatan || matchedEmp.role || matchedEmp.title || "").toUpperCase();
-            let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-            
-            if (isST && !isAuditorMode) {
-                alert(`⚠️ Akses Dibatasi\n\n"${matchedEmp.name}" adalah Store Trainer (PT). Sesuai aturan, Store Trainer tidak dapat menilai diri sendiri dan hanya dapat diases oleh Tim Audit / Mystery Shopper (Mode Auditor).`);
+            if (isStoreTrainerEmployee(matchedEmp) && !isAuditorMode) {
+                alert(`⚠️ AKSES DIBATASI\n\n"${matchedEmp.name}" adalah Store Trainer (PT / ST). Sesuai aturan, Store Trainer tidak dapat dinilai melalui menu reguler (hcananya dapat diases khusus oleh Tim Audit / Mystery Shopper kecuali Anda mengaktifkan Mode Auditor).`);
                 staffInput.value = "";
                 return;
             }
@@ -1416,20 +1417,14 @@
 
         let filteredStaff = masterEmployees.filter(item => {
             let matchStore = item.store && item.store.trim().toLowerCase().includes(storeInputVal);
-            let pos = (item.position || item.jabatan || item.role || item.title || "").toUpperCase();
-            let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-            
-            if (isST) {
-                return isAuditorMode; // Jika mode auditor aktif, ST dimunculkan. Jika tidak, ST disembunyikan total.
-            }
-            return matchStore;
+            return matchStore && (isAuditorMode || !isStoreTrainerEmployee(item));
         });
         
         if (filteredStaff.length > 0) {
             filteredStaff.forEach(staff => {
                 staffDatalist.innerHTML += `<option value="${staff.name.trim()}">`;
             });
-            document.getElementById('staffInput').placeholder = isAuditorMode ? "Pilih Staff / Store Trainer (Mode Audit)..." : "Pilih SPV / Kasir / Staff...";
+            document.getElementById('staffInput').placeholder = "Pilih Staff / Sales Assistant...";
         } else {
             document.getElementById('staffInput').placeholder = "Tidak ada staff reguler di toko ini";
         }
@@ -1571,6 +1566,15 @@
             alert('⚠️ Untuk mulai asesmen, mohon isi Toko, Nama Staff, dan Tanggal terlebih dahulu!');
             return false;
         }
+
+        // Validasi ekstra ketat agar Store Trainer tidak bisa dinilai reguler
+        let allStoreEmployees = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
+        let matchedEmp = allStoreEmployees.find(emp => emp.name.trim().toLowerCase() === staff.toLowerCase());
+        if (matchedEmp && isStoreTrainerEmployee(matchedEmp) && !isAuditorMode) {
+            alert(`⚠️ AKSES DIBATASI\n\n"${matchedEmp.name}" adalah Store Trainer (PT). Penilaian hanya dapat dilakukan melalui Mode Auditor.`);
+            return false;
+        }
+
         return true;
     }
 
@@ -1912,9 +1916,7 @@
             storeProgressTableBody.innerHTML = '';
             let storeStaffList = masterEmployees.filter(emp => {
                 let matchStore = emp.store && emp.store.trim().toLowerCase() === store.toLowerCase();
-                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
-                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-                return matchStore && !isST;
+                return matchStore && !isStoreTrainerEmployee(emp);
             });
 
             let sumStoreScores = 0;
@@ -2013,17 +2015,8 @@
         allStores.forEach((storeName, index) => {
             let storeEmployeesAll = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
             
-            let storeStaffNonST = storeEmployeesAll.filter(emp => {
-                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
-                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-                return !isST;
-            });
-
-            let storeStaffST = storeEmployeesAll.filter(emp => {
-                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
-                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-                return isST;
-            });
+            let storeStaffNonST = storeEmployeesAll.filter(emp => !isStoreTrainerEmployee(emp));
+            let storeStaffST = storeEmployeesAll.filter(emp => isStoreTrainerEmployee(emp));
 
             let totalTargetCount = storeStaffNonST.length + storeStaffST.length;
 
@@ -2307,17 +2300,8 @@
         allStores.forEach(storeName => {
             let storeEmployeesAll = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
             
-            let storeStaffNonST = storeEmployeesAll.filter(emp => {
-                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
-                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-                return !isST;
-            });
-
-            let storeStaffST = storeEmployeesAll.filter(emp => {
-                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
-                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-                return isST;
-            });
+            let storeStaffNonST = storeEmployeesAll.filter(emp => !isStoreTrainerEmployee(emp));
+            let storeStaffST = storeEmployeesAll.filter(emp => isStoreTrainerEmployee(emp));
 
             let totalStaffCount = storeStaffNonST.length + storeStaffST.length;
 
@@ -2449,16 +2433,8 @@
 
         allStores.forEach(storeName => {
             let storeEmployeesAll = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let storeStaffNonST = storeEmployeesAll.filter(emp => {
-                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
-                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-                return !isST;
-            });
-            let storeStaffST = storeEmployeesAll.filter(emp => {
-                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
-                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-                return isST;
-            });
+            let storeStaffNonST = storeEmployeesAll.filter(emp => !isStoreTrainerEmployee(emp));
+            let storeStaffST = storeEmployeesAll.filter(emp => isStoreTrainerEmployee(emp));
             let totalStaffCount = storeStaffNonST.length + storeStaffST.length;
 
             let storeHistoryAll = globalHistoryData.filter(item => {
@@ -2631,16 +2607,8 @@
         let trainerMap = {};
         allStores.forEach(storeName => {
             let storeEmployeesAll = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let storeStaffNonST = storeEmployeesAll.filter(emp => {
-                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
-                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-                return !isST;
-            });
-            let storeStaffST = storeEmployeesAll.filter(emp => {
-                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
-                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-                return isST;
-            });
+            let storeStaffNonST = storeEmployeesAll.filter(emp => !isStoreTrainerEmployee(emp));
+            let storeStaffST = storeEmployeesAll.filter(emp => isStoreTrainerEmployee(emp));
             let totalStaffCount = storeStaffNonST.length + storeStaffST.length;
 
             let trainerHO = "Unassigned";
@@ -2749,16 +2717,8 @@
 
         allStores.forEach(storeName => {
             let storeEmployeesAll = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
-            let storeStaffNonST = storeEmployeesAll.filter(emp => {
-                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
-                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-                return !isST;
-            });
-            let storeStaffST = storeEmployeesAll.filter(emp => {
-                let pos = (emp.position || emp.jabatan || emp.role || emp.title || "").toUpperCase();
-                let isST = pos.includes("STORE TRAINER") || pos.includes("(PT)") || pos.includes("PT") || pos === "ST" || pos.includes("PROBATIONARY TRAINER");
-                return isST;
-            });
+            let storeStaffNonST = storeEmployeesAll.filter(emp => !isStoreTrainerEmployee(emp));
+            let storeStaffST = storeEmployeesAll.filter(emp => isStoreTrainerEmployee(emp));
             let totalStaffCount = storeStaffNonST.length + storeStaffST.length;
 
             let storeHistoryAll = globalHistoryData.filter(item => {
