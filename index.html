@@ -1011,6 +1011,7 @@
     let phaseDoughnutChart = null;
     let currentStaffHistoryCache = [];
     let isAuditorMode = false;
+    let storeStaffCacheMap = {}; // Cache global untuk tombol "Lihat" Staff per Toko
 
     // Daftar Lengkap 104 Toko Digimap (M118 s.d. M297)
     const additionalStores = [
@@ -1953,6 +1954,7 @@
         let tableRowsHTML = "";
         let trainerMap = {}; 
         cachedTrainerSummaryForWA = [];
+        storeStaffCacheMap = {}; // Reset cache map
 
         allStores.forEach((storeName, index) => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
@@ -2034,8 +2036,12 @@
                 </div>
             `;
 
-            let encodedCompleted = encodeURIComponent(JSON.stringify(staffCompletedList));
-            let encodedIncomplete = encodeURIComponent(JSON.stringify(staffIncompleteList));
+            // Simpan ke Cache Map untuk menghindari error kutip/karakter khusus pada onclick HTML
+            let cacheKey = `${storeName}_${selectedMonthYear}`;
+            storeStaffCacheMap[cacheKey] = {
+                completed: staffCompletedList,
+                incomplete: staffIncompleteList
+            };
 
             tableRowsHTML += `
                 <tr>
@@ -2045,7 +2051,7 @@
                     <td style="text-align: center; font-weight: bold; color: var(--primary);">${avgStoreScore} Poin</td>
                     <td>${barHtml}</td>
                     <td style="text-align: center;">
-                        <button type="button" class="action-btn" onclick="openStoreStaffModal('${storeName}', decodeURIComponent('${encodedCompleted}'), decodeURIComponent('${encodedIncomplete}'))">Lihat Staff</button>
+                        <button type="button" class="action-btn" onclick="openStoreStaffModalFromCache('${storeName}', '${selectedMonthYear}')">Lihat Staff</button>
                     </td>
                 </tr>
             `;
@@ -2088,6 +2094,12 @@
             });
             trainerSummaryBody.innerHTML = trainerSummaryHTML;
         }
+    }
+
+    function openStoreStaffModalFromCache(storeName, monthYear) {
+        let cacheKey = `${storeName}_${monthYear}`;
+        let data = storeStaffCacheMap[cacheKey] || { completed: [], incomplete: [] };
+        openStoreStaffModal(storeName, JSON.stringify(data.completed), JSON.stringify(data.incomplete));
     }
 
     function copyTrainerToWA(name, stores, totalStaff, completedStaff, avgScore, completionRate, month) {
