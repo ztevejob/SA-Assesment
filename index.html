@@ -155,6 +155,7 @@
             padding-bottom: 60px;
         }
 
+        /* Kotak Filter Utama yang Seragam (3 Filter: Toko, Staff, Bulan) */
         .meta-box {
             display: grid;
             grid-template-columns: 1fr;
@@ -188,16 +189,17 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Gauge Progress Bar Loading Indicator */
+        /* Universal Strategic Loading Bar (Tampil di atas dengan jelas di Desktop & iPhone) */
         .loading-bar-wrapper {
             display: none;
             width: 100%;
-            background: var(--gray-bg);
-            border: 1px solid var(--border);
+            background: var(--card);
+            border: 1.5px solid var(--primary);
             border-radius: 10px;
-            padding: 15px;
+            padding: 12px 15px;
             margin-bottom: 20px;
             box-sizing: border-box;
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.15);
         }
         .loading-bar-wrapper.active {
             display: block;
@@ -206,16 +208,16 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-size: 12px;
-            font-weight: 600;
-            color: var(--text);
+            font-weight: 700;
+            color: var(--primary);
         }
         .loading-gauge-track {
             width: 100%;
-            height: 12px;
+            height: 10px;
             background-color: var(--border);
-            border-radius: 6px;
+            border-radius: 5px;
             overflow: hidden;
             position: relative;
         }
@@ -223,7 +225,7 @@
             height: 100%;
             width: 0%;
             background: linear-gradient(90deg, var(--primary), var(--success));
-            border-radius: 6px;
+            border-radius: 5px;
             transition: width 0.3s ease;
         }
 
@@ -532,7 +534,18 @@
 <!-- KONTEN UTAMA -->
 <main class="main-content">
     
-    <!-- Meta Input Bar UTAMA -->
+    <!-- Universal Strategic Loading Bar (Tampil di atas dengan jelas di Desktop & iPhone) -->
+    <div id="universalLoadingBar" class="loading-bar-wrapper">
+        <div class="loading-gauge-header">
+            <span id="loadingBarText">🔄 Memuat data dari server...</span>
+            <span id="loadingBarPct">0%</span>
+        </div>
+        <div class="loading-gauge-track">
+            <div id="loadingBarFill" class="loading-gauge-fill"></div>
+        </div>
+    </div>
+
+    <!-- Meta Input Bar UTAMA (Konsisten 3 Filter: Toko, Staff, Bulan) -->
     <div class="meta-box" id="globalMetaBox">
         <div class="form-group">
             <label>Pilih Toko / Store</label>
@@ -545,15 +558,10 @@
                 <option value="">Pilih toko terlebih dahulu...</option>
             </select>
         </div>
-        <div class="form-group" id="metaDateGroupContainer">
-            <label id="metaDateLabelText">Filter Bulan / Tanggal</label>
-            <select id="coachingMonthFilterSummary" onchange="checkStaffProgress()" style="display:none; width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--card); color: var(--text);">
+        <div class="form-group">
+            <label>Filter Bulan</label>
+            <select id="globalMonthFilter" onchange="onMonthFilterChange()" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--card); color: var(--text);">
             </select>
-            <div id="assessmentDateRow" style="display: flex; gap: 6px;">
-                <select id="assessmentMonthFilter" onchange="checkStaffProgress()" style="flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--card); color: var(--text);">
-                </select>
-                <input type="date" id="coachingDate" onchange="checkStaffProgress()" style="flex: 1;">
-            </div>
         </div>
     </div>
 
@@ -606,15 +614,11 @@
 
     <!-- TAB 1: LEMBAR PENILAIAN -->
     <div id="assessmentTab" class="tab-content active">
-        <!-- Gauge Progress Bar Loading untuk Menu Penilaian -->
-        <div id="assessmentLoadingBar" class="loading-bar-wrapper">
-            <div class="loading-gauge-header">
-                <span>🔄 Mengambil data progress & riwayat staff dari server...</span>
-                <span id="assessmentLoadingPct">0%</span>
-            </div>
-            <div class="loading-gauge-track">
-                <div id="assessmentLoadingFill" class="loading-gauge-fill"></div>
-            </div>
+        
+        <!-- Input Tanggal Pelaksanaan Khusus Saat Mau Submit / Asesmen -->
+        <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div style="font-size: 12px; font-weight: 600;">📅 Tanggal Pelaksanaan Asesmen / Coaching:</div>
+            <input type="date" id="coachingDate" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--card); color: var(--text);">
         </div>
 
         <div id="dashboardView">
@@ -637,18 +641,16 @@
 
     <!-- TAB 2: SUMMARY & CHART ANALITIK -->
     <div id="summaryTab" class="tab-content">
-        <!-- Gauge Progress Bar Loading untuk Menu Summary -->
-        <div id="summaryLoadingBar" class="loading-bar-wrapper">
-            <div class="loading-gauge-header">
-                <span>📊 Mengambil rekapitulasi coaching & data analitik toko...</span>
-                <span id="summaryLoadingPct">0%</span>
-            </div>
-            <div class="loading-gauge-track">
-                <div id="summaryLoadingFill" class="loading-gauge-fill"></div>
-            </div>
+        
+        <!-- PANDUAN AWAL JIKA TOKO/STAFF BELUM DIPILIH -->
+        <div id="summaryUnselectedState" style="text-align: center; padding: 40px 20px; background: var(--gray-bg); border: 1.5px dashed var(--border); border-radius: 12px; margin-bottom: 20px;">
+            <div style="font-size: 32px; margin-bottom: 10px;">👆</div>
+            <h3 style="color: var(--primary); margin: 0 0 6px 0; font-size: 15px;">Silakan Pilih Toko dan Nama Staff Terlebih Dahulu</h3>
+            <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Ringkasan metrik, grafik performa, dan rekapitulasi coaching staff akan muncul secara otomatis di sini.</p>
         </div>
 
-        <div class="summary-container">
+        <!-- KONTEN ANALITIK SUMMARY (Hanya Tampil Jika Toko & Staff Dipilih) -->
+        <div id="summaryContentBody" class="summary-container" style="display: none;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                 <div style="background: var(--gray-bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 10px; color: var(--text-secondary); font-weight: 600;">SKOR AKHIR STAFF</div>
@@ -1016,7 +1018,7 @@
     let phaseDoughnutChart = null;
     let currentStaffHistoryCache = [];
     let isAuditorMode = false;
-    let storeStaffCacheMap = {}; // Cache global untuk tombol "Lihat" Staff per Toko
+    let storeStaffCacheMap = {}; 
 
     // Daftar Lengkap 104 Toko Digimap (M118 s.d. M297)
     const additionalStores = [
@@ -1163,29 +1165,31 @@
         initPhaseDoughnutChart();
     };
 
-    function updateGaugeLoading(barId, fillId, pctId, percent, text) {
-        const bar = document.getElementById(barId);
-        const fill = document.getElementById(fillId);
-        const pct = document.getElementById(pctId);
-        if (bar && fill && pct) {
+    function updateUniversalLoading(percent, text) {
+        const bar = document.getElementById('universalLoadingBar');
+        const fill = document.getElementById('loadingBarFill');
+        const pct = document.getElementById('loadingBarPct');
+        const txt = document.getElementById('loadingBarText');
+        if (bar && fill && pct && txt) {
             bar.classList.add('active');
             fill.style.width = percent + '%';
             pct.innerText = percent + '%';
+            txt.innerText = text;
         }
     }
 
-    function hideGaugeLoading(barId) {
-        const bar = document.getElementById(barId);
+    function hideUniversalLoading() {
+        const bar = document.getElementById('universalLoadingBar');
         if (bar) bar.classList.remove('active');
     }
 
     function fetchMasterAndStores() {
-        updateGaugeLoading('assessmentLoadingBar', 'assessmentLoadingFill', 'assessmentLoadingPct', 30, "Menghubungkan server master...");
+        updateUniversalLoading(30, "Menghubungkan server master karyawan...");
         
         fetch(WEB_APP_URL)
         .then(res => res.json())
         .then(data => {
-            updateGaugeLoading('assessmentLoadingBar', 'assessmentLoadingFill', 'assessmentLoadingPct', 75, "Memproses data 104 toko...");
+            updateUniversalLoading(75, "Memproses data 104 toko...");
             masterEmployees = data;
             
             let fetchedStores = data.map(item => item.store ? item.store.trim() : "").filter(Boolean);
@@ -1230,8 +1234,8 @@
                 });
             }
 
-            updateGaugeLoading('assessmentLoadingBar', 'assessmentLoadingFill', 'assessmentLoadingPct', 100, "Selesai");
-            setTimeout(() => hideGaugeLoading('assessmentLoadingBar'), 400);
+            updateUniversalLoading(100, "Selesai");
+            setTimeout(() => hideUniversalLoading(), 400);
         })
         .catch(err => {
             console.log("Gagal memuat master karyawan:", err);
@@ -1240,14 +1244,13 @@
             additionalStores.forEach(store => {
                 storeDatalist.innerHTML += `<option value="${store}">`;
             });
-            hideGaugeLoading('assessmentLoadingBar');
+            hideUniversalLoading();
         });
     }
 
     function populateMonthDropdowns() {
         const monthSelects = [
-            document.getElementById('coachingMonthFilterSummary'),
-            document.getElementById('assessmentMonthFilter'),
+            document.getElementById('globalMonthFilter'),
             document.getElementById('allStoresMonthFilter'),
             document.getElementById('storeProgressMonthFilter'),
             document.getElementById('pptExportMonthSelect')
@@ -1392,32 +1395,25 @@
         }
     }
 
+    function onMonthFilterChange() {
+        checkStaffProgress();
+    }
+
     function checkStaffProgress() {
         resetAssessmentState();
         
         const store = document.getElementById('storeInput').value.trim();
         const staffName = document.getElementById('staffInput').value;
-        
-        let selectedMonthYear = "";
-        const isSummaryActive = document.getElementById('summaryTab').classList.contains('active');
-        if (isSummaryActive) {
-            selectedMonthYear = document.getElementById('coachingMonthFilterSummary').value;
-        } else {
-            selectedMonthYear = document.getElementById('assessmentMonthFilter').value;
-        }
+        const selectedMonthYear = document.getElementById('globalMonthFilter').value;
 
         if (store && staffName && selectedMonthYear) {
-            let loadingBarId = isSummaryActive ? 'summaryLoadingBar' : 'assessmentLoadingBar';
-            let loadingFillId = isSummaryActive ? 'summaryLoadingFill' : 'assessmentLoadingFill';
-            let loadingPctId = isSummaryActive ? 'summaryLoadingPct' : 'assessmentLoadingPct';
-
-            updateGaugeLoading(loadingBarId, loadingFillId, loadingPctId, 40, "Memuat progress staff...");
+            updateUniversalLoading(40, "Memuat progress & riwayat staff...");
 
             let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}&staffName=${encodeURIComponent(staffName)}`;
             fetch(url)
             .then(res => res.json())
             .then(historyData => {
-                updateGaugeLoading(loadingBarId, loadingFillId, loadingPctId, 90, "Memproses riwayat...");
+                updateUniversalLoading(90, "Memproses data riwayat...");
                 currentStaffHistoryCache = historyData;
                 historyData.forEach(item => {
                     if (item.staffName && item.staffName.trim().toLowerCase() === staffName.toLowerCase()) {
@@ -1429,13 +1425,13 @@
                         }
                     }
                 });
-                updateGaugeLoading(loadingBarId, loadingFillId, loadingPctId, 100, "Selesai");
-                setTimeout(() => hideGaugeLoading(loadingBarId), 400);
+                updateUniversalLoading(100, "Selesai");
+                setTimeout(() => hideUniversalLoading(), 400);
                 initDashboard();
             })
             .catch(err => {
                 console.log("Gagal memuat progress staff:", err);
-                hideGaugeLoading(loadingBarId);
+                hideUniversalLoading();
                 initDashboard();
             });
         } else {
@@ -1443,7 +1439,7 @@
             initDashboard();
         }
 
-        if (isSummaryActive) {
+        if (document.getElementById('summaryTab').classList.contains('active')) {
             updateSummaryView();
         }
     }
@@ -1485,23 +1481,10 @@
         document.getElementById(tabId).classList.add('active');
 
         const metaBox = document.getElementById('globalMetaBox');
-        const assessmentDateRow = document.getElementById('assessmentDateRow');
-        const monthSelectEl = document.getElementById('coachingMonthFilterSummary');
-        const metaLabelEl = document.getElementById('metaDateLabelText');
-
         if (tabId === 'allStoresTab' || tabId === 'storeProgressTab' || tabId === 'exportPptTab') {
             metaBox.style.display = 'none';
         } else {
             metaBox.style.display = 'grid';
-            if (tabId === 'summaryTab') {
-                metaLabelEl.innerText = "📅 Filter Bulan Rekapitulasi";
-                assessmentDateRow.style.display = 'none';
-                monthSelectEl.style.display = 'block';
-            } else {
-                metaLabelEl.innerText = "📅 Filter Bulan & Tanggal Submit";
-                assessmentDateRow.style.display = 'flex';
-                monthSelectEl.style.display = 'none';
-            }
         }
 
         if (tabId === 'summaryTab') {
@@ -1519,7 +1502,7 @@
         const date = document.getElementById('coachingDate').value;
 
         if (!store || !staff || !date) {
-            alert('⚠️ Untuk mulai asesmen, mohon isi Toko, Nama Staff, dan Tanggal terlebih dahulu!');
+            alert('⚠️ Untuk mulai asesmen, mohon isi Toko, Nama Staff, dan Tanggal Pelaksanaan terlebih dahulu!');
             return false;
         }
         return true;
@@ -1594,7 +1577,7 @@
         const coachingDate = document.getElementById('coachingDate').value;
 
         if (!coachingDate) {
-            alert('⚠️ Mohon tentukan Tanggal terlebih dahulu!');
+            alert('⚠️ Mohon tentukan Tanggal Pelaksanaan terlebih dahulu!');
             return;
         }
 
@@ -1741,33 +1724,38 @@
     function updateSummaryView() {
         const store = document.getElementById('storeInput').value.trim();
         const staffName = document.getElementById('staffInput').value;
-        const selectedMonthYear = document.getElementById('coachingMonthFilterSummary').value || new Date().toISOString().slice(0, 7);
+        const selectedMonthYear = document.getElementById('globalMonthFilter').value || new Date().toISOString().slice(0, 7);
+        
+        const unselectedStateEl = document.getElementById('summaryUnselectedState');
+        const contentBodyEl = document.getElementById('summaryContentBody');
+
+        // LOGIKA CONDITIONAL: Jika Toko atau Staff belum dipilih, sembunyikan grafik & tabel summary
+        if (!store || !staffName) {
+            unselectedStateEl.style.display = 'block';
+            contentBodyEl.style.display = 'none';
+            return;
+        }
+
+        unselectedStateEl.style.display = 'none';
+        contentBodyEl.style.display = 'flex';
+
         const tableBody = document.getElementById('summaryTableBody');
         const auditTableBody = document.getElementById('auditTableBody');
         const storeProgressTableBody = document.getElementById('storeProgressTableBody');
         const staffLabelEl = document.getElementById('activeStaffLabel');
 
         if (staffLabelEl) {
-            staffLabelEl.innerText = staffName ? `${staffName} (${selectedMonthYear})` : "(Belum dipilih)";
+            staffLabelEl.innerText = `${staffName} (${selectedMonthYear})`;
         }
 
-        if (!store) {
-            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">⚠️ Silakan pilih Toko terlebih dahulu.</td></tr>`;
-            auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko & Staff.</td></tr>`;
-            storeProgressTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Silakan pilih Toko.</td></tr>`;
-            document.getElementById('summaryStoreAvgScore').innerText = `0 Poin`;
-            document.getElementById('summaryStoreCompletion').innerText = `0%`;
-            return;
-        }
-
-        updateGaugeLoading('summaryLoadingBar', 'summaryLoadingFill', 'summaryLoadingPct', 30, "Memuat ringkasan rekapitulasi...");
+        updateUniversalLoading(30, "Memuat rekapitulasi data summary toko...");
 
         let url = `${WEB_APP_URL}?action=getHistory&store=${encodeURIComponent(store)}`;
 
         fetch(url)
         .then(res => res.json())
         .then(historyData => {
-            updateGaugeLoading('summaryLoadingBar', 'summaryLoadingFill', 'summaryLoadingPct', 85, "Menghitung nilai analitik...");
+            updateUniversalLoading(85, "Menghitung nilai analitik...");
             currentStaffHistoryCache = historyData;
             tableBody.innerHTML = '';
             auditTableBody.innerHTML = '';
@@ -1777,84 +1765,77 @@
             let totalOverallScore = 0;
             let completedCount = 0;
 
-            if (staffName) {
-                let coachingPhaseScoresMap = {};
-                let coachingPhaseNotesMap = {};
-                let auditList = [];
+            let coachingPhaseScoresMap = {};
+            let coachingPhaseNotesMap = {};
+            let auditList = [];
 
-                historyData.forEach(item => {
-                    if (item.staffName && item.staffName.toLowerCase() === staffName.toLowerCase() && item.phaseName) {
-                        let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
-                        let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
-                        let jenisSesi = item.jenisSesi || "Coaching";
+            historyData.forEach(item => {
+                if (item.staffName && item.staffName.toLowerCase() === staffName.toLowerCase() && item.phaseName) {
+                    let cleanDate = item.coachingDate ? item.coachingDate.slice(0, 10) : "";
+                    let itemMonth = cleanDate ? cleanDate.slice(0, 7) : "";
+                    let jenisSesi = item.jenisSesi || "Coaching";
 
-                        if (itemMonth === selectedMonthYear) {
-                            if (jenisSesi === "Mystery Shopper") {
-                                auditList.push({
-                                    date: cleanDate,
-                                    phase: item.phaseName,
-                                    auditor: item.auditor || "Auditor",
-                                    score: Number(item.totalScore || 0),
-                                    notes: item.notes || "-"
-                                });
-                            } else {
-                                coachingPhaseScoresMap[item.phaseName] = Number(item.totalScore || 0);
-                                if (item.notes) coachingPhaseNotesMap[item.phaseName] = item.notes;
-                            }
+                    if (itemMonth === selectedMonthYear) {
+                        if (jenisSesi === "Mystery Shopper") {
+                            auditList.push({
+                                date: cleanDate,
+                                phase: item.phaseName,
+                                auditor: item.auditor || "Auditor",
+                                score: Number(item.totalScore || 0),
+                                notes: item.notes || "-"
+                            });
+                        } else {
+                            coachingPhaseScoresMap[item.phaseName] = Number(item.totalScore || 0);
+                            if (item.notes) coachingPhaseNotesMap[item.phaseName] = item.notes;
                         }
                     }
-                });
+                }
+            });
 
-                phaseKeys.forEach((phaseName, index) => {
-                    let phaseScore = coachingPhaseScoresMap[phaseName] !== undefined ? coachingPhaseScoresMap[phaseName] : 0;
-                    let isDone = coachingPhaseScoresMap[phaseName] !== undefined;
-                    let notesText = coachingPhaseNotesMap[phaseName] ? coachingPhaseNotesMap[phaseName] : '-';
+            phaseKeys.forEach((phaseName, index) => {
+                let phaseScore = coachingPhaseScoresMap[phaseName] !== undefined ? coachingPhaseScoresMap[phaseName] : 0;
+                let isDone = coachingPhaseScoresMap[phaseName] !== undefined;
+                let notesText = coachingPhaseNotesMap[phaseName] ? coachingPhaseNotesMap[phaseName] : '-';
 
-                    if (isDone) completedCount++;
-                    totalOverallScore += phaseScore;
-                    chartScores[index] = phaseScore;
+                if (isDone) completedCount++;
+                totalOverallScore += phaseScore;
+                chartScores[index] = phaseScore;
 
-                    let statusBadge = isDone ? '<span style="color:var(--success); font-weight:600;">Selesai ✓</span>' : '<span style="color:var(--text-secondary);">Belum</span>';
+                let statusBadge = isDone ? '<span style="color:var(--success); font-weight:600;">Selesai ✓</span>' : '<span style="color:var(--text-secondary);">Belum</span>';
 
-                    tableBody.innerHTML += `
+                tableBody.innerHTML += `
+                    <tr>
+                        <td style="font-weight: 600;">${phaseName}</td>
+                        <td>${statusBadge}</td>
+                        <td style="text-align: center; font-weight: 600;">${phaseScore} Poin</td>
+                        <td style="font-size: 11px; color: var(--text-secondary);">${notesText}</td>
+                    </tr>
+                `;
+            });
+
+            if (auditList.length === 0) {
+                auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Belum ada riwayat audit Mystery Shopper.</td></tr>`;
+            } else {
+                auditList.forEach(audit => {
+                    auditTableBody.innerHTML += `
                         <tr>
-                            <td style="font-weight: 600;">${phaseName}</td>
-                            <td>${statusBadge}</td>
-                            <td style="text-align: center; font-weight: 600;">${phaseScore} Poin</td>
-                            <td style="font-size: 11px; color: var(--text-secondary);">${notesText}</td>
+                            <td style="font-size: 11px; font-weight: 600;">${audit.date}</td>
+                            <td style="font-weight: 600;">${audit.phase}</td>
+                            <td><span style="background: #7c3aed; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">🕵️‍♂️ ${audit.auditor}</span></td>
+                            <td style="text-align: center; font-weight: 600; color: #7c3aed;">${audit.score} Poin</td>
+                            <td style="font-size: 11px; color: var(--text-secondary);">${audit.notes}</td>
                         </tr>
                     `;
                 });
+            }
 
-                if (auditList.length === 0) {
-                    auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Belum ada riwayat audit Mystery Shopper.</td></tr>`;
-                } else {
-                    auditList.forEach(audit => {
-                        auditTableBody.innerHTML += `
-                            <tr>
-                                <td style="font-size: 11px; font-weight: 600;">${audit.date}</td>
-                                <td style="font-weight: 600;">${audit.phase}</td>
-                                <td><span style="background: #7c3aed; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">🕵️‍♂️ ${audit.auditor}</span></td>
-                                <td style="text-align: center; font-weight: 600; color: #7c3aed;">${audit.score} Poin</td>
-                                <td style="font-size: 11px; color: var(--text-secondary);">${audit.notes}</td>
-                            </tr>
-                        `;
-                    });
-                }
+            let finalCappedScore = totalOverallScore > 108 ? 108 : totalOverallScore;
+            document.getElementById('summaryTotalScore').innerText = `${finalCappedScore} / 100`;
+            document.getElementById('summaryCompletedPhases').innerText = `${completedCount} / ${phaseKeys.length}`;
 
-                let finalCappedScore = totalOverallScore > 108 ? 108 : totalOverallScore;
-                document.getElementById('summaryTotalScore').innerText = `${finalCappedScore} / 100`;
-                document.getElementById('summaryCompletedPhases').innerText = `${completedCount} / ${phaseKeys.length}`;
-
-                if (performanceChart) {
-                    performanceChart.data.datasets[0].data = chartScores;
-                    performanceChart.update();
-                }
-            } else {
-                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Pilih Nama Staff.</td></tr>`;
-                auditTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Pilih Nama Staff.</td></tr>`;
-                document.getElementById('summaryTotalScore').innerText = `0 / 100`;
-                document.getElementById('summaryCompletedPhases').innerText = `0 / ${phaseKeys.length}`;
+            if (performanceChart) {
+                performanceChart.data.datasets[0].data = chartScores;
+                performanceChart.update();
             }
 
             storeProgressTableBody.innerHTML = '';
@@ -1907,24 +1888,30 @@
             document.getElementById('summaryStoreAvgScore').innerText = `${avgStoreScoreVal} Poin`;
             document.getElementById('summaryStoreCompletion').innerText = `${storeCompletionPct}%`;
 
-            updateGaugeLoading('summaryLoadingBar', 'summaryLoadingFill', 'summaryLoadingPct', 100, "Selesai");
-            setTimeout(() => hideGaugeLoading('summaryLoadingBar'), 400);
+            updateUniversalLoading(100, "Selesai");
+            setTimeout(() => hideUniversalLoading(), 400);
         })
         .catch(err => { 
             console.log("Gagal memuat riwayat:", err); 
-            hideGaugeLoading('summaryLoadingBar');
+            hideUniversalLoading();
         });
     }
 
     function loadStoreProgressTab() {
         if (globalHistoryData.length === 0) {
+            updateUniversalLoading(40, "Memuat data progres seluruh toko...");
             fetch(`${WEB_APP_URL}?action=getHistory`)
             .then(res => res.json())
             .then(data => {
                 globalHistoryData = data;
+                updateUniversalLoading(100, "Selesai");
+                setTimeout(() => hideUniversalLoading(), 400);
                 renderStoreProgressTab();
             })
-            .catch(err => console.log("Gagal memuat history:", err));
+            .catch(err => {
+                console.log("Gagal memuat history:", err);
+                hideUniversalLoading();
+            });
         } else {
             renderStoreProgressTab();
         }
@@ -1943,7 +1930,7 @@
         let tableRowsHTML = "";
         let trainerMap = {}; 
         cachedTrainerSummaryForWA = [];
-        storeStaffCacheMap = {}; // Reset cache map
+        storeStaffCacheMap = {}; 
 
         allStores.forEach((storeName, index) => {
             let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === storeName.toLowerCase());
@@ -2169,15 +2156,21 @@
 
     function loadAllStoresDashboard() {
         const leaderboardTableBody = document.getElementById('nationalLeaderboardTableBody');
-        leaderboardTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Memuat...</td></tr>`;
+        leaderboardTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--primary);">⏳ Memuat data nasional...</td></tr>`;
 
+        updateUniversalLoading(40, "Memuat data rekapitulasi nasional...");
         fetch(`${WEB_APP_URL}?action=getHistory`)
         .then(res => res.json())
         .then(data => {
             globalHistoryData = data;
+            updateUniversalLoading(100, "Selesai");
+            setTimeout(() => hideUniversalLoading(), 400);
             renderAllStoresDashboard();
         })
-        .catch(err => { console.log("Gagal:", err); });
+        .catch(err => { 
+            console.log("Gagal:", err); 
+            hideUniversalLoading();
+        });
     }
 
     function renderAllStoresDashboard() {
@@ -2302,9 +2295,6 @@
         }
     }
 
-    // ==========================================
-    // EXPORT PPT EXECUTIVES 6 SLIDE SESUAI URUTAN
-    // ==========================================
     function exportFullNationalPPT() {
         let selectedMonthYear = document.getElementById('pptExportMonthSelect').value || new Date().toISOString().slice(0, 7);
         let fetchedStores = masterEmployees.map(item => item.store ? item.store.trim() : "");
