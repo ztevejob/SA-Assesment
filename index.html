@@ -541,14 +541,19 @@
         </div>
         <div class="form-group">
             <label>Nama Staff / Sales Assistant</label>
-            <input type="text" id="staffInput" list="staffListOptions" placeholder="Pilih toko terlebih dahulu..." oninput="checkStaffProgress()" onchange="validateStaffInput()" onblur="validateStaffInput()">
-            <datalist id="staffListOptions"></datalist>
+            <select id="staffInput" onchange="checkStaffProgress()" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--card); color: var(--text);">
+                <option value="">Pilih toko terlebih dahulu...</option>
+            </select>
         </div>
         <div class="form-group" id="metaDateGroupContainer">
             <label id="metaDateLabelText">Filter Bulan / Tanggal</label>
             <select id="coachingMonthFilterSummary" onchange="checkStaffProgress()" style="display:none; width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--card); color: var(--text);">
             </select>
-            <input type="date" id="coachingDate" onchange="checkStaffProgress()">
+            <div id="assessmentDateRow" style="display: flex; gap: 6px;">
+                <select id="assessmentMonthFilter" onchange="checkStaffProgress()" style="flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--card); color: var(--text);">
+                </select>
+                <input type="date" id="coachingDate" onchange="checkStaffProgress()" style="flex: 1;">
+            </div>
         </div>
     </div>
 
@@ -1242,6 +1247,7 @@
     function populateMonthDropdowns() {
         const monthSelects = [
             document.getElementById('coachingMonthFilterSummary'),
+            document.getElementById('assessmentMonthFilter'),
             document.getElementById('allStoresMonthFilter'),
             document.getElementById('storeProgressMonthFilter'),
             document.getElementById('pptExportMonthSelect')
@@ -1355,29 +1361,10 @@
         }
     }
 
-    function validateStaffInput() {
-        const store = document.getElementById('storeInput').value.trim();
-        const staffInput = document.getElementById('staffInput');
-        const val = staffInput.value.trim();
-        if (!store || !val) return;
-
-        let storeStaff = masterEmployees.filter(emp => emp.store && emp.store.trim().toLowerCase() === store.toLowerCase());
-        let matched = storeStaff.find(emp => emp.name.trim().toLowerCase() === val.toLowerCase());
-
-        if (!matched) {
-            staffInput.value = val;
-            checkStaffProgress();
-        } else {
-            staffInput.value = matched.name.trim();
-            checkStaffProgress();
-        }
-    }
-
     function onStoreChange() {
         const storeInputVal = document.getElementById('storeInput').value.trim().toLowerCase();
-        const staffDatalist = document.getElementById('staffListOptions');
-        staffDatalist.innerHTML = '';
-        document.getElementById('staffInput').value = '';
+        const staffSelect = document.getElementById('staffInput');
+        staffSelect.innerHTML = '<option value="">Pilih staff...</option>';
 
         resetAssessmentState();
 
@@ -1389,11 +1376,13 @@
         
         if (filteredStaff.length > 0) {
             filteredStaff.forEach(staff => {
-                staffDatalist.innerHTML += `<option value="${staff.name.trim()}">`;
+                let opt = document.createElement('option');
+                opt.value = staff.name.trim();
+                opt.text = staff.name.trim();
+                staffSelect.appendChild(opt);
             });
-            document.getElementById('staffInput').placeholder = "Ketik atau pilih nama staff...";
         } else {
-            document.getElementById('staffInput').placeholder = "Ketik nama staff baru...";
+            staffSelect.innerHTML = '<option value="">Tidak ada staff di toko ini</option>';
         }
         
         initDashboard();
@@ -1407,15 +1396,14 @@
         resetAssessmentState();
         
         const store = document.getElementById('storeInput').value.trim();
-        const staffName = document.getElementById('staffInput').value.trim();
+        const staffName = document.getElementById('staffInput').value;
         
         let selectedMonthYear = "";
         const isSummaryActive = document.getElementById('summaryTab').classList.contains('active');
         if (isSummaryActive) {
             selectedMonthYear = document.getElementById('coachingMonthFilterSummary').value;
         } else {
-            let selectedDate = document.getElementById('coachingDate').value;
-            selectedMonthYear = selectedDate ? selectedDate.slice(0, 7) : new Date().toISOString().slice(0, 7);
+            selectedMonthYear = document.getElementById('assessmentMonthFilter').value;
         }
 
         if (store && staffName && selectedMonthYear) {
@@ -1488,7 +1476,8 @@
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
 
         document.querySelectorAll(`.tab-btn`).forEach(btn => {
-            if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabId)) {
+            let attr = btn.getAttribute('onclick');
+            if (attr && attr.includes(tabId)) {
                 btn.classList.add('active');
             }
         });
@@ -1496,7 +1485,7 @@
         document.getElementById(tabId).classList.add('active');
 
         const metaBox = document.getElementById('globalMetaBox');
-        const dateInputEl = document.getElementById('coachingDate');
+        const assessmentDateRow = document.getElementById('assessmentDateRow');
         const monthSelectEl = document.getElementById('coachingMonthFilterSummary');
         const metaLabelEl = document.getElementById('metaDateLabelText');
 
@@ -1506,11 +1495,11 @@
             metaBox.style.display = 'grid';
             if (tabId === 'summaryTab') {
                 metaLabelEl.innerText = "📅 Filter Bulan Rekapitulasi";
-                dateInputEl.style.display = 'none';
+                assessmentDateRow.style.display = 'none';
                 monthSelectEl.style.display = 'block';
             } else {
-                metaLabelEl.innerText = "📅 Tanggal Coaching";
-                dateInputEl.style.display = 'block';
+                metaLabelEl.innerText = "📅 Filter Bulan & Tanggal Submit";
+                assessmentDateRow.style.display = 'flex';
                 monthSelectEl.style.display = 'none';
             }
         }
@@ -1526,7 +1515,7 @@
 
     function validateMetaForCoaching() {
         const store = document.getElementById('storeInput').value.trim();
-        const staff = document.getElementById('staffInput').value.trim();
+        const staff = document.getElementById('staffInput').value;
         const date = document.getElementById('coachingDate').value;
 
         if (!store || !staff || !date) {
@@ -1601,7 +1590,7 @@
 
     function submitCurrentPhase() {
         const store = document.getElementById('storeInput').value.trim();
-        const staffName = document.getElementById('staffInput').value.trim();
+        const staffName = document.getElementById('staffInput').value;
         const coachingDate = document.getElementById('coachingDate').value;
 
         if (!coachingDate) {
@@ -1751,7 +1740,7 @@
 
     function updateSummaryView() {
         const store = document.getElementById('storeInput').value.trim();
-        const staffName = document.getElementById('staffInput').value.trim();
+        const staffName = document.getElementById('staffInput').value;
         const selectedMonthYear = document.getElementById('coachingMonthFilterSummary').value || new Date().toISOString().slice(0, 7);
         const tableBody = document.getElementById('summaryTableBody');
         const auditTableBody = document.getElementById('auditTableBody');
@@ -2036,7 +2025,6 @@
                 </div>
             `;
 
-            // Simpan ke Cache Map untuk menghindari error kutip/karakter khusus pada onclick HTML
             let cacheKey = `${storeName}_${selectedMonthYear}`;
             storeStaffCacheMap[cacheKey] = {
                 completed: staffCompletedList,
